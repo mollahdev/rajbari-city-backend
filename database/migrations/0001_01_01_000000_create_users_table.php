@@ -13,21 +13,21 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('name')->nullable();
             $table->string('email')->nullable();
             $table->string('image')->nullable();
             $table->string('phone');
-            $table->date('dob');
-            $table->string('gender');
-            $table->string('district');
-            $table->string('upzilla');
-            $table->string('union');
-            $table->string('dialcode');
+            $table->date('dob')->nullable();
+            $table->string('gender')->nullable();
+            $table->string('district')->nullable();
+            $table->string('upzilla')->nullable();
+            $table->string('union')->nullable();
+            $table->string('dialcode')->nullable();
             $table->enum('account_status', ['active', 'pending', 'block'])->default('pending');
-            $table->enum('online_status', ['online', 'offline']);
+            $table->enum('online_status', ['online', 'offline'])->default('offline');
             $table->string('otp')->nullable();
-            $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
+            $table->timestamp('phone_verified_at')->nullable();
+            $table->string('password')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });
