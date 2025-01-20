@@ -3,6 +3,8 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+
+use App\Services\OTP;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -41,6 +43,19 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Send an SMS to the user.
+     *
+     * @param string $message The message content.
+     * @return bool           True if the SMS is sent successfully, false otherwise.
+     */
+    public function sendSMS(string $message): bool
+    {
+        $phoneNumber = "{$this->dial_code}{$this->phone}";
+        
+        return OTP::send($phoneNumber, $message);
     }
 
     /**
@@ -101,5 +116,15 @@ class User extends Authenticatable
     public function createAuthToken()
     {
         return $this->createToken('auth_token')->plainTextToken;
+    }
+
+    /**
+     * Check phone number is verified
+     *
+     * @return  bool
+     */
+    public function is_verified()
+    {
+        return $this->phone_verified_at != null;
     }
 }

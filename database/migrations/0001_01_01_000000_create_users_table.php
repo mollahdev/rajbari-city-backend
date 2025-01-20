@@ -26,6 +26,7 @@ return new class extends Migration
             $table->enum('account_status', ['active', 'pending', 'block'])->default('pending');
             $table->enum('online_status', ['online', 'offline'])->default('offline');
             $table->string('otp')->nullable();
+            $table->timestamp('otp_expires_at')->nullable();
             $table->timestamp('phone_verified_at')->nullable();
             $table->string('password')->nullable();
             $table->rememberToken();

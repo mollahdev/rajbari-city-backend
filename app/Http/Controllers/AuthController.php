@@ -3,42 +3,116 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Services\OTP;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
     /**
-     * Register a user
+     * Send OTP for phone number verification
      *
-     * @return  array
+     * @param   Request  $request  [$request description]
+     *
+     * @return  JSON
      */
-    public function register(Request $request)
+    public function sendOtp(Request $request)
     {
         $request->validate([
-            'phone'     => 'required',
-            'dialcode'  => 'required',
-            'district'  => 'required',
+            'phone' => 'required|unique:users,phone',
+        ]);
+
+        $otp = rand(100000, 999999); // Generate 6-digit OTP
+        $expiresAt = Carbon::now()->addMinutes(10); // OTP expires in 10 minutes
+
+        // Send OTP
+        $phoneNumber = "{$request->dialcode}{$request->phone}";
+        $is_send_otp = OTP::send($phoneNumber, $otp);
+
+        if (!$is_send_otp) {
+            return response()->json(['message' => 'Something went wrong, please try again.'], 422);
+        }
+
+        $user = new User();
+        $user->phone          = $request->phone;
+        $user->dialcode       = $request->dialcode;
+        $user->district       = $request->district;
+        $user->otp            = $otp;
+        $user->otp_expires_at = $expiresAt;
+
+        $user->save();
+
+        return response()->json(['message' => 'OTP sent successfully.']);
+    }
+
+    /**
+     * Verify OTP
+     *
+     * @param   Request  $request  [$request description]
+     *
+     * @return  JSON
+     */
+    public function verifyOtp(Request $request)
+    {
+        $request->validate([
+            'phone' => 'required',
+            'otp' => 'required',
         ]);
 
         $user = User::where('phone', $request->phone)->first();
 
-        if ($user && $user->is_active()) {
-            return response()->json([
-                'message' => 'User already exists',
-            ], 422);
+        if (!$user || $user->otp !== $request->otp || Carbon::now()->isAfter($user->otp_expires_at)) {
+            return response()->json(['message' => 'Invalid or expired OTP.'], 422);
         }
 
-        $user = new User();
+        $user->update([
+            'phone_verified_at' => Carbon::now(),
+            'otp'               => null,
+            'otp_expires_at'    => null,
+        ]);
 
-        $user->phone    = $request->phone;
-        $user->dialcode = $request->dialcode;
-        $user->district = $request->district;
+        return response()->json(['message' => 'OTP verified successfully.']);
+    }
 
-        $user->save();
+    /**
+     * Update user profile
+     *
+     * @param   Request  $request  [$request description]
+     *
+     * @return  JSON
+     */
+    public function updateProfile(Request $request)
+    {
+        $request->validate([
+            'name'      => 'required',
+            'phone'     => 'required',
+            'dob'       => 'required',
+            'gender'    => 'required',
+            'upzilla'   => 'required',
+            'union'     => 'required',
+            'password'  => 'required|min:6',
+        ]);
+
+        $user = User::where('phone', $request->phone)->first();
+
+        if (!$user || !$user->is_verified()) {
+            return response()->json(['message' => 'Phone number not verified.'], 403);
+        }
+
+        $user->update([
+            'name'     => $request->name,
+            'email'    => $request->email,
+            'dob'      => $request->dob,
+            'gender'   => $request->gender,
+            'upzilla'  => $request->upzilla,
+            'union'    => $request->union,
+            'password' => Hash::make($request->password),
+        ]);
 
         return response()->json([
-            'message'   => 'A verfication code has been sent to your phone',
+            'message'   => 'Profile updated successfully.',
             'data'      => [
                 'access_token' => $user->createAuthToken(),
                 'token_type'   => 'Bearer'
