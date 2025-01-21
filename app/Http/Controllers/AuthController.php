@@ -27,9 +27,11 @@ class AuthController extends Controller
         $otp = rand(100000, 999999); // Generate 6-digit OTP
         $expiresAt = Carbon::now()->addMinutes(10); // OTP expires in 10 minutes
 
+        $message = "Rajbari City account registration OTP {$otp}";
+
         // Send OTP
         $phoneNumber = "{$request->dialcode}{$request->phone}";
-        $is_send_otp = OTP::send($phoneNumber, $otp);
+        $is_send_otp = OTP::send($phoneNumber, $message);
 
         if (!$is_send_otp) {
             return response()->json(['message' => 'Something went wrong, please try again.'], 422);
