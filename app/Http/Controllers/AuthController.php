@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
-
+use Illuminate\Validation\Rules\Password;
 class AuthController extends Controller
 {
     /**
@@ -94,7 +94,7 @@ class AuthController extends Controller
             'gender'    => 'required',
             'upzilla'   => 'required',
             'union'     => 'required',
-            'password'  => 'required|min:6',
+            'password'  => ['required', Password::min(8)->mixedCase()->numbers()],
         ]);
 
         $user = User::where('phone', $request->phone)->first();
