@@ -9,6 +9,7 @@ use Illuminate\Validation\Rules\Password;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Requests\UpdateProfileRequest;
 use App\Http\Resources\UserResource;
+use Carbon\Carbon;
 
 class ProfileController extends Controller
 {
@@ -55,7 +56,7 @@ class ProfileController extends Controller
         $user->update([
             'name'     => $request->name,
             'email'    => $request->email,
-            'dob'      => $request->dob,
+            'dob'      => Carbon::createFromFormat('d-m-Y', $request->dob)->format('Y-m-d'),
             'gender'   => $request->gender,
             'district' => $request->district,
             'upzilla'  => $request->upzilla,

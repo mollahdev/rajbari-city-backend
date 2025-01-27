@@ -21,7 +21,8 @@ class AuthController extends Controller
     public function sendOtp(Request $request)
     {
         $request->validate([
-            'phone' => 'required|unique:users,phone',
+            'dial_code' => 'required|string|size:3|regex:/^[0-9]+$/',
+            'phone'     => 'required|string|digits:10|regex:/^[1-9][0-9]{9}$/',
         ]);
 
         $otp = rand(100000, 999999); // Generate 6-digit OTP
@@ -46,7 +47,13 @@ class AuthController extends Controller
 
         $user->save();
 
-        return response()->json(['message' => 'OTP sent successfully.']);
+        return response()->json([
+            'message' => 'OTP sent successfully.',
+            'data'      => [
+                'access_token' => $user->createAuthToken(),
+                'token_type'   => 'Bearer'
+            ]
+        ]);
     }
 
     /**
@@ -59,11 +66,10 @@ class AuthController extends Controller
     public function verifyOtp(Request $request)
     {
         $request->validate([
-            'phone' => 'required',
             'otp' => 'required',
         ]);
 
-        $user = User::where('phone', $request->phone)->first();
+        $user = Auth::user();
 
         if (!$user || $user->otp !== $request->otp || Carbon::now()->isAfter($user->otp_expires_at)) {
             return response()->json(['message' => 'Invalid or expired OTP.'], 422);
@@ -89,7 +95,6 @@ class AuthController extends Controller
     {
         $request->validate([
             'name'      => 'required',
-            'phone'     => 'required',
             'dob'       => 'required',
             'gender'    => 'required',
             'upzilla'   => 'required',
@@ -97,7 +102,7 @@ class AuthController extends Controller
             'password'  => ['required', Password::min(8)->mixedCase()->numbers()],
         ]);
 
-        $user = User::where('phone', $request->phone)->first();
+        $user = $user = Auth::user();
 
         if (!$user || !$user->is_verified()) {
             return response()->json(['message' => 'Phone number not verified.'], 403);
@@ -106,19 +111,16 @@ class AuthController extends Controller
         $user->update([
             'name'     => $request->name,
             'email'    => $request->email,
-            'dob'      => $request->dob,
+            'dob'      => Carbon::createFromFormat('d-m-Y', $request->dob)->format('Y-m-d'),
             'gender'   => $request->gender,
             'upzilla'  => $request->upzilla,
             'union'    => $request->union,
             'password' => Hash::make($request->password),
+            'account_status' => 'active',
         ]);
 
         return response()->json([
             'message'   => 'Profile updated successfully.',
-            'data'      => [
-                'access_token' => $user->createAuthToken(),
-                'token_type'   => 'Bearer'
-            ]
         ]);
     }
 
@@ -132,7 +134,8 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'phone'     => 'required',
+            'dial_code' => 'required|string|size:3|regex:/^[0-9]+$/',
+            'phone'     => 'required|string|digits:10|regex:/^[1-9][0-9]{9}$/',
             'password'  => 'required',
         ]);
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
 class ForgotPasswordController extends Controller
@@ -42,7 +43,13 @@ class ForgotPasswordController extends Controller
             'otp_expires_at' => $expiresAt,
         ]);
 
-        return response()->json(['message' => 'OTP sent successfully.']);
+        return response()->json([
+            'message' => 'OTP sent successfully.',
+            'data'      => [
+                'access_token' => $user->createAuthToken(),
+                'token_type'   => 'Bearer'
+            ]
+        ]);
     }
 
     /**
@@ -55,11 +62,10 @@ class ForgotPasswordController extends Controller
     public function verifyOtp(Request $request)
     {
         $request->validate([
-            'phone' => 'required|exists:users,phone',
             'otp' => 'required',
         ]);
 
-        $user = User::where('phone', $request->phone)->first();
+        $user = Auth::user();
 
         if (!$user || $user->otp !== $request->otp || Carbon::now()->isAfter($user->otp_expires_at)) {
             return response()->json(['message' => 'Invalid or expired OTP.'], 422);

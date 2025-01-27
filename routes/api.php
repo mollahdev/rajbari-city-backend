@@ -13,17 +13,17 @@ Route::get('/', function (Request $request) {
 
 
 Route::post('/login', [AuthController::class, 'login']);
-
 Route::post('/register/send-otp', [AuthController::class, 'sendOtp']);
-Route::post('/register/verify-otp', [AuthController::class, 'verifyOtp']);
-Route::post('/register/update-profile', [AuthController::class, 'updateProfile']);
-
-Route::post('/password/forgot', [ForgotPasswordController::class, 'sendOtp']);
-Route::post('/password/verify-otp', [ForgotPasswordController::class, 'verifyOtp']);
-Route::post('/password/reset', [ForgotPasswordController::class, 'resetPassword']);
-
+Route::post('/forgot-password/send-otp', [ForgotPasswordController::class, 'sendOtp']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
+
+    Route::post('/register/verify-otp', [AuthController::class, 'verifyOtp']);
+    Route::post('/register', [AuthController::class, 'updateProfile']);
+
+    Route::post('/forgot-password/verify-otp', [ForgotPasswordController::class, 'verifyOtp']);
+    Route::post('/forgot-password', [ForgotPasswordController::class, 'resetPassword']);
+
     Route::patch('/profile', [ProfileController::class, 'update']);
     Route::get('/profile', [ProfileController::class, 'getUser']);
     Route::patch('/change-password', [ProfileController::class, 'changePassword']);
