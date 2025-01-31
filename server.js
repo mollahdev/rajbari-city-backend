@@ -1,5 +1,6 @@
 const dotenv = require('dotenv')
 const Fastify = require('fastify')
+const SMS = require('./services/sms')
 
 dotenv.config()
 const fastify = new Fastify({
@@ -9,6 +10,13 @@ const fastify = new Fastify({
 fastify.get('/', async (req, reply) => {
     return {
         data: 'hello world',
+    }
+})
+
+fastify.get('/sms', async (req, reply) => {
+    const response = await SMS.send('8801742793777', 'hello world')
+    return {
+        data: response,
     }
 })
 
