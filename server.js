@@ -1,24 +1,19 @@
+/**
+ * External depdencies
+ */
 const dotenv = require('dotenv')
 const Fastify = require('fastify')
-const SMS = require('./services/sms')
+/**
+ * Internal depdencies
+ */
+const userRoutes = require('./routes/v1/users')
 
 dotenv.config()
 const fastify = new Fastify({
     logger: true,
 })
 
-fastify.get('/', async (req, reply) => {
-    return {
-        data: 'hello world',
-    }
-})
-
-fastify.get('/sms', async (req, reply) => {
-    const response = await SMS.send('8801742793777', 'hello world')
-    return {
-        data: response,
-    }
-})
+fastify.register(userRoutes, { prefix: '/api/v1/' })
 
 const start = async () => {
     const PORT = process.env.APP_PORT || 3000
