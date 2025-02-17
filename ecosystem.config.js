@@ -8,12 +8,8 @@ module.exports = {
         {
             name: appName, // Name of your app
             script: './server.js', // Path to your Fastify entry file (server.js or app.js)
-            watch: true, // Enable watch mode
+            watch: ['.'],
             ignore_watch: ['node_modules', 'logs', 'public'], // Ignore unnecessary directories
-            watch_options: {
-                followSymlinks: false,
-                usePolling: true,
-            },
         },
     ],
 }
