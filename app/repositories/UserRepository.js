@@ -1,17 +1,14 @@
 const UserDTO = require('../dtos/UserDTO')
 const bcrypt = require('bcryptjs')
+const models = require('./../../models')
 
 class UserRepository {
-    constructor(knex) {
-        this.knex = knex
+    async get() {
+        return await models.User.findAll()
     }
 
-    async getAllUsers() {
-        return await this.knex('users').select('*')
-    }
-
-    async getUserById(id) {
-        return await this.knex('users').where({ id }).first()
+    async getById(id) {
+        return await models.User.findByPk(id)
     }
 
     /**
@@ -19,22 +16,28 @@ class UserRepository {
      * @param {UserDTO} userDTO
      * @returns
      */
-    async createUser(userDTO) {
+    async create(userDTO) {
         const hashedPassword = await bcrypt.hash(userDTO.password, 10) // Hash password
-        const newUser = await this.knex('users').insert({
+        const newUser = await models.User.create({
             name: userDTO.name,
             password: hashedPassword,
         })
 
-        return newUser[0]
+        return newUser.id
     }
 
-    async updateUser(id, user) {
-        return await this.knex('users').where({ id }).update(user)
+    async update(id, user) {
+        return await models.User.update(user, {
+            where: {
+                id,
+            },
+        })
     }
 
-    async deleteUser(id) {
-        return await this.knex('users').where({ id }).del()
+    async delete(id) {
+        return await models.User.destroy({
+            where: { id: id },
+        })
     }
 }
 

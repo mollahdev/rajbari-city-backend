@@ -8,15 +8,12 @@ const Fastify = require('fastify')
  * Internal dependencies
  */
 const v1 = require('./routes/v1/')
-const knexConnector = require('./db/knex')
 
 dotenv.config()
 
 const fastify = new Fastify({
     logger: true,
 })
-
-fastify.register(knexConnector)
 fastify.register(v1, { prefix: '/api/v1/' })
 
 const start = async () => {
