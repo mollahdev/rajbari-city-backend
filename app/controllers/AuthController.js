@@ -7,7 +7,7 @@ const config = require('../../config')
 
 class AuthController {
     // User Registration
-    async register(request, reply) {
+    static async register(request, reply) {
         const { name, mobile_number, password, date_of_birth, gender, thana } =
             request.body
 
@@ -41,24 +41,26 @@ class AuthController {
 
             // Create user
             const newUser = await UserRepository.createUser(userDTO)
-            reply
-                .status(201)
-                .send({
-                    message: 'User registered successfully',
-                    user: newUser,
-                })
+            reply.status(201).send({
+                message: 'User registered successfully',
+                user: newUser,
+            })
         } catch (error) {
             reply.status(400).send({ error: error.message })
         }
     }
 
     // User Login
-    async login(request, reply) {
+    static async login(request, reply) {
         const { mobile_number, password } = request.body
 
+        console.log('Mobile Number', mobile_number)
         try {
+            const userRepository = new UserRepository()
             // Validate the credentials
-            const user = await UserRepository.getUserByMobile(mobile_number)
+            const user =
+                await userRepository.findOneByMobileNumber(mobile_number)
+
             if (!user) {
                 throw new Error('User not found')
             }
@@ -92,4 +94,4 @@ class AuthController {
     }
 }
 
-module.exports = new AuthController()
+module.exports = AuthController

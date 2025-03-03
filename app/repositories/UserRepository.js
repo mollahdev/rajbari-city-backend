@@ -8,7 +8,15 @@ class UserRepository {
     }
 
     async getById(id) {
-        return await models.User.findByPk(id)
+        return this.findBy('id', id)
+    }
+
+    async findOneByMobileNumber(mobileNumber) {
+        return this.findBy('mobile_number', mobileNumber)
+    }
+
+    async findBy(column, value) {
+        return await models.User.findOne({ where: { [column]: value } })
     }
 
     /**
@@ -21,6 +29,7 @@ class UserRepository {
         const newUser = await models.User.create({
             name: userDTO.name,
             password: hashedPassword,
+            mobile_number: userDTO.mobile_number,
         })
 
         return newUser.id

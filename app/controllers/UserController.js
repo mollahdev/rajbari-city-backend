@@ -22,6 +22,7 @@ class UserController {
         const userDTO = new UserDTO()
         userDTO.name = name
         userDTO.password = 'test'
+        userDTO.mobile_number = mobile_number
 
         const userRepository = new UserRepository()
         const userId = await userRepository.create(userDTO)
