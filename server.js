@@ -1,19 +1,23 @@
 /**
- * External depdencies
+ * External dependencies
  */
 const dotenv = require('dotenv')
 const Fastify = require('fastify')
+
 /**
- * Internal depdencies
+ * Internal dependencies
  */
-const userRoutes = require('./routes/v1/users')
+const v1 = require('./routes/v1/')
+const knexConnector = require('./db/knex')
 
 dotenv.config()
+
 const fastify = new Fastify({
     logger: true,
 })
 
-fastify.register(userRoutes, { prefix: '/api/v1/' })
+fastify.register(knexConnector)
+fastify.register(v1, { prefix: '/api/v1/' })
 
 const start = async () => {
     const PORT = process.env.APP_PORT || 3000
