@@ -1,4 +1,3 @@
-// controllers/AuthController.js
 const UserRepository = require('../repositories/UserRepository')
 const UserDTO = require('../dtos/UserDTO')
 const bcrypt = require('bcryptjs')
@@ -12,14 +11,6 @@ class AuthController {
             request.body
 
         try {
-            const userDTO = new UserDTO()
-            userDTO.name = name
-            userDTO.mobile_number = mobile_number
-            userDTO.password = password
-            userDTO.date_of_birth = date_of_birth
-            userDTO.gender = gender
-            userDTO.thana = thana
-
             // Validation (basic)
             if (
                 !name ||
@@ -32,15 +23,24 @@ class AuthController {
                 throw new Error('All fields are required')
             }
 
+            const userDTO = new UserDTO()
+            userDTO.name = name
+            userDTO.mobile_number = mobile_number
+            userDTO.password = password
+            userDTO.date_of_birth = date_of_birth
+            userDTO.gender = gender
+            userDTO.thana = thana
+
+            const userRepository = new UserRepository()
             // Check if user exists
             const existingUser =
-                await UserRepository.getUserByMobile(mobile_number)
+                await userRepository.findOneByMobileNumber(mobile_number)
             if (existingUser) {
                 throw new Error('Mobile number already exists')
             }
 
             // Create user
-            const newUser = await UserRepository.createUser(userDTO)
+            const newUser = await userRepository.create(userDTO)
             reply.status(201).send({
                 message: 'User registered successfully',
                 user: newUser,
@@ -54,9 +54,9 @@ class AuthController {
     static async login(request, reply) {
         const { mobile_number, password } = request.body
 
-        console.log('Mobile Number', mobile_number)
         try {
             const userRepository = new UserRepository()
+
             // Validate the credentials
             const user =
                 await userRepository.findOneByMobileNumber(mobile_number)
@@ -66,9 +66,10 @@ class AuthController {
             }
 
             const isPasswordValid = await bcrypt.compare(
-                password,
+                password, // password must be string
                 user.password
             )
+
             if (!isPasswordValid) {
                 throw new Error('Invalid password')
             }
@@ -86,11 +87,6 @@ class AuthController {
         } catch (error) {
             reply.status(400).send({ error: error.message })
         }
-    }
-
-    // Protected Route
-    async protectedRoute(request, reply) {
-        reply.send({ message: 'You have access to this route' })
     }
 }
 
