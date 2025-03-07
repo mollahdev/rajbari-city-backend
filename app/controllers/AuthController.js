@@ -41,10 +41,6 @@ class AuthController {
         const { mobileNumber } = request.body
 
         try {
-            if (!mobileNumber) {
-                throw new Error('Mobile number is required')
-            }
-
             const userRepository = new UserRepository()
             const existingUser =
                 await userRepository.findOneByMobileNumber(mobileNumber)
@@ -94,10 +90,6 @@ class AuthController {
         const { mobileNumber } = request.body
 
         try {
-            if (!mobileNumber) {
-                throw new Error('Mobile number is required')
-            }
-
             const userRepository = new UserRepository()
             const user =
                 await userRepository.findOneByMobileNumber(mobileNumber)
@@ -156,10 +148,6 @@ class AuthController {
         const { mobileNumber, otp } = request.body
 
         try {
-            if (!mobileNumber) {
-                throw new Error('Mobile number is required')
-            }
-
             const userRepository = new UserRepository()
             const user =
                 await userRepository.findOneByMobileNumber(mobileNumber)
