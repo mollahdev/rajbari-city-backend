@@ -3,6 +3,7 @@
  */
 const dotenv = require('dotenv')
 const Fastify = require('fastify')
+const fastifyFormbody = require('@fastify/formbody')
 
 /**
  * Internal dependencies
@@ -14,6 +15,8 @@ dotenv.config()
 const fastify = new Fastify({
     logger: true,
 })
+
+fastify.register(fastifyFormbody)
 fastify.register(v1, { prefix: '/api/v1/' })
 
 const start = async () => {

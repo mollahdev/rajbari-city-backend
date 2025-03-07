@@ -5,7 +5,7 @@ const UserRepository = require('../repositories/UserRepository')
 const UserDTO = require('../dtos/UserDTO')
 const Controller = require('./Controller')
 const config = require('../../config')
-const { now, sendSMS } = require('../helpers')
+const { now, sendSMS, requestValidator } = require('../helpers')
 
 /**
  * External dependencies
@@ -22,6 +22,22 @@ class AuthController {
      * @returns {Object} - Response indicating success or failure.
      */
     static async register(request, reply) {
+        const errors = requestValidator(
+            {
+                type: 'object',
+                properties: {
+                    mobileNumber: { type: 'string', minLength: 11 },
+                },
+                required: ['mobileNumber'],
+                additionalProperties: false,
+            },
+            request
+        )
+
+        if (Array.isArray(errors)) {
+            return reply.status(422).send({ errors })
+        }
+
         const { mobileNumber } = request.body
 
         try {
@@ -59,6 +75,22 @@ class AuthController {
      * @returns {Object} - Response indicating success or failure.
      */
     static async reSendOTP(request, reply) {
+        const errors = requestValidator(
+            {
+                type: 'object',
+                properties: {
+                    mobileNumber: { type: 'string', minLength: 11 },
+                },
+                required: ['mobileNumber'],
+                additionalProperties: false,
+            },
+            request
+        )
+
+        if (Array.isArray(errors)) {
+            return reply.status(422).send({ errors })
+        }
+
         const { mobileNumber } = request.body
 
         try {
@@ -104,6 +136,23 @@ class AuthController {
      * @returns {Object} - Response indicating success or failure.
      */
     static async verify(request, reply) {
+        const errors = requestValidator(
+            {
+                type: 'object',
+                properties: {
+                    mobileNumber: { type: 'string', minLength: 11 },
+                    otp: { type: 'integer', minLength: 6, maxLength: 6 },
+                },
+                required: ['mobileNumber', 'otp'],
+                additionalProperties: false,
+            },
+            request
+        )
+
+        if (Array.isArray(errors)) {
+            return reply.status(422).send({ errors })
+        }
+
         const { mobileNumber, otp } = request.body
 
         try {
@@ -148,13 +197,26 @@ class AuthController {
      * @returns {Object} - Response containing a JWT token on successful login.
      */
     static async login(request, reply) {
+        const errors = requestValidator(
+            {
+                type: 'object',
+                properties: {
+                    mobileNumber: { type: 'string', minLength: 11 },
+                    password: { type: 'string' },
+                },
+                required: ['mobileNumber', 'password'],
+                additionalProperties: false,
+            },
+            request
+        )
+
+        if (Array.isArray(errors)) {
+            return reply.status(422).send({ errors })
+        }
+
         const { mobileNumber, password } = request.body
 
         try {
-            if (!mobileNumber) {
-                throw new Error('Mobile number is required')
-            }
-
             const userRepository = new UserRepository()
             const user =
                 await userRepository.findOneByMobileNumber(mobileNumber)

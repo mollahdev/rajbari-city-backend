@@ -1,3 +1,4 @@
+const { default: Ajv } = require('ajv')
 const dayjs = require('dayjs')
 const utc = require('dayjs/plugin/utc')
 
@@ -20,7 +21,21 @@ function now() {
     return dayjs().utc().format('YYYY-MM-DD HH:mm:ss')
 }
 
+function requestValidator(schema, request) {
+    const ajv = new Ajv()
+    const validate = ajv.compile(schema)
+    const isValid = validate(request.body)
+
+    if (!isValid) {
+        console.log('Errors', validate.errors)
+        return validate.errors
+    }
+
+    return true
+}
+
 module.exports = {
+    requestValidator,
     sendSMS,
     now,
 }

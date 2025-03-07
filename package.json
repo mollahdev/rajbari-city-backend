@@ -10,6 +10,8 @@
         "prepare": "husky"
     },
     "dependencies": {
+        "@fastify/formbody": "8.0.2",
+        "ajv": "8.17.1",
         "bcryptjs": "3.0.1",
         "dayjs": "1.11.13",
         "dotenv": "^16.4.7",
