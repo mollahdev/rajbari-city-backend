@@ -11,6 +11,7 @@
     },
     "dependencies": {
         "bcryptjs": "3.0.1",
+        "dayjs": "1.11.13",
         "dotenv": "^16.4.7",
         "fastify": "5.2.1",
         "fastify-jwt": "4.2.0",

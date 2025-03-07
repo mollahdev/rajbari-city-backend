@@ -1,3 +1,6 @@
+/**
+ * Internal dependencies
+ */
 const UserRepository = require('../repositories/UserRepository')
 const UserDTO = require('../dtos/UserDTO')
 
@@ -16,13 +19,13 @@ class UserController {
 
     static async store(request, reply) {
         const { body, server } = request
-        const { name, mobile_number, password, date_of_birth, gender, thana } =
+        const { name, mobileNumber, password, dateOfBirth, gender, thana } =
             body
 
         const userDTO = new UserDTO()
         userDTO.name = name
         userDTO.password = 'test'
-        userDTO.mobile_number = mobile_number
+        userDTO.mobileNumber = mobileNumber
 
         const userRepository = new UserRepository()
         const userId = await userRepository.create(userDTO)

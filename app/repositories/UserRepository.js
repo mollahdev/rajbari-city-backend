@@ -1,6 +1,13 @@
+/**
+ * Internal dependencies
+ */
 const UserDTO = require('../dtos/UserDTO')
-const bcrypt = require('bcryptjs')
 const models = require('./../../models')
+
+/**
+ * External dependencies
+ */
+const bcrypt = require('bcryptjs')
 
 class UserRepository {
     async get() {
@@ -12,7 +19,7 @@ class UserRepository {
     }
 
     async findOneByMobileNumber(mobileNumber) {
-        return this.findBy('mobile_number', mobileNumber)
+        return this.findBy('mobileNumber', mobileNumber)
     }
 
     async findBy(column, value) {
@@ -20,25 +27,23 @@ class UserRepository {
     }
 
     /**
-     *
      * @param {UserDTO} userDTO
      * @returns
      */
     async create(userDTO) {
-        const hashedPassword = await bcrypt.hash(userDTO.password, 10) // Hash password
-        const newUser = await models.User.create({
-            name: userDTO.name,
-            password: hashedPassword,
-            mobile_number: userDTO.mobile_number,
-        })
-
+        // const hashedPassword = await bcrypt.hash(userDTO.password, 10) // Hash password
+        const newUser = await models.User.create(userDTO.toJSON())
         return newUser.id
     }
 
-    async update(id, user) {
-        return await models.User.update(user, {
+    /**
+     * @param {UserDTO} userDTO
+     * @returns
+     */
+    async update(userDTO) {
+        return await models.User.update(userDTO.toJSON(), {
             where: {
-                id,
+                id: userDTO.id,
             },
         })
     }

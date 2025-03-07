@@ -14,11 +14,18 @@ module.exports = (sequelize, DataTypes) => {
     User.init(
         {
             name: DataTypes.STRING,
-            mobile_number: DataTypes.STRING,
+            mobileNumber: DataTypes.STRING,
             password: DataTypes.STRING,
-            date_of_birth: DataTypes.DATE,
+            dateOfBirth: DataTypes.DATE,
             gender: DataTypes.STRING,
             thana: DataTypes.STRING,
+            otp: DataTypes.INTEGER,
+            otpCreatedAt: DataTypes.DATE,
+            isVerified: {
+                type: DataTypes.BOOLEAN,
+                defaultValue: false,
+            },
+            verifiedAt: DataTypes.DATE,
         },
         {
             sequelize,

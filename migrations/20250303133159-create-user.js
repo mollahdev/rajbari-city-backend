@@ -10,22 +10,43 @@ module.exports = {
                 type: Sequelize.INTEGER,
             },
             name: {
+                allowNull: true,
                 type: Sequelize.STRING,
             },
-            mobile_number: {
+            mobileNumber: {
                 type: Sequelize.STRING,
             },
             password: {
+                allowNull: true,
                 type: Sequelize.STRING,
             },
-            date_of_birth: {
+            dateOfBirth: {
+                allowNull: true,
                 type: Sequelize.DATE,
             },
             gender: {
+                allowNull: true,
                 type: Sequelize.STRING,
             },
             thana: {
+                allowNull: true,
                 type: Sequelize.STRING,
+            },
+            otp: {
+                allowNull: true,
+                type: Sequelize.INTEGER,
+            },
+            otpCreatedAt: {
+                allowNull: true,
+                type: Sequelize.DATE,
+            },
+            isVerified: {
+                type: Sequelize.BOOLEAN,
+                defaultValue: false,
+            },
+            verifiedAt: {
+                allowNull: true,
+                type: Sequelize.DATE,
             },
             createdAt: {
                 allowNull: false,
