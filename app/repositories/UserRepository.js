@@ -31,8 +31,13 @@ class UserRepository {
      * @returns
      */
     async create(userDTO) {
-        // const hashedPassword = await bcrypt.hash(userDTO.password, 10) // Hash password
-        const newUser = await models.User.create(userDTO.toJSON())
+        let data = userDTO.toJSON()
+
+        if (undefined !== userDTO.password) {
+            data.password = await bcrypt.hash(userDTO.password, 10) // Hash password
+        }
+
+        const newUser = await models.User.create(data)
         return newUser.id
     }
 
@@ -41,7 +46,13 @@ class UserRepository {
      * @returns
      */
     async update(userDTO) {
-        return await models.User.update(userDTO.toJSON(), {
+        let data = userDTO.toJSON()
+
+        if (undefined !== userDTO.password) {
+            data.password = await bcrypt.hash(userDTO.password, 10) // Hash password
+        }
+
+        return await models.User.update(data, {
             where: {
                 id: userDTO.id,
             },
