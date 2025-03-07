@@ -7,6 +7,7 @@ module.exports = async (fastify) => {
             authRoutes.post('/login', AuthController.login)
             authRoutes.post('/register', AuthController.register)
             authRoutes.post('/re-send-otp', AuthController.reSendOTP)
+            authRoutes.post('/verify', AuthController.verify)
         },
         { prefix: '/auth' }
     )

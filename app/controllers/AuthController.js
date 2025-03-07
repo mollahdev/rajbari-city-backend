@@ -98,6 +98,50 @@ class AuthController {
     }
 
     /**
+     * Verifies a user's OTP and marks them as verified.
+     * @param {Object} request - The request object containing the mobile number and OTP.
+     * @param {Object} reply - The reply object to send the response.
+     * @returns {Object} - Response indicating success or failure.
+     */
+    static async verify(request, reply) {
+        const { mobileNumber, otp } = request.body
+
+        try {
+            if (!mobileNumber) {
+                throw new Error('Mobile number is required')
+            }
+
+            const userRepository = new UserRepository()
+            const user =
+                await userRepository.findOneByMobileNumber(mobileNumber)
+
+            if (!user) {
+                throw new Error('User not found')
+            }
+
+            if (user.isVerified) {
+                throw new Error('User already verified')
+            }
+
+            if (otp !== user.otp) {
+                throw new Error('Wrong OTP')
+            }
+
+            const userDTO = new UserDTO()
+            userDTO.id = user.id
+            userDTO.otp = null // Clear OTP after verification
+            userDTO.otpCreatedAt = null // Clear OTP creation time
+            userDTO.isVerified = true // Mark user as verified
+
+            await userRepository.update(userDTO)
+
+            reply.send({ message: 'Verified successfully' })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    /**
      * Logs in a user with their mobile number and password.
      * @param {Object} request - The request object containing the mobile number and password.
      * @param {Object} reply - The reply object to send the response.
