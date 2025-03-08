@@ -31,7 +31,7 @@ class AuthController {
                 required: ['mobileNumber'],
                 additionalProperties: false,
             },
-            request
+            request.body
         )
 
         if (Array.isArray(errors)) {
@@ -80,7 +80,7 @@ class AuthController {
                 required: ['mobileNumber'],
                 additionalProperties: false,
             },
-            request
+            request.body
         )
 
         if (Array.isArray(errors)) {
@@ -138,7 +138,7 @@ class AuthController {
                 required: ['mobileNumber', 'otp'],
                 additionalProperties: false,
             },
-            request
+            request.body
         )
 
         if (Array.isArray(errors)) {
@@ -195,7 +195,7 @@ class AuthController {
                 required: ['mobileNumber', 'password'],
                 additionalProperties: false,
             },
-            request
+            request.body
         )
 
         if (Array.isArray(errors)) {

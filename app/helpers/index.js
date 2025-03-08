@@ -21,10 +21,10 @@ function now() {
     return dayjs().utc().format('YYYY-MM-DD HH:mm:ss')
 }
 
-function requestValidator(schema, request) {
-    const ajv = new Ajv()
+function requestValidator(schema, data) {
+    const ajv = new Ajv({ coerceTypes: true })
     const validate = ajv.compile(schema)
-    const isValid = validate(request.body)
+    const isValid = validate(data)
 
     if (!isValid) {
         console.log('Errors', validate.errors)
