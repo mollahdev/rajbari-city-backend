@@ -1,3 +1,6 @@
 https://www.figma.com/design/H3xrtYpAqmvOEQcawaMVIY/Rajbari-App?t=95sSri3wr4ZpkrQ0-0
 
 https://dev-api.flexlab.studio/
+
+DB table creation command - npx sequelize-cli db:migrate
+Insert demo data command - npx sequelize-cli db:seed:all
