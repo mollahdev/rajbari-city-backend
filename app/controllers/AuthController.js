@@ -4,7 +4,6 @@
 const UserRepository = require('../repositories/UserRepository')
 const UserDTO = require('../dtos/UserDTO')
 const Controller = require('./Controller')
-const config = require('../../config')
 const { now, sendSMS, requestValidator } = require('../helpers')
 
 /**
@@ -257,7 +256,7 @@ class AuthController {
      * @returns {string} - The generated JWT token.
      */
     static generateJWT(userId, mobileNumber) {
-        return jwt.sign({ id: userId, mobileNumber }, config.jwtSecret, {
+        return jwt.sign({ id: userId, mobileNumber }, process.env.JWT_SECRET, {
             expiresIn: '1h',
         })
     }

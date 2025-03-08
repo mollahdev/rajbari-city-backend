@@ -16,6 +16,10 @@ const fastify = new Fastify({
     logger: true,
 })
 
+fastify.register(require('@fastify/jwt'), {
+    secret: process.env.JWT_SECRET,
+})
+
 fastify.register(fastifyFormbody)
 fastify.register(v1, { prefix: '/api/v1/' })
 

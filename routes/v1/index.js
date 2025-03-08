@@ -3,6 +3,7 @@ const AuthController = require('../../app/controllers/AuthController')
 const DirectoryTypeController = require('../../app/controllers/DirectoryTypeController')
 const CategoryController = require('../../app/controllers/CategoryController')
 const ListingController = require('../../app/controllers/ListingController')
+const auth = require('../../app/middleware/auth')
 
 module.exports = async (fastify) => {
     fastify.register(
@@ -18,6 +19,7 @@ module.exports = async (fastify) => {
     fastify.register(
         async (routes) => {
             routes.get('/', DirectoryTypeController.index)
+            routes.addHook('onRequest', auth) //Middleware
         },
         { prefix: '/directory-types' }
     )
@@ -25,6 +27,7 @@ module.exports = async (fastify) => {
     fastify.register(
         async (routes) => {
             routes.get('/', CategoryController.index)
+            routes.addHook('onRequest', auth) //Middleware
         },
         { prefix: '/categories' }
     )
@@ -32,6 +35,7 @@ module.exports = async (fastify) => {
     fastify.register(
         async (routes) => {
             routes.get('/', ListingController.index)
+            routes.addHook('onRequest', auth) //Middleware
         },
         { prefix: '/listings' }
     )
