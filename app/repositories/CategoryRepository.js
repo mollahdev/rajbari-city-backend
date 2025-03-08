@@ -3,10 +3,18 @@
  */
 const CategoryDTO = require('../dtos/CategoryDTO')
 const models = require('../../models')
+const CategoryReadDTO = require('../dtos/CategoryReadDTO')
 
 class CategoryRepository {
-    async get() {
-        return await models.Category.findAll()
+    /**
+     * @param {CategoryReadDTO} dto
+     */
+    async get(dto) {
+        return await models.Category.findAll({
+            where: {
+                directoryTypeId: dto.directoryTypeId,
+            },
+        })
     }
 
     async getById(id) {

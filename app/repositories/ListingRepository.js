@@ -3,10 +3,22 @@
  */
 const ListingDTO = require('../dtos/ListingDTO')
 const models = require('../../models')
+const ListingReadDTO = require('../dtos/ListingReadDTO')
+const { getPaginationObject } = require('../helpers')
 
 class ListingRepository {
-    async get() {
-        return await models.Listing.findAll()
+    /**
+     * @param {ListingReadDTO} dto
+     */
+    async get(dto) {
+        const { rows, count } = await models.Listing.findAndCountAll({
+            where: {
+                categoryId: dto.categoryId,
+            },
+            ...getPaginationObject(dto.page),
+        })
+
+        return { total: count, listings: rows }
     }
 
     async getById(id) {

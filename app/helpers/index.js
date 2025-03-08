@@ -34,8 +34,16 @@ function requestValidator(schema, data) {
     return true
 }
 
+function getPaginationObject(page, perPage = 10) {
+    const pageNum = Math.max(1, parseInt(page, 10))
+    const limit = parseInt(perPage, 10) // Number of records per page
+    const offset = (pageNum - 1) * limit // Calculate offset
+    return { limit, offset }
+}
+
 module.exports = {
     requestValidator,
     sendSMS,
     now,
+    getPaginationObject,
 }

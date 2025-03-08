@@ -4,6 +4,7 @@
 const Controller = require('./Controller')
 const CategoryRepository = require('../repositories/CategoryRepository')
 const { requestValidator } = require('../helpers')
+const CategoryReadDTO = require('../dtos/CategoryReadDTO')
 
 class CategoryController {
     static async index(request, reply) {
@@ -23,10 +24,15 @@ class CategoryController {
             return reply.status(422).send({ errors })
         }
 
+        const { directoryTypeId } = request.query
+
+        const dto = new CategoryReadDTO()
+        dto.directoryTypeId = directoryTypeId
+
         const repository = new CategoryRepository()
         try {
-            const types = await repository.get()
-            reply.status(201).send({ types })
+            const categories = await repository.get(dto)
+            reply.status(201).send({ categories })
         } catch (error) {
             Controller.handleError(reply, error)
         }

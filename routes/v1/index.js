@@ -2,6 +2,7 @@ const UserController = require('../../app/controllers/UserController')
 const AuthController = require('../../app/controllers/AuthController')
 const DirectoryTypeController = require('../../app/controllers/DirectoryTypeController')
 const CategoryController = require('../../app/controllers/CategoryController')
+const ListingController = require('../../app/controllers/ListingController')
 
 module.exports = async (fastify) => {
     fastify.register(
@@ -26,6 +27,13 @@ module.exports = async (fastify) => {
             routes.get('/', CategoryController.index)
         },
         { prefix: '/categories' }
+    )
+
+    fastify.register(
+        async (routes) => {
+            routes.get('/', ListingController.index)
+        },
+        { prefix: '/listings' }
     )
 
     fastify.register(
