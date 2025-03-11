@@ -4,94 +4,69 @@
 const UserRepository = require('../repositories/UserRepository')
 const UserDTO = require('../dtos/UserDTO')
 const Controller = require('./Controller')
-const { now, sendSMS, requestValidator } = require('../helpers')
-
+const { now, generateOTP, isOTPResendAllowed } = require('../helpers')
+const SMS = require('../sms')
 /**
  * External dependencies
  */
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
-const dayjs = require('dayjs')
 
 class AuthController {
-    /**
-     * Registers a new user with a mobile number and sends an OTP for verification.
-     * @param {Object} request - The request object containing the mobile number.
-     * @param {Object} reply - The reply object to send the response.
-     * @returns {Object} - Response indicating success or failure.
-     */
     static async register(request, reply) {
-        const errors = requestValidator(
-            {
-                type: 'object',
-                properties: {
-                    mobileNumber: { type: 'string', minLength: 11 },
-                },
-                required: ['mobileNumber'],
-                additionalProperties: false,
-            },
-            request.body
-        )
-
-        if (Array.isArray(errors)) {
-            return reply.status(422).send({ errors })
-        }
-
-        const { mobileNumber } = request.body
+        const { mobile, dialCode, district } = request.body
 
         try {
             const userRepository = new UserRepository()
             const existingUser =
-                await userRepository.findOneByMobileNumber(mobileNumber)
+                await userRepository.findOneByMobileNumber(mobile)
 
             if (existingUser) {
-                throw new Error('Mobile number already exists')
+                if (existingUser.isVerified) {
+                    throw new Error('Mobile number already exists')
+                }
+
+                // check if 3 minutes passed since last OTP sent
+                if (!isOTPResendAllowed(existingUser.otpCreatedAt)) {
+                    throw new Error('Please wait some time to resend OTP')
+                }
             }
 
-            const otp = AuthController.generateAndSendOTP(mobileNumber)
+            const otp = generateOTP()
+            const message = SMS.registrationTemplate(district, otp)
+            await SMS.send(mobile, message)
 
             const userDTO = new UserDTO()
-            userDTO.mobileNumber = mobileNumber
+            userDTO.mobile = mobile
+            userDTO.dialCode = dialCode
+            userDTO.district = district
             userDTO.otp = otp
             userDTO.otpCreatedAt = now()
 
-            await userRepository.create(userDTO)
+            if (existingUser) {
+                userDTO.id = existingUser.id
+                await userRepository.update(userDTO)
+            } else {
+                userDTO.id = await userRepository.create(userDTO)
+            }
 
-            reply.status(201).send({ message: 'User registered successfully' })
+            reply.status(201).send({
+                message: 'User registered successfully',
+                data: {
+                    id: userDTO.id,
+                },
+            })
         } catch (error) {
             Controller.handleError(reply, error)
         }
     }
 
-    /**
-     * Resends an OTP to the user's mobile number for verification.
-     * @param {Object} request - The request object containing the mobile number.
-     * @param {Object} reply - The reply object to send the response.
-     * @returns {Object} - Response indicating success or failure.
-     */
-    static async reSendOTP(request, reply) {
-        const errors = requestValidator(
-            {
-                type: 'object',
-                properties: {
-                    mobileNumber: { type: 'string', minLength: 11 },
-                },
-                required: ['mobileNumber'],
-                additionalProperties: false,
-            },
-            request.body
-        )
-
-        if (Array.isArray(errors)) {
-            return reply.status(422).send({ errors })
-        }
-
-        const { mobileNumber } = request.body
+    static async resendOTP(request, reply) {
+        const { id } = request.body
 
         try {
             const userRepository = new UserRepository()
-            const user =
-                await userRepository.findOneByMobileNumber(mobileNumber)
+            const user = await userRepository.findBy('id', id)
 
             if (!user) {
                 throw new Error('User not found')
@@ -101,14 +76,16 @@ class AuthController {
                 throw new Error('User already verified')
             }
 
-            if (AuthController.isOTPResendAllowed(user.otpCreatedAt)) {
+            if (!isOTPResendAllowed(user.otpCreatedAt)) {
                 throw new Error('Please wait some time to resend OTP')
             }
 
-            const otp = AuthController.generateAndSendOTP(mobileNumber)
+            const otp = generateOTP()
+            const message = SMS.registrationTemplate(user.district, otp)
+            await SMS.send(user.mobile, message)
 
             const userDTO = new UserDTO()
-            userDTO.id = user.id
+            userDTO.id = id
             userDTO.otp = otp
             userDTO.otpCreatedAt = now()
 
@@ -120,43 +97,19 @@ class AuthController {
         }
     }
 
-    /**
-     * Verifies a user's OTP and marks them as verified.
-     * @param {Object} request - The request object containing the mobile number and OTP.
-     * @param {Object} reply - The reply object to send the response.
-     * @returns {Object} - Response indicating success or failure.
-     */
-    static async verify(request, reply) {
-        const errors = requestValidator(
-            {
-                type: 'object',
-                properties: {
-                    mobileNumber: { type: 'string', minLength: 11 },
-                    otp: { type: 'integer', minLength: 6, maxLength: 6 },
-                },
-                required: ['mobileNumber', 'otp'],
-                additionalProperties: false,
-            },
-            request.body
-        )
-
-        if (Array.isArray(errors)) {
-            return reply.status(422).send({ errors })
-        }
-
-        const { mobileNumber, otp } = request.body
+    static async verifyOTP(request, reply) {
+        const { id, otp } = request.body
 
         try {
             const userRepository = new UserRepository()
-            const user =
-                await userRepository.findOneByMobileNumber(mobileNumber)
+            const user = await userRepository.findBy('id', id)
 
             if (!user) {
                 throw new Error('User not found')
             }
 
             if (user.isVerified) {
-                throw new Error('User already verified')
+                reply.send({ message: 'User already verified' })
             }
 
             if (otp !== user.otp) {
@@ -164,9 +117,7 @@ class AuthController {
             }
 
             const userDTO = new UserDTO()
-            userDTO.id = user.id
-            userDTO.otp = null // Clear OTP after verification
-            userDTO.otpCreatedAt = null // Clear OTP creation time
+            userDTO.id = id
             userDTO.isVerified = true // Mark user as verified
 
             await userRepository.update(userDTO)
@@ -227,26 +178,6 @@ class AuthController {
         } catch (error) {
             Controller.handleError(reply, error)
         }
-    }
-
-    /**
-     * Generates an OTP and sends it to the user's mobile number.
-     * @param {string} mobileNumber - The mobile number to send the OTP to.
-     * @returns {string} - The generated OTP.
-     */
-    static generateAndSendOTP(mobileNumber) {
-        const otp = Math.floor(100000 + Math.random() * 900000)
-        sendSMS(mobileNumber, `City app registration OTP: ${otp}`)
-        return otp
-    }
-
-    /**
-     * Checks if OTP resend is allowed based on the last OTP creation time.
-     * @param {string} otpCreatedAt - The timestamp when the last OTP was created.
-     * @returns {boolean} - True if resend is allowed, otherwise false.
-     */
-    static isOTPResendAllowed(otpCreatedAt) {
-        return dayjs(otpCreatedAt).add(1, 'minute').isAfter(now())
     }
 
     /**

@@ -1,0 +1,20 @@
+[
+    {
+        "id": "5",
+        "division_id": "1",
+        "name": "Noakhali",
+        "bn_name": "নোয়াখালী",
+        "lat": "22.869563",
+        "lon": "91.099398",
+        "url": "www.noakhali.gov.bd"
+    },
+    {
+        "id": "49",
+        "division_id": "6",
+        "name": "Rajbari",
+        "bn_name": "রাজবাড়ী",
+        "lat": "23.7574305",
+        "lon": "89.6444665",
+        "url": "www.rajbari.gov.bd"
+    }
+]

@@ -1,37 +1,9 @@
-const { default: Ajv } = require('ajv')
 const dayjs = require('dayjs')
 const utc = require('dayjs/plugin/utc')
-
-const sendSMS = async (number, message) => {
-    const api_key = process.env.SMS_API_KEY
-    const senderid = process.env.SMS_SENDER_ID
-    const url = `http://bulksmsbd.net/api/smsapi?api_key=${api_key}&type=text&number=${number}&senderid=${senderid}&message=${message}`
-    try {
-        // const response = await fetch(url)
-        // const data = await response.json()
-        return url
-    } catch (err) {
-        console.log(err)
-        return err
-    }
-}
 
 function now() {
     dayjs.extend(utc)
     return dayjs().utc().format('YYYY-MM-DD HH:mm:ss')
-}
-
-function requestValidator(schema, data) {
-    const ajv = new Ajv({ coerceTypes: true })
-    const validate = ajv.compile(schema)
-    const isValid = validate(data)
-
-    if (!isValid) {
-        console.log('Errors', validate.errors)
-        return validate.errors
-    }
-
-    return true
 }
 
 function getPaginationObject(page, perPage = 10) {
@@ -41,9 +13,17 @@ function getPaginationObject(page, perPage = 10) {
     return { limit, offset }
 }
 
+function generateOTP() {
+    return Math.floor(100000 + Math.random() * 900000)
+}
+
+function isOTPResendAllowed(otpCreatedAt) {
+    return !dayjs(otpCreatedAt).add(3, 'minute').isAfter(now())
+}
+
 module.exports = {
-    requestValidator,
-    sendSMS,
     now,
     getPaginationObject,
+    generateOTP,
+    isOTPResendAllowed,
 }

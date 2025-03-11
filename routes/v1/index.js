@@ -1,20 +1,17 @@
 const UserController = require('../../app/controllers/UserController')
-const AuthController = require('../../app/controllers/AuthController')
+
 const DirectoryTypeController = require('../../app/controllers/DirectoryTypeController')
 const CategoryController = require('../../app/controllers/CategoryController')
 const ListingController = require('../../app/controllers/ListingController')
 const auth = require('../../app/middleware/auth')
 
+const authRoutes = require('./client/auth')
+
 module.exports = async (fastify) => {
-    fastify.register(
-        async (routes) => {
-            routes.post('/login', AuthController.login)
-            routes.post('/register', AuthController.register)
-            routes.post('/re-send-otp', AuthController.reSendOTP)
-            routes.post('/verify', AuthController.verify)
-        },
-        { prefix: '/auth' }
-    )
+    /**
+     * client routes
+     */
+    fastify.register(authRoutes, { prefix: '/auth' })
 
     fastify.register(
         async (routes) => {

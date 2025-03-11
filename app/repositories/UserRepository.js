@@ -19,7 +19,7 @@ class UserRepository {
     }
 
     async findOneByMobileNumber(mobileNumber) {
-        return this.findBy('mobileNumber', mobileNumber)
+        return this.findBy('mobile', mobileNumber)
     }
 
     async findBy(column, value) {
@@ -31,7 +31,7 @@ class UserRepository {
      * @returns
      */
     async create(userDTO) {
-        let data = userDTO.toJSON()
+        let data = userDTO.toFormat()
 
         if (undefined !== userDTO.password) {
             data.password = await bcrypt.hash(userDTO.password, 10) // Hash password
@@ -46,7 +46,7 @@ class UserRepository {
      * @returns
      */
     async update(userDTO) {
-        let data = userDTO.toJSON()
+        let data = userDTO.toFormat()
 
         if (undefined !== userDTO.password) {
             data.password = await bcrypt.hash(userDTO.password, 10) // Hash password

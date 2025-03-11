@@ -3,13 +3,18 @@ const DTO = require('./DTO')
 class UserDTO extends DTO {
     id
     name
-    mobileNumber
+    mobile
+    dialCode
     password
-    dateOfBirth
+    dob
     gender
+    district
     thana
+    upazila
+    union
     otp
     otpCreatedAt
+    profilePictureId
     isVerified
     verifiedAt
 }
