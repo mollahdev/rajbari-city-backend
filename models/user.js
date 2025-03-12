@@ -33,12 +33,11 @@ module.exports = (sequelize, DataTypes) => {
             },
             password: DataTypes.STRING,
             dob: DataTypes.DATE,
-            gender: DataTypes.STRING,
+            gender: DataTypes.ENUM(['male', 'female']),
             district: {
                 type: DataTypes.STRING,
                 allowNull: false,
             },
-            thana: DataTypes.STRING,
             upazila: DataTypes.STRING,
             union: DataTypes.STRING,
             otp: DataTypes.INTEGER,
@@ -52,7 +51,6 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.BOOLEAN,
                 defaultValue: false,
             },
-            verifiedAt: DataTypes.DATE,
         },
         {
             sequelize,

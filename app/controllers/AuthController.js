@@ -1,16 +1,17 @@
 /**
+ * External dependencies
+ */
+const bcrypt = require('bcryptjs')
+const jwt = require('jsonwebtoken')
+/**
  * Internal dependencies
  */
 const UserRepository = require('../repositories/UserRepository')
 const UserDTO = require('../dtos/UserDTO')
 const Controller = require('./Controller')
-const { now, generateOTP, isOTPResendAllowed } = require('../helpers')
 const SMS = require('../sms')
-/**
- * External dependencies
- */
-const bcrypt = require('bcryptjs')
-const jwt = require('jsonwebtoken')
+const Geocode = require('../geocode')
+const { now, generateOTP, isOTPResendAllowed } = require('../helpers')
 
 class AuthController {
     static async register(request, reply) {
@@ -51,65 +52,22 @@ class AuthController {
             }
 
             reply.status(201).send({
-                message: 'User registered successfully',
-                data: {
-                    id: userDTO.id,
-                },
+                message: 'Successfully',
             })
         } catch (error) {
             Controller.handleError(reply, error)
         }
     }
 
-    static async resendOTP(request, reply) {
-        const { id } = request.body
-
-        try {
-            const userRepository = new UserRepository()
-            const user = await userRepository.findBy('id', id)
-
-            if (!user) {
-                throw new Error('User not found')
-            }
-
-            if (user.isVerified) {
-                throw new Error('User already verified')
-            }
-
-            if (!isOTPResendAllowed(user.otpCreatedAt)) {
-                throw new Error('Please wait some time to resend OTP')
-            }
-
-            const otp = generateOTP()
-            const message = SMS.registrationTemplate(user.district, otp)
-            await SMS.send(user.mobile, message)
-
-            const userDTO = new UserDTO()
-            userDTO.id = id
-            userDTO.otp = otp
-            userDTO.otpCreatedAt = now()
-
-            await userRepository.update(userDTO)
-
-            reply.send({ message: 'OTP resent successfully' })
-        } catch (error) {
-            Controller.handleError(reply, error)
-        }
-    }
-
     static async verifyOTP(request, reply) {
-        const { id, otp } = request.body
+        const { mobile, otp, dialCode } = request.body
 
         try {
             const userRepository = new UserRepository()
-            const user = await userRepository.findBy('id', id)
+            const user = await userRepository.findOneByMobileNumber(mobile)
 
             if (!user) {
                 throw new Error('User not found')
-            }
-
-            if (user.isVerified) {
-                reply.send({ message: 'User already verified' })
             }
 
             if (otp !== user.otp) {
@@ -117,50 +75,89 @@ class AuthController {
             }
 
             const userDTO = new UserDTO()
-            userDTO.id = id
+            userDTO.id = user.id
+            userDTO.otp = null
+            userDTO.otpCreatedAt = null
             userDTO.isVerified = true // Mark user as verified
 
             await userRepository.update(userDTO)
+            const token = AuthController.generateTempJWT(user)
 
-            reply.send({ message: 'Verified successfully' })
+            reply.send({
+                message: 'Verified successfully',
+                data: {
+                    temporaryAccessToken: token,
+                },
+            })
         } catch (error) {
             Controller.handleError(reply, error)
         }
     }
 
-    /**
-     * Logs in a user with their mobile number and password.
-     * @param {Object} request - The request object containing the mobile number and password.
-     * @param {Object} reply - The reply object to send the response.
-     * @returns {Object} - Response containing a JWT token on successful login.
-     */
-    static async login(request, reply) {
-        const errors = requestValidator(
-            {
-                type: 'object',
-                properties: {
-                    mobileNumber: { type: 'string', minLength: 11 },
-                    password: { type: 'string' },
-                },
-                required: ['mobileNumber', 'password'],
-                additionalProperties: false,
-            },
-            request.body
-        )
-
-        if (Array.isArray(errors)) {
-            return reply.status(422).send({ errors })
-        }
-
-        const { mobileNumber, password } = request.body
+    static async updateProfile(request, reply) {
+        const { name, password, dob, gender, upazila, union } = request.body
 
         try {
             const userRepository = new UserRepository()
-            const user =
-                await userRepository.findOneByMobileNumber(mobileNumber)
+            const user = await userRepository.findBy('id', request.user.id)
 
             if (!user) {
                 throw new Error('User not found')
+            }
+
+            if (!user.isVerified) {
+                reply.send({ message: 'User is not verified' })
+            }
+
+            if (user.isOnboarded) {
+                throw new Error('Profile already updated')
+            }
+
+            if (!Geocode.isValid({ district: user.district, upazila, union })) {
+                throw new Error('Invalid location')
+            }
+
+            const userDTO = new UserDTO()
+            userDTO.id = request.user.id
+            userDTO.name = name
+            userDTO.password = password
+            userDTO.dob = dob
+            userDTO.gender = gender
+            userDTO.upazila = upazila
+            userDTO.union = union
+            userDTO.isOnboarded = true
+
+            await userRepository.update(userDTO)
+            const token = AuthController.generateJWT(user)
+
+            reply.send({
+                message: 'Profile updated successfully',
+                data: {
+                    accessToken: token,
+                },
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    static async login(request, reply) {
+        const { mobile, dialCode, password } = request.body
+
+        try {
+            const userRepository = new UserRepository()
+            const user = await userRepository.findOneByMobileNumber(mobile)
+
+            if (!user) {
+                throw new Error('User not found')
+            }
+
+            if (!user.isVerified) {
+                throw new Error('User is not verified')
+            }
+
+            if (!user.isOnboarded) {
+                throw new Error('User profile not updated')
             }
 
             const isPasswordValid = await bcrypt.compare(
@@ -174,21 +171,103 @@ class AuthController {
 
             const token = AuthController.generateJWT(user.id, user.mobileNumber)
 
-            reply.send({ message: 'Login successful', token })
+            reply.send({
+                message: 'Login successful',
+                data: {
+                    accessToken: token,
+                },
+            })
         } catch (error) {
             Controller.handleError(reply, error)
         }
     }
 
-    /**
-     * Generates a JWT token for the user.
-     * @param {string} userId - The user's ID.
-     * @param {string} mobileNumber - The user's mobile number.
-     * @returns {string} - The generated JWT token.
-     */
-    static generateJWT(userId, mobileNumber) {
-        return jwt.sign({ id: userId, mobileNumber }, process.env.JWT_SECRET, {
-            expiresIn: '1h',
+    static async forgotPassword(request, reply) {
+        const { mobile, dialCode } = request.body
+
+        try {
+            const userRepository = new UserRepository()
+            const user = await userRepository.findOneByMobileNumber(mobile)
+
+            if (!user) {
+                throw new Error('User not found')
+            }
+
+            if (!user.isVerified) {
+                throw new Error('User is not verified')
+            }
+
+            if (!user.isOnboarded) {
+                throw new Error('User profile not updated')
+            }
+
+            if (!isOTPResendAllowed(user.otpCreatedAt)) {
+                throw new Error('Please wait some time to resend OTP')
+            }
+
+            const otp = generateOTP()
+            const message = SMS.forgotPasswordTemplate(user.district, otp)
+            await SMS.send(mobile, message)
+
+            const userDTO = new UserDTO()
+            userDTO.id = user.id
+            userDTO.otp = otp
+            userDTO.otpCreatedAt = now()
+
+            await userRepository.update(userDTO)
+
+            reply.send({ message: 'OTP sent successfully' })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    static async resetPassword(request, reply) {
+        const { password } = request.body
+
+        try {
+            const userRepository = new UserRepository()
+            const user = await userRepository.findBy('id', request.user.id)
+
+            if (!user) {
+                throw new Error('User not found')
+            }
+
+            if (!user.isVerified) {
+                throw new Error('User is not verified')
+            }
+
+            if (!user.isOnboarded) {
+                throw new Error('User profile not updated')
+            }
+
+            const userDTO = new UserDTO()
+            userDTO.id = request.user.id
+            userDTO.password = password
+
+            await userRepository.update(userDTO)
+
+            reply.send({ message: 'Password reset successfully' })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    static generateJWT(user) {
+        const data = {
+            id: user.id,
+        }
+        return jwt.sign(data, process.env.JWT_SECRET, {
+            expiresIn: '7d',
+        })
+    }
+
+    static generateTempJWT(user) {
+        const data = {
+            id: user.id,
+        }
+        return jwt.sign(data, process.env.JWT_SECRET, {
+            expiresIn: '10m',
         })
     }
 }

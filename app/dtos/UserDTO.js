@@ -9,14 +9,13 @@ class UserDTO extends DTO {
     dob
     gender
     district
-    thana
     upazila
     union
     otp
     otpCreatedAt
     profilePictureId
+    isOnboarded
     isVerified
-    verifiedAt
 }
 
 module.exports = UserDTO

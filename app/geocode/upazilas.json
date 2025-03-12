@@ -1,0 +1,100 @@
+[
+    {
+        "id": "43",
+        "district_id": "5",
+        "name": "Noakhali Sadar",
+        "bn_name": "নোয়াখালী সদর",
+        "url": "sadar.noakhali.gov.bd"
+    },
+    {
+        "id": "44",
+        "district_id": "5",
+        "name": "Companiganj",
+        "bn_name": "কোম্পানীগঞ্জ",
+        "url": "companiganj.noakhali.gov.bd"
+    },
+    {
+        "id": "45",
+        "district_id": "5",
+        "name": "Begumganj",
+        "bn_name": "বেগমগঞ্জ",
+        "url": "begumganj.noakhali.gov.bd"
+    },
+    {
+        "id": "46",
+        "district_id": "5",
+        "name": "Hatia",
+        "bn_name": "হাতিয়া",
+        "url": "hatia.noakhali.gov.bd"
+    },
+    {
+        "id": "47",
+        "district_id": "5",
+        "name": "Subarnachar",
+        "bn_name": "সুবর্ণচর",
+        "url": "subarnachar.noakhali.gov.bd"
+    },
+    {
+        "id": "48",
+        "district_id": "5",
+        "name": "Kabirhat",
+        "bn_name": "কবিরহাট",
+        "url": "kabirhat.noakhali.gov.bd"
+    },
+    {
+        "id": "49",
+        "district_id": "5",
+        "name": "Senbug",
+        "bn_name": "সেনবাগ",
+        "url": "senbug.noakhali.gov.bd"
+    },
+    {
+        "id": "50",
+        "district_id": "5",
+        "name": "Chatkhil",
+        "bn_name": "চাটখিল",
+        "url": "chatkhil.noakhali.gov.bd"
+    },
+    {
+        "id": "51",
+        "district_id": "5",
+        "name": "Sonaimori",
+        "bn_name": "সোনাইমুড়ী",
+        "url": "sonaimori.noakhali.gov.bd"
+    },
+    {
+        "id": "376",
+        "district_id": "49",
+        "name": "Rajbari Sadar",
+        "bn_name": "রাজবাড়ী সদর",
+        "url": "sadar.rajbari.gov.bd"
+    },
+    {
+        "id": "377",
+        "district_id": "49",
+        "name": "Goalanda",
+        "bn_name": "গোয়ালন্দ",
+        "url": "goalanda.rajbari.gov.bd"
+    },
+    {
+        "id": "378",
+        "district_id": "49",
+        "name": "Pangsa",
+        "bn_name": "পাংশা",
+        "url": "pangsa.rajbari.gov.bd"
+    },
+    {
+        "id": "379",
+        "district_id": "49",
+        "name": "Baliakandi",
+        "bn_name": "বালিয়াকান্দি",
+        "url": "baliakandi.rajbari.gov.bd"
+    },
+    {
+        "id": "380",
+        "district_id": "49",
+        "name": "Kalukhali",
+        "bn_name": "কালুখালী",
+        "url": "kalukhali.rajbari.gov.bd"
+    }
+]
