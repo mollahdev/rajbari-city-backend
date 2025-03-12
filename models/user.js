@@ -42,7 +42,7 @@ module.exports = (sequelize, DataTypes) => {
             union: DataTypes.STRING,
             otp: DataTypes.INTEGER,
             otpCreatedAt: DataTypes.DATE,
-            profilePictureId: DataTypes.STRING,
+            profilePictureUrl: DataTypes.STRING,
             isVerified: {
                 type: DataTypes.BOOLEAN,
                 defaultValue: false,

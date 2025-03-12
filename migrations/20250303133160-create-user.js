@@ -33,7 +33,7 @@ module.exports = {
             union: Sequelize.STRING,
             otp: Sequelize.STRING,
             otp_created_at: Sequelize.DATE,
-            profile_picture_id: Sequelize.STRING,
+            profile_picture_url: Sequelize.STRING,
             is_verified: Sequelize.BOOLEAN,
             is_onboarded: {
                 type: Sequelize.BOOLEAN,

@@ -14,6 +14,11 @@ dotenv.config()
 
 const fastify = new Fastify({
     logger: true,
+    ajv: {
+        customOptions: {
+            removeAdditional: 'all',
+        },
+    },
 })
 
 fastify.register(require('@fastify/jwt'), {

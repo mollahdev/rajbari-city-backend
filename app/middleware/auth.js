@@ -27,6 +27,8 @@ async function auth(request, reply) {
         request.user = {
             id: decoded.id,
         }
+
+        console.log(request.user)
     } catch (err) {
         return reply.code(401).send({ error: 'Invalid or expired token' })
     }

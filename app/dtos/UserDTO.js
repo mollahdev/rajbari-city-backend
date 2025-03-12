@@ -13,7 +13,7 @@ class UserDTO extends DTO {
     union
     otp
     otpCreatedAt
-    profilePictureId
+    profilePictureUrl
     isOnboarded
     isVerified
 }

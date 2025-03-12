@@ -59,7 +59,7 @@ module.exports = async function (routes) {
         handler: AuthController.verifyOTP,
     })
 
-    routes.post('/update-profile', {
+    routes.patch('/update-profile', {
         schema: {
             body: {
                 type: 'object',
@@ -155,7 +155,7 @@ module.exports = async function (routes) {
         handler: AuthController.forgotPassword,
     })
 
-    routes.post('/reset-password', {
+    routes.put('/reset-password', {
         schema: {
             body: {
                 type: 'object',

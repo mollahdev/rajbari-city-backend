@@ -169,7 +169,7 @@ class AuthController {
                 throw new Error('Invalid password')
             }
 
-            const token = AuthController.generateJWT(user.id, user.mobileNumber)
+            const token = AuthController.generateJWT(user)
 
             reply.send({
                 message: 'Login successful',
