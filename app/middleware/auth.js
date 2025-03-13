@@ -44,6 +44,7 @@ async function auth(request, reply) {
             id: decoded.id,
             expiresAt: dayjs.unix(decoded.exp).format(DATE_TIME_FORMAT),
             token: token,
+            district: decoded.district,
         }
     } catch (err) {
         return reply.code(401).send({ error: 'Invalid or expired token' })

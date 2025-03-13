@@ -1,6 +1,7 @@
 const authRoutes = require('./auth')
 const profileRoutes = require('./profile')
 const fileRoutes = require('./file')
+const bloodRoutes = require('./blood')
 
 module.exports = async (fastify) => {
     /**
@@ -9,4 +10,5 @@ module.exports = async (fastify) => {
     fastify.register(authRoutes, { prefix: '/auth' })
     fastify.register(profileRoutes, { prefix: '/profile' })
     fastify.register(fileRoutes, { prefix: '/file' })
+    fastify.register(bloodRoutes, { prefix: '/blood' })
 }

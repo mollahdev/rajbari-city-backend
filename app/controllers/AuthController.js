@@ -282,6 +282,7 @@ class AuthController {
     static generateJWT(user) {
         const data = {
             id: user.id,
+            district: user.district,
         }
         return jwt.sign(data, process.env.JWT_SECRET, {
             expiresIn: '7d',
