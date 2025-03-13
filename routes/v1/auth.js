@@ -1,5 +1,5 @@
-const AuthController = require('../../../app/controllers/AuthController')
-const auth = require('../../../app/middleware/auth')
+const AuthController = require('../../app/controllers/AuthController')
+const auth = require('../../app/middleware/auth')
 
 module.exports = async function (routes) {
     routes.post('/register', {

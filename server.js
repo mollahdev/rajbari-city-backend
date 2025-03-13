@@ -4,6 +4,8 @@
 const dotenv = require('dotenv')
 const Fastify = require('fastify')
 const fastifyFormbody = require('@fastify/formbody')
+const fastifyMultipart = require('@fastify/multipart')
+const jwt = require('@fastify/jwt')
 
 /**
  * Internal dependencies
@@ -21,10 +23,17 @@ const fastify = new Fastify({
     },
 })
 
-fastify.register(require('@fastify/jwt'), {
+fastify.register(jwt, {
     secret: process.env.JWT_SECRET,
 })
 
+fastify.removeContentTypeParser('multipart/form-data')
+fastify.register(fastifyMultipart, {
+    limits: {
+        fileSize: 300 * 1024, // ✅ Max file size: 300KB
+        files: 1, // ✅ Max 5 files at a time
+    },
+})
 fastify.register(fastifyFormbody)
 fastify.register(v1, { prefix: '/api/v1/' })
 

@@ -1,4 +1,5 @@
 const Geocode = require('../geocode')
+
 module.exports = class SMS {
     static registrationTemplate(district, otp) {
         const data = Geocode.getDistricts((d) => d.id == district)
@@ -20,7 +21,6 @@ module.exports = class SMS {
             // return data
             return url
         } catch (err) {
-            console.log(err)
             return err
         }
     }

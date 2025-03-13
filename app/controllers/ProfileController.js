@@ -1,10 +1,11 @@
+const { omit, assign } = require('lodash')
 /**
  * Internal dependencies
  */
 const UserRepository = require('../repositories/UserRepository')
 const UserDTO = require('../dtos/UserDTO')
 const Controller = require('./Controller')
-const { omit, assign } = require('lodash')
+const { getFileUrl } = require('../helpers')
 
 class ProfileController {
     static async getCurrentProfile(request, reply) {
@@ -22,6 +23,12 @@ class ProfileController {
                 'otp',
                 'otpCreatedAt',
             ])
+
+            assign(filteredUser, {
+                profilePictureUrl: getFileUrl(
+                    `${user.id}/${user.profilePictureUrl}`
+                ),
+            })
 
             return {
                 message: 'User profile fetched successfully',

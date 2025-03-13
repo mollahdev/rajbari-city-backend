@@ -9,7 +9,7 @@ const jwt = require('jsonwebtoken')
 const UserRepository = require('../repositories/UserRepository')
 const UserDTO = require('../dtos/UserDTO')
 const Controller = require('./Controller')
-const SMS = require('../sms')
+const SMS = require('../services/sms')
 const Geocode = require('../geocode')
 const { now, generateOTP, isOTPResendAllowed } = require('../helpers')
 

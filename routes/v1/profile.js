@@ -1,5 +1,5 @@
-const ProfileController = require('../../../app/controllers/ProfileController')
-const auth = require('../../../app/middleware/auth')
+const ProfileController = require('../../app/controllers/ProfileController')
+const auth = require('../../app/middleware/auth')
 
 module.exports = async function (routes) {
     routes.get('/', {

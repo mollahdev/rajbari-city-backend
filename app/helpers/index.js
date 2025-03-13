@@ -21,9 +21,14 @@ function isOTPResendAllowed(otpCreatedAt) {
     return !dayjs(otpCreatedAt).add(3, 'minute').isAfter(now())
 }
 
+function getFileUrl(path) {
+    return `${process.env.STORAGE_BASE}/${path}`
+}
+
 module.exports = {
     now,
     getPaginationObject,
     generateOTP,
     isOTPResendAllowed,
+    getFileUrl,
 }
