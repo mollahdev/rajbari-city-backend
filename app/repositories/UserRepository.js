@@ -10,10 +10,6 @@ const models = require('./../../models')
 const bcrypt = require('bcryptjs')
 
 class UserRepository {
-    async get() {
-        return await models.User.findAll()
-    }
-
     async getById(id) {
         return this.findBy('id', id)
     }
@@ -31,7 +27,7 @@ class UserRepository {
      * @returns
      */
     async create(userDTO) {
-        let data = userDTO.toFormat()
+        let data = userDTO.toObject()
 
         if (undefined !== userDTO.password) {
             data.password = await bcrypt.hash(userDTO.password, 10) // Hash password
@@ -46,7 +42,7 @@ class UserRepository {
      * @returns
      */
     async update(userDTO) {
-        let data = userDTO.toFormat()
+        let data = userDTO.toObject()
 
         if (undefined !== userDTO.password) {
             data.password = await bcrypt.hash(userDTO.password, 10) // Hash password

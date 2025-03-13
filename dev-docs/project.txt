@@ -4,3 +4,4 @@ https://dev-api.flexlab.studio/
 
 DB table creation command - npx sequelize-cli db:migrate
 Insert demo data command - npx sequelize-cli db:seed:all
+Create Migration File - npx sequelize-cli migration:generate --name create-users-table

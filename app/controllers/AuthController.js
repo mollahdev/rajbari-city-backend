@@ -7,7 +7,9 @@ const jwt = require('jsonwebtoken')
  * Internal dependencies
  */
 const UserRepository = require('../repositories/UserRepository')
+const TokenRepository = require('../repositories/TokenRepository')
 const UserDTO = require('../dtos/UserDTO')
+const TokenDTO = require('../dtos/TokenDTO')
 const Controller = require('./Controller')
 const SMS = require('../services/sms')
 const Geocode = require('../geocode')
@@ -177,6 +179,30 @@ class AuthController {
                     accessToken: token,
                 },
             })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    static async logout(request, reply) {
+        const { id, expiresAt, token } = request.user
+
+        try {
+            const tokenRepository = new TokenRepository()
+            const existingToken = await tokenRepository.findBy('token', token)
+
+            if (existingToken) {
+                throw new Error('You are already logged out')
+            }
+
+            const tokenDTO = new TokenDTO()
+            tokenDTO.token = token
+            tokenDTO.expiresAt = expiresAt
+            tokenDTO.userId = id
+
+            await tokenRepository.create(tokenDTO)
+
+            reply.send({ message: 'Logout successful' })
         } catch (error) {
             Controller.handleError(reply, error)
         }

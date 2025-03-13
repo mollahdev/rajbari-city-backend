@@ -15,11 +15,6 @@ module.exports = async function (routes) {
                         type: 'string',
                         description: 'Name of the user',
                     },
-                    password: {
-                        type: 'string',
-                        description: 'Password of the user',
-                        minLength: 4,
-                    },
                     dob: {
                         type: 'string',
                         description: 'Date of birth of the user',
@@ -41,6 +36,28 @@ module.exports = async function (routes) {
             },
         },
         handler: ProfileController.updateProfile,
+    })
+
+    routes.post('/password', {
+        schema: {
+            body: {
+                type: 'object',
+                required: ['oldPassword', 'newPassword'],
+                properties: {
+                    oldPassword: {
+                        type: 'string',
+                        description: 'Old password of the user',
+                        minLength: 4,
+                    },
+                    newPassword: {
+                        type: 'string',
+                        description: 'New password of the user',
+                        minLength: 4,
+                    },
+                },
+            },
+        },
+        handler: ProfileController.updatePassword,
     })
 
     routes.addHook('onRequest', auth) //Middleware

@@ -1,4 +1,5 @@
 const { omit, assign } = require('lodash')
+const bcrypt = require('bcryptjs')
 /**
  * Internal dependencies
  */
@@ -60,6 +61,44 @@ class ProfileController {
 
             return {
                 message: 'User profile updated successfully',
+            }
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    static async updatePassword(request, reply) {
+        const { oldPassword, newPassword } = request.body
+
+        try {
+            const userRepository = new UserRepository()
+            const user = await userRepository.findBy('id', request.user.id)
+
+            if (!user) {
+                throw new Error('User not found')
+            }
+
+            if (!user.isVerified) {
+                throw new Error('User is not verified')
+            }
+
+            const isPasswordValid = await bcrypt.compare(
+                oldPassword,
+                user.password
+            )
+
+            if (!isPasswordValid) {
+                throw new Error('Old password is incorrect')
+            }
+
+            const userDTO = new UserDTO()
+            userDTO.id = request.user.id
+            userDTO.password = newPassword
+
+            await userRepository.update(userDTO)
+
+            return {
+                message: 'User password updated successfully',
             }
         } catch (error) {
             Controller.handleError(reply, error)

@@ -1,9 +1,16 @@
+/**
+ * External dependencies
+ */
 const dayjs = require('dayjs')
 const utc = require('dayjs/plugin/utc')
+/**
+ * Internal dependencies
+ */
+const { DATE_TIME_FORMAT } = require('./constants')
 
 function now() {
     dayjs.extend(utc)
-    return dayjs().utc().format('YYYY-MM-DD HH:mm:ss')
+    return dayjs().utc().format(DATE_TIME_FORMAT)
 }
 
 function getPaginationObject(page, perPage = 10) {

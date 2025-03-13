@@ -132,6 +132,11 @@ module.exports = async function (routes) {
         handler: AuthController.login,
     })
 
+    routes.get('/logout', {
+        preHandler: auth,
+        handler: AuthController.logout,
+    })
+
     routes.post('/forgot-password', {
         schema: {
             body: {

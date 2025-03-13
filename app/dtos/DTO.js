@@ -1,5 +1,5 @@
 class DTO {
-    toFormat() {
+    toObject() {
         const jsonObj = {}
         Object.getOwnPropertyNames(this).forEach((prop) => {
             const value = this[prop] // Access private field

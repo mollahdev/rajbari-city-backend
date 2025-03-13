@@ -1,4 +1,12 @@
-const { BaseError } = require('sequelize')
+/**
+ * External dependencies
+ */
+const dayjs = require('dayjs')
+/**
+ * Internal dependencies
+ */
+const TokenRepository = require('../repositories/TokenRepository')
+const { DATE_TIME_FORMAT } = require('../helpers/constants')
 
 async function auth(request, reply) {
     try {
@@ -21,11 +29,21 @@ async function auth(request, reply) {
         // Verify the JWT token
         await request.jwtVerify() // This will automatically verify the token using the fastify-jwt plugin
 
+        // Check if the token is valid
+        const tokenRepository = new TokenRepository()
+        const isTokenValid = await tokenRepository.isTokenValid(token)
+
+        if (!isTokenValid) {
+            return reply.code(401).send({ error: 'Token is invalid' })
+        }
+
         // decode the token
         const decoded = await request.jwtDecode(token)
 
         request.user = {
             id: decoded.id,
+            expiresAt: dayjs.unix(decoded.exp).format(DATE_TIME_FORMAT),
+            token: token,
         }
     } catch (err) {
         return reply.code(401).send({ error: 'Invalid or expired token' })
