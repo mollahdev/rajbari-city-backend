@@ -3,12 +3,14 @@ const Geocode = require('../geocode')
 module.exports = class SMS {
     static registrationTemplate(district, otp) {
         const data = Geocode.getDistricts((d) => d.id == district)
-        return `Welcome to ${data.name} City App! Your registration OTP is: ${otp}. Please use this code to complete your signup.`
+        const districtName = (data[0] && data[0].name) || ''
+        return `Welcome to ${districtName} City App! Your registration OTP is: ${otp}. Please use this code to complete your signup.`
     }
 
     static forgotPasswordTemplate(district, otp) {
         const data = Geocode.getDistricts((d) => d.id == district)
-        return `Reset your password on ${data.name} City App. Your OTP is: ${otp}. Enter this code to proceed with password reset.`
+        const districtName = (data[0] && data[0].name) || ''
+        return `Reset your password on ${districtName} City App. Your OTP is: ${otp}. Enter this code to proceed with password reset.`
     }
 
     static async send(mobile, message) {
