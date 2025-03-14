@@ -1,4 +1,4 @@
-const { omit, assign } = require('lodash')
+const { omit, assign, get } = require('lodash')
 const bcrypt = require('bcryptjs')
 /**
  * Internal dependencies
@@ -7,6 +7,7 @@ const UserRepository = require('../repositories/UserRepository')
 const UserDTO = require('../dtos/UserDTO')
 const Controller = require('./Controller')
 const { getFileUrl } = require('../helpers')
+const { PLACEHOLDER_AVATAR } = require('../helpers/constants')
 
 class ProfileController {
     static async getCurrentProfile(request, reply) {
@@ -25,10 +26,11 @@ class ProfileController {
                 'otpCreatedAt',
             ])
 
+            const avatarFile = user.profilePictureUrl
+                ? `${user.id}/${user.profilePictureUrl}`
+                : PLACEHOLDER_AVATAR
             assign(filteredUser, {
-                profilePictureUrl: getFileUrl(
-                    `${user.id}/${user.profilePictureUrl}`
-                ),
+                profilePictureUrl: getFileUrl(avatarFile),
             })
 
             return {

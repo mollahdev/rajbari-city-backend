@@ -7,6 +7,10 @@ const BloodFoundationDTO = require('../dtos/BloodFoundationDTO')
 const Geocode = require('../geocode')
 const Controller = require('./Controller')
 const { getFileUrl } = require('../helpers')
+const {
+    PLACEHOLDER_AVATAR,
+    PLACEHOLDER_IMAGE,
+} = require('../helpers/constants')
 
 class BloodController {
     static async getAllFoundations(request, reply) {
@@ -21,10 +25,11 @@ class BloodController {
             })
 
             foundations.forEach((foundation) => {
+                const thumbnailFile = foundation.thumbnailUrl
+                    ? `${foundation.userId}/${foundation.thumbnailUrl}`
+                    : PLACEHOLDER_IMAGE
                 assign(foundation, {
-                    thumbnailUrl: getFileUrl(
-                        `${foundation.userId}/${foundation.thumbnailUrl}`
-                    ),
+                    thumbnailUrl: getFileUrl(thumbnailFile),
                 })
             })
 
@@ -54,18 +59,22 @@ class BloodController {
 
             foundation = foundation.dataValues
 
+            const thumbnailFile = foundation.thumbnailUrl
+                ? `${foundation.userId}/${foundation.thumbnailUrl}`
+                : PLACEHOLDER_IMAGE
+
             assign(foundation, {
-                thumbnailUrl: getFileUrl(
-                    `${foundation.userId}/${foundation.thumbnailUrl}`
-                ),
+                thumbnailUrl: getFileUrl(thumbnailFile),
                 members: foundation.members.map((member) => {
                     const BloodFoundationUser = member.BloodFoundationUser
+                    const avatarFile = member.profilePictureUrl
+                        ? `${member.id}/${member.profilePictureUrl}`
+                        : PLACEHOLDER_AVATAR
+
                     return {
                         id: member.id,
                         name: member.name,
-                        profilePictureUrl: getFileUrl(
-                            `${member.id}/${member.profilePictureUrl}`
-                        ),
+                        profilePictureUrl: getFileUrl(avatarFile),
                         role: BloodFoundationUser.role,
                         status: BloodFoundationUser.status,
                     }
@@ -156,8 +165,12 @@ class BloodController {
             const foundation =
                 await bloodRepository.findOneFoundationById(foundationId)
 
+            const thumbnailFile = foundation.thumbnailUrl
+                ? `${foundation.userId}/${foundation.thumbnailUrl}`
+                : PLACEHOLDER_IMAGE
+
             assign(foundation, {
-                thumbnailUrl: getFileUrl(`${id}/${foundation.thumbnailUrl}`),
+                thumbnailUrl: getFileUrl(thumbnailFile),
             })
 
             return {

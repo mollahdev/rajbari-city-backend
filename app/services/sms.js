@@ -4,13 +4,13 @@ module.exports = class SMS {
     static registrationTemplate(district, otp) {
         const data = Geocode.getDistricts((d) => d.id == district)
         const districtName = (data[0] && data[0].name) || ''
-        return `Welcome to ${districtName} City App! Your registration OTP is: ${otp}. Please use this code to complete your signup.`
+        return `${districtName} City App registration OTP is ${otp}`
     }
 
     static forgotPasswordTemplate(district, otp) {
         const data = Geocode.getDistricts((d) => d.id == district)
         const districtName = (data[0] && data[0].name) || ''
-        return `Reset your password on ${districtName} City App. Your OTP is: ${otp}. Enter this code to proceed with password reset.`
+        return `${districtName} City App reset password OTP is ${otp}`
     }
 
     static async send(mobile, message) {
