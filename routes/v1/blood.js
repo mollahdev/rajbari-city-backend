@@ -6,6 +6,14 @@ module.exports = async function (routes) {
         handler: BloodController.getAllFoundations,
     })
 
+    routes.get('/foundation/:id', {
+        handler: BloodController.getOneFoundation,
+    })
+
+    routes.delete('/foundation/:id', {
+        handler: BloodController.deleteOneFoundation,
+    })
+
     routes.post('/foundation', {
         schema: {
             body: {
@@ -23,6 +31,19 @@ module.exports = async function (routes) {
             },
         },
         handler: BloodController.createFoundation,
+    })
+
+    routes.post('/join-foundation', {
+        schema: {
+            body: {
+                type: 'object',
+                required: ['foundationId'],
+                properties: {
+                    foundationId: { type: 'string' },
+                },
+            },
+        },
+        handler: BloodController.joinFoundation,
     })
 
     routes.addHook('onRequest', auth) //Middleware

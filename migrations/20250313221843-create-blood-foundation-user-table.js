@@ -18,7 +18,7 @@ module.exports = {
                 },
                 onDelete: 'CASCADE',
             },
-            blood_foundation_id: {
+            foundation_id: {
                 type: Sequelize.UUID,
                 references: {
                     model: 'BloodFoundations',
@@ -29,6 +29,16 @@ module.exports = {
             role: {
                 type: Sequelize.ENUM('admin', 'member'),
                 defaultValue: 'member',
+            },
+            status: {
+                type: Sequelize.ENUM(
+                    'active',
+                    'inactive',
+                    'pending',
+                    'blocked'
+                ),
+                defaultValue: 'pending',
+                allowNull: false,
             },
             created_at: {
                 type: Sequelize.DATE,

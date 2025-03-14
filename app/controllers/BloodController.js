@@ -1,4 +1,4 @@
-const { omit, assign, every, isPlainObject, isString, size } = require('lodash')
+const { assign, every, isPlainObject, isString, size } = require('lodash')
 /**
  * Internal dependencies
  */
@@ -17,7 +17,6 @@ class BloodController {
             const foundations = await bloodRepository.findAllFoundationBy({
                 where: {
                     district,
-                    userId: id,
                 },
             })
 
@@ -32,6 +31,82 @@ class BloodController {
             reply.send({
                 message: 'Foundations fetched successfully',
                 data: foundations,
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    static async getOneFoundation(request, reply) {
+        const { id } = request.params
+
+        try {
+            if (!id) {
+                throw new Error('Foundation id is required')
+            }
+
+            const bloodRepository = new BloodRepository()
+            let foundation = await bloodRepository.findOneFoundationById(id)
+
+            if (!foundation) {
+                throw new Error('Foundation not found')
+            }
+
+            foundation = foundation.dataValues
+
+            assign(foundation, {
+                thumbnailUrl: getFileUrl(
+                    `${foundation.userId}/${foundation.thumbnailUrl}`
+                ),
+                members: foundation.members.map((member) => {
+                    const BloodFoundationUser = member.BloodFoundationUser
+                    return {
+                        id: member.id,
+                        name: member.name,
+                        profilePictureUrl: getFileUrl(
+                            `${member.id}/${member.profilePictureUrl}`
+                        ),
+                        role: BloodFoundationUser.role,
+                        status: BloodFoundationUser.status,
+                    }
+                }),
+            })
+
+            reply.send({
+                message: 'Foundation fetched successfully',
+                data: foundation,
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    static async deleteOneFoundation(request, reply) {
+        const { id } = request.params
+
+        try {
+            if (!id) {
+                throw new Error('Foundation id is required')
+            }
+
+            const bloodRepository = new BloodRepository()
+            const foundation = await bloodRepository.findOneFoundationById(id)
+
+            if (!foundation) {
+                throw new Error('Foundation not found')
+            }
+
+            // check if the user is the owner of the foundation
+            if (foundation.userId !== request.user.id) {
+                throw new Error(
+                    'You are not authorized to delete this foundation'
+                )
+            }
+
+            await bloodRepository.deleteFoundationById(id)
+
+            reply.send({
+                message: 'Foundation deleted successfully',
             })
         } catch (error) {
             Controller.handleError(reply, error)
@@ -78,10 +153,8 @@ class BloodController {
 
             const foundationId =
                 await bloodRepository.createFoundation(foundationDTO)
-            const foundation = await bloodRepository.findOneFoundationBy(
-                'id',
-                foundationId
-            )
+            const foundation =
+                await bloodRepository.findOneFoundationById(foundationId)
 
             assign(foundation, {
                 thumbnailUrl: getFileUrl(`${id}/${foundation.thumbnailUrl}`),
@@ -91,6 +164,33 @@ class BloodController {
                 message: 'Foundation created successfully',
                 data: foundation,
             }
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    static async joinFoundation(request, reply) {
+        const { foundationId } = request.body
+        const { id } = request.user
+
+        try {
+            const bloodRepository = new BloodRepository()
+            const foundation =
+                await bloodRepository.findOneFoundationById(foundationId)
+
+            if (!foundation) {
+                throw new Error('Foundation not found')
+            }
+
+            const result = await bloodRepository.addUserToFoundation(
+                id,
+                foundationId
+            )
+
+            reply.send({
+                message: 'Foundation joined successfully',
+                data: result,
+            })
         } catch (error) {
             Controller.handleError(reply, error)
         }

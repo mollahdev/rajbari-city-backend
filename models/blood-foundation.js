@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
         static associate(models) {
             BloodFoundation.belongsToMany(models.User, {
                 through: models.BloodFoundationUser,
-                foreignKey: 'blood_foundation_id',
+                foreignKey: 'foundation_id',
                 as: 'members',
             })
         }
@@ -68,7 +68,12 @@ module.exports = (sequelize, DataTypes) => {
                 allowNull: false,
             },
             status: {
-                type: DataTypes.ENUM('active', 'inactive', 'pending'),
+                type: DataTypes.ENUM(
+                    'active',
+                    'inactive',
+                    'pending',
+                    'blocked'
+                ),
                 defaultValue: 'pending',
                 allowNull: false,
             },
