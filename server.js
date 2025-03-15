@@ -30,7 +30,7 @@ fastify.register(jwt, {
 fastify.removeContentTypeParser('multipart/form-data')
 fastify.register(fastifyMultipart, {
     limits: {
-        fileSize: 300 * 1024, // ✅ Max file size: 300KB
+        fieldSize: 3 * 1024 * 1024, // ✅ Max field size: 3MB
         files: 1, // ✅ Max 5 files at a time
     },
 })
