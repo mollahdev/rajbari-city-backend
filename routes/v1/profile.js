@@ -27,6 +27,12 @@ module.exports = async function (routes) {
                     upazila: {
                         type: 'string',
                     },
+                    isMunicipality: {
+                        type: 'boolean',
+                    },
+                    municipality: {
+                        type: 'string',
+                    },
                     union: {
                         type: 'string',
                     },

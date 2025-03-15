@@ -4,7 +4,6 @@ const { assign, every, isPlainObject, isString, size } = require('lodash')
  */
 const BloodRepository = require('../repositories/BloodRepository')
 const BloodFoundationDTO = require('../dtos/BloodFoundationDTO')
-const Geocode = require('../geocode')
 const Controller = require('./Controller')
 const { getFileUrl } = require('../helpers')
 const {
@@ -131,6 +130,8 @@ class BloodController {
             mobiles,
             socials,
             upazila,
+            isMunicipality,
+            municipality,
             union,
         } = request.body
 
@@ -143,10 +144,6 @@ class BloodController {
                 throw new Error('Invalid socials')
             }
 
-            if (!Geocode.isValid({ district, upazila, union })) {
-                throw new Error('Invalid location')
-            }
-
             const bloodRepository = new BloodRepository()
             const foundationDTO = new BloodFoundationDTO()
 
@@ -157,8 +154,16 @@ class BloodController {
             foundationDTO.socials = socials
             foundationDTO.district = district
             foundationDTO.upazila = upazila
-            foundationDTO.union = union
             foundationDTO.userId = id
+            foundationDTO.isMunicipality = isMunicipality
+            
+            if (isMunicipality) {
+                foundationDTO.municipality = municipality
+                foundationDTO.union = null
+            } else {
+                foundationDTO.union = union
+                foundationDTO.municipality = null
+            }
 
             const foundationId =
                 await bloodRepository.createFoundation(foundationDTO)

@@ -18,7 +18,7 @@ module.exports = async function (routes) {
         schema: {
             body: {
                 type: 'object',
-                required: ['name', 'mobiles', 'socials', 'upazila', 'union'],
+                required: ['name', 'mobiles', 'socials', 'upazila', 'isMunicipality'],
                 properties: {
                     name: { type: 'string' },
                     thumbnailUrl: { type: 'string' },
@@ -26,6 +26,12 @@ module.exports = async function (routes) {
                     mobiles: { type: 'array' },
                     socials: { type: 'array' },
                     upazila: { type: 'string' },
+                    isMunicipality: {
+                        type: 'boolean',
+                    },
+                    municipality: {
+                        type: 'string',
+                    },
                     union: { type: 'string' },
                 },
             },

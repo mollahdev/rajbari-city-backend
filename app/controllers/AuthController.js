@@ -12,7 +12,6 @@ const UserDTO = require('../dtos/UserDTO')
 const TokenDTO = require('../dtos/TokenDTO')
 const Controller = require('./Controller')
 const SMS = require('../services/sms')
-const Geocode = require('../geocode')
 const { now, generateOTP, isOTPResendAllowed } = require('../helpers')
 
 class AuthController {
@@ -97,7 +96,7 @@ class AuthController {
     }
 
     static async updateProfile(request, reply) {
-        const { name, password, dob, gender, upazila, union } = request.body
+        const { name, password, dob, gender, upazila, union, isMunicipality, municipality } = request.body
 
         try {
             const userRepository = new UserRepository()
@@ -107,16 +106,8 @@ class AuthController {
                 throw new Error('User not found')
             }
 
-            if (!user.isVerified) {
-                reply.send({ message: 'User is not verified' })
-            }
-
-            if (user.isOnboarded) {
-                throw new Error('Profile already updated')
-            }
-
-            if (!Geocode.isValid({ district: user.district, upazila, union })) {
-                throw new Error('Invalid location')
+            if (user.isOnboarded || !user.isVerified) {
+                throw new Error('Profile already updated or not verified')
             }
 
             const userDTO = new UserDTO()
@@ -126,8 +117,17 @@ class AuthController {
             userDTO.dob = dob
             userDTO.gender = gender
             userDTO.upazila = upazila
-            userDTO.union = union
             userDTO.isOnboarded = true
+
+            if (isMunicipality) {
+                userDTO.isMunicipality = true
+                userDTO.municipality = municipality || null
+                userDTO.union = null
+            } else {
+                userDTO.isMunicipality = false
+                userDTO.union = union || null
+                userDTO.municipality = null
+            }
 
             await userRepository.update(userDTO)
             const token = AuthController.generateJWT(user)
@@ -154,12 +154,8 @@ class AuthController {
                 throw new Error('User not found')
             }
 
-            if (!user.isVerified) {
-                throw new Error('User is not verified')
-            }
-
-            if (!user.isOnboarded) {
-                throw new Error('User profile not updated')
+            if (!user.isVerified || !user.isOnboarded) {
+                throw new Error('User is not verified or onboarded')
             }
 
             const isPasswordValid = await bcrypt.compare(
@@ -219,12 +215,8 @@ class AuthController {
                 throw new Error('User not found')
             }
 
-            if (!user.isVerified) {
-                throw new Error('User is not verified')
-            }
-
-            if (!user.isOnboarded) {
-                throw new Error('User profile not updated')
+            if (!user.isVerified || !user.isOnboarded) {
+                throw new Error('User is not verified or onboarded')
             }
 
             if (!isOTPResendAllowed(user.otpCreatedAt)) {
@@ -259,12 +251,8 @@ class AuthController {
                 throw new Error('User not found')
             }
 
-            if (!user.isVerified) {
-                throw new Error('User is not verified')
-            }
-
-            if (!user.isOnboarded) {
-                throw new Error('User profile not updated')
+            if (!user.isVerified || !user.isOnboarded) {
+                throw new Error('User is not verified or onboarded')
             }
 
             const userDTO = new UserDTO()

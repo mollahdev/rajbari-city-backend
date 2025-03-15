@@ -60,7 +60,7 @@ module.exports = async function (routes) {
                     'dob',
                     'gender',
                     'upazila',
-                    'union',
+                    'isMunicipality',
                 ],
                 properties: {
                     name: {
@@ -78,6 +78,12 @@ module.exports = async function (routes) {
                         enum: ['male', 'female'],
                     },
                     upazila: {
+                        type: 'string',
+                    },
+                    isMunicipality: {
+                        type: 'boolean',
+                    },
+                    municipality: {
                         type: 'string',
                     },
                     union: {

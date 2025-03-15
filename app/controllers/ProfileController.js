@@ -51,8 +51,8 @@ class ProfileController {
                 throw new Error('User not found')
             }
 
-            if (!user.isVerified) {
-                throw new Error('User is not verified')
+            if (!user.isVerified || !user.isOnboarded) {
+                throw new Error('User is not verified or onboarded')
             }
 
             const userDTO = new UserDTO()
@@ -65,6 +65,16 @@ class ProfileController {
             }
 
             assign(userDTO, request.body)
+
+            if ( request.body.isMunicipality) {
+                userDTO.isMunicipality = true
+                userDTO.municipality = request.body.municipality || null
+                userDTO.union = null
+            } else {
+                userDTO.isMunicipality = false
+                userDTO.union = request.body.union || null
+                userDTO.municipality = null
+            }
 
             await userRepository.update(userDTO)
 
