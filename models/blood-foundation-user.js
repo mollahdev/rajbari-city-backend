@@ -56,6 +56,8 @@ module.exports = (sequelize, DataTypes) => {
             tableName: 'BloodFoundationUsers',
             timestamps: true,
             underscored: true,
+            charset: 'utf8mb4',
+            collate: 'utf8mb4_unicode_ci',
         }
     )
 

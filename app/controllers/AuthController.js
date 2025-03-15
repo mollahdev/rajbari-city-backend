@@ -25,7 +25,7 @@ class AuthController {
                 await userRepository.findOneByMobileNumber(mobile)
 
             if (existingUser) {
-                if (existingUser.isVerified) {
+                if (existingUser.isOnboarded) {
                     throw new Error('Mobile number already exists')
                 }
 
