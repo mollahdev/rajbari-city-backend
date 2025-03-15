@@ -13,24 +13,22 @@ module.exports = async function (routes) {
                 properties: {
                     name: {
                         type: 'string',
-                        description: 'Name of the user',
                     },
                     dob: {
                         type: 'string',
-                        description: 'Date of birth of the user',
+                    },
+                    profilePictureFile: {
+                        type: 'string',
                     },
                     gender: {
                         type: 'string',
                         enum: ['male', 'female'],
-                        description: 'Gender of the user',
                     },
                     upazila: {
                         type: 'string',
-                        description: 'Upazila of the user',
                     },
                     union: {
                         type: 'string',
-                        description: 'Union of the user',
                     },
                 },
             },

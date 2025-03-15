@@ -32,10 +32,15 @@ function getFileUrl(path) {
     return `${process.env.STORAGE_BASE}/${path}`
 }
 
+function getFileFromPath(path) {
+    return path.split('/').pop()
+}
+
 module.exports = {
     now,
     getPaginationObject,
     generateOTP,
     isOTPResendAllowed,
     getFileUrl,
+    getFileFromPath,
 }

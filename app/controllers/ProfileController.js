@@ -1,4 +1,4 @@
-const { omit, assign, get } = require('lodash')
+const { omit, assign } = require('lodash')
 const bcrypt = require('bcryptjs')
 /**
  * Internal dependencies
@@ -6,7 +6,7 @@ const bcrypt = require('bcryptjs')
 const UserRepository = require('../repositories/UserRepository')
 const UserDTO = require('../dtos/UserDTO')
 const Controller = require('./Controller')
-const { getFileUrl } = require('../helpers')
+const { getFileUrl, getFileFromPath } = require('../helpers')
 const { PLACEHOLDER_AVATAR } = require('../helpers/constants')
 
 class ProfileController {
@@ -57,6 +57,13 @@ class ProfileController {
 
             const userDTO = new UserDTO()
             userDTO.id = request.user.id
+
+            if (request.body.profilePictureFile) {
+                request.body.profilePictureUrl = getFileFromPath(
+                    request.body.profilePictureFile
+                )
+            }
+
             assign(userDTO, request.body)
 
             await userRepository.update(userDTO)
