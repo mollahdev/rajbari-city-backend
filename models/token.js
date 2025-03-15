@@ -41,8 +41,6 @@ module.exports = (sequelize, DataTypes) => {
             tableName: 'Tokens',
             timestamps: true,
             underscored: true,
-            charset: 'utf8mb4',
-            collate: 'utf8mb4_unicode_ci',
         }
     )
 

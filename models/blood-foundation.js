@@ -27,12 +27,14 @@ module.exports = (sequelize, DataTypes) => {
             name: {
                 type: DataTypes.STRING,
                 allowNull: false,
+                collate: 'utf8mb4_unicode_ci',
             },
             thumbnailUrl: {
                 type: DataTypes.STRING,
             },
             description: {
                 type: DataTypes.STRING,
+                collate: 'utf8mb4_unicode_ci',
             },
             mobiles: {
                 type: DataTypes.JSON,
@@ -52,6 +54,14 @@ module.exports = (sequelize, DataTypes) => {
             union: {
                 type: DataTypes.STRING,
                 allowNull: false,
+            },
+            isMunicipality: {
+                type: DataTypes.BOOLEAN,
+                defaultValue: false,
+                allowNull: false,
+            },
+            municipality: {
+                type: DataTypes.STRING,
             },
             userId: {
                 type: DataTypes.UUID,
@@ -84,8 +94,6 @@ module.exports = (sequelize, DataTypes) => {
             tableName: 'BloodFoundations',
             timestamps: true,
             underscored: true,
-            charset: 'utf8mb4',
-            collate: 'utf8mb4_unicode_ci',
         }
     )
 

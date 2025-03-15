@@ -13,12 +13,14 @@ module.exports = {
             name: {
                 type: Sequelize.STRING,
                 allowNull: false,
+                collate: 'utf8mb4_unicode_ci'
             },
             thumbnail_url: {
                 type: Sequelize.STRING,
             },
             description: {
                 type: Sequelize.STRING,
+                collate: 'utf8mb4_unicode_ci'
             },
             mobiles: {
                 type: Sequelize.JSON,
@@ -38,6 +40,14 @@ module.exports = {
             union: {
                 type: Sequelize.STRING,
                 allowNull: false,
+            },
+            is_municipality: {
+                type: Sequelize.BOOLEAN,
+                defaultValue: false,
+                allowNull: false,
+            },
+            municipality: {
+                type: Sequelize.STRING,
             },
             user_id: {
                 type: Sequelize.UUID,

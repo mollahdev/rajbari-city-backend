@@ -10,6 +10,8 @@ class UserDTO extends DTO {
     district
     upazila
     union
+    isMunicipality
+    municipality
     userId
     isVerified
     isPartner

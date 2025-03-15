@@ -9,7 +9,10 @@ module.exports = {
                 primaryKey: true,
                 allowNull: false,
             },
-            name: Sequelize.STRING,
+            name: {
+                type: Sequelize.STRING,
+                collate: 'utf8mb4_unicode_ci'
+            },
             mobile: {
                 type: Sequelize.STRING,
                 allowNull: false,
@@ -31,6 +34,12 @@ module.exports = {
             },
             upazila: Sequelize.STRING,
             union: Sequelize.STRING,
+            is_municipality: {
+                type: Sequelize.BOOLEAN,
+                allowNull: false,
+                defaultValue: false,
+            },
+            municipality: Sequelize.STRING,
             otp: Sequelize.STRING,
             otp_created_at: Sequelize.DATE,
             profile_picture_url: Sequelize.STRING,

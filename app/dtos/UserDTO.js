@@ -11,6 +11,8 @@ class UserDTO extends DTO {
     district
     upazila
     union
+    isMunicipality
+    municipality
     otp
     otpCreatedAt
     profilePictureUrl

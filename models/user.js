@@ -22,7 +22,10 @@ module.exports = (sequelize, DataTypes) => {
                 defaultValue: DataTypes.UUIDV4, // Ensures automatic UUID generation
                 primaryKey: true,
             },
-            name: DataTypes.STRING,
+            name: {
+                type: DataTypes.STRING,
+                collate: 'utf8mb4_unicode_ci',
+            },
             mobile: {
                 type: DataTypes.STRING,
                 allowNull: false, // Ensures it's always provided
@@ -44,6 +47,12 @@ module.exports = (sequelize, DataTypes) => {
             },
             upazila: DataTypes.STRING,
             union: DataTypes.STRING,
+            isMunicipality: {
+                type: DataTypes.BOOLEAN,
+                defaultValue: false,
+                allowNull: false,
+            },
+            municipality: DataTypes.STRING,
             otp: DataTypes.INTEGER,
             otpCreatedAt: DataTypes.DATE,
             profilePictureUrl: DataTypes.STRING,
@@ -62,8 +71,6 @@ module.exports = (sequelize, DataTypes) => {
             tableName: 'Users',
             timestamps: true,
             underscored: true,
-            charset: 'utf8mb4',
-            collate: 'utf8mb4_unicode_ci',
         }
     )
     return User
