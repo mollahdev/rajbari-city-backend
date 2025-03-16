@@ -4,18 +4,17 @@ module.exports = async function (routes) {
             res.send({
                 message: 'App informaton',
                 data: {
-                    version: '1.0.0',
-                    updateFor: ['ios', 'android'], // ios, android, optional
-                    updateType: 'optional', // force, optional
+                    version: '0.0.1',
+                    updateFor: ['android'], // ios, android, optional
+                    updateType: 'force', // force, optional
                     changeLog: [
-                        'নতুন ফিচার',
-                        'বাগ ফিক্স',
-                        'পারফরমেন্স ইম্প্রুভমেন্ট',
-                        'সিকিউরিটি ইম্প্রুভমেন্ট',
-                        'অন্যান্য আপডেট',
+                        'পৌরসভা যোগ করা হয়েছে',
+                        'ছবির আকার বৃদ্ধি করা হয়েছে',
+                        'বাগ ফিক্স করা হয়েছে',
+                        'সরকারি ওয়েবসাইট যোগ করা হয়েছে',
                     ],
                     android: {
-                        49: 'https://rajbaricity.com/',
+                        49: 'https://drive.google.com/file/d/1tdXkIJ8L49qq69jhJZjFtTYeK1eUXCn3/view?usp=sharing',
                     },
                     ios: {
                         49: 'https://rajbaricity.com/',
