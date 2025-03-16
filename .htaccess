@@ -1,6 +1,10 @@
 DirectoryIndex disabled
 RewriteEngine On
-RewriteRule ^$ http://127.0.0.1:3000/ [P,L]
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
+
+# Redirect dev-api.flexlab.studio to port 3000
+RewriteCond %{HTTP_HOST} ^dev-api\.flexlab\.studio$ [NC]
 RewriteRule ^(.*)$ http://127.0.0.1:3000/$1 [P,L]
+
+# Redirect api.flexlab.studio to port 11000
+RewriteCond %{HTTP_HOST} ^api\.flexlab\.studio$ [NC]
+RewriteRule ^(.*)$ http://127.0.0.1:11000/$1 [P,L]
