@@ -19,6 +19,7 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.UUID,
                 defaultValue: DataTypes.UUIDV4, // Ensures automatic UUID generation
                 primaryKey: true,
+                allowNull: false,
             },
             token: {
                 unique: true,
@@ -28,11 +29,6 @@ module.exports = (sequelize, DataTypes) => {
             userId: {
                 type: DataTypes.UUID,
                 allowNull: false,
-                references: {
-                    model: 'Users',
-                    key: 'id',
-                },
-                onDelete: 'CASCADE',
             },
             isValid: {
                 type: DataTypes.BOOLEAN,

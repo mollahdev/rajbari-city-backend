@@ -8,6 +8,7 @@ module.exports = {
                 type: Sequelize.UUID, // Ensures UUID type
                 defaultValue: Sequelize.UUIDV4, // Generates UUID automatically
                 primaryKey: true,
+                allowNull: false,
             },
             token: {
                 unique: true,
@@ -17,11 +18,6 @@ module.exports = {
             user_id: {
                 type: Sequelize.UUID,
                 allowNull: false,
-                references: {
-                    model: 'Users',
-                    key: 'id',
-                },
-                onDelete: 'CASCADE',
             },
             is_valid: {
                 type: Sequelize.BOOLEAN,
