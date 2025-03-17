@@ -13,6 +13,16 @@ module.exports = (sequelize, DataTypes) => {
                 foreignKey: 'user_id',
                 as: 'blood_foundations',
             })
+
+            User.hasOne(models.BloodDonor, {
+                foreignKey: 'user_id',
+                as: 'blood_donor',
+            })
+
+            User.hasMany(models.BloodFoundation, {
+                foreignKey: 'user_id',
+                as: 'owned_blood_foundations',
+            })
         }
     }
     User.init(
@@ -22,10 +32,7 @@ module.exports = (sequelize, DataTypes) => {
                 defaultValue: DataTypes.UUIDV4, // Ensures automatic UUID generation
                 primaryKey: true,
             },
-            name: {
-                type: DataTypes.STRING,
-                collate: 'utf8mb4_unicode_ci',
-            },
+            name: DataTypes.STRING,
             mobile: {
                 type: DataTypes.STRING,
                 allowNull: false, // Ensures it's always provided
@@ -35,12 +42,13 @@ module.exports = (sequelize, DataTypes) => {
                 },
             },
             dialCode: {
-                type: DataTypes.ENUM('880'), // Restrict to only '880'
+                type: DataTypes.STRING, // Restrict to only '880'
                 allowNull: false, // Ensures it's always provided
+                defaultValue: '880', // Sets default value to '880'
             },
             password: DataTypes.STRING,
             dob: DataTypes.DATE,
-            gender: DataTypes.ENUM(['male', 'female']),
+            gender: DataTypes.ENUM('male', 'female'),
             district: {
                 type: DataTypes.STRING,
                 allowNull: false,
@@ -53,7 +61,7 @@ module.exports = (sequelize, DataTypes) => {
                 allowNull: false,
             },
             municipality: DataTypes.STRING,
-            otp: DataTypes.INTEGER,
+            otp: DataTypes.STRING,
             otpCreatedAt: DataTypes.DATE,
             profilePictureUrl: DataTypes.STRING,
             isVerified: {
@@ -71,6 +79,26 @@ module.exports = (sequelize, DataTypes) => {
             tableName: 'Users',
             timestamps: true,
             underscored: true,
+            charset: 'utf8mb4',
+            collate: 'utf8mb4_unicode_ci',
+            indexes: [
+                {
+                    fields: ['district'],
+                    name: 'user_district_index',
+                },
+                {
+                    fields: ['upazila'],
+                    name: 'user_upazila_index',
+                },
+                {
+                    fields: ['union'],
+                    name: 'user_union_index',
+                },
+                {
+                    fields: ['municipality'],
+                    name: 'user_municipality_index',
+                },
+            ],
         }
     )
     return User

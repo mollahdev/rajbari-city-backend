@@ -21,12 +21,18 @@ module.exports = (sequelize, DataTypes) => {
                 primaryKey: true,
             },
             token: {
+                unique: true,
                 type: DataTypes.STRING,
                 allowNull: false,
             },
             userId: {
                 type: DataTypes.UUID,
                 allowNull: false,
+                references: {
+                    model: 'Users',
+                    key: 'id',
+                },
+                onDelete: 'CASCADE',
             },
             isValid: {
                 type: DataTypes.BOOLEAN,
@@ -41,6 +47,16 @@ module.exports = (sequelize, DataTypes) => {
             tableName: 'Tokens',
             timestamps: true,
             underscored: true,
+            indexes: [
+                {
+                    fields: ['user_id'],
+                    name: 'token_user_id_index',
+                },
+                {
+                    fields: ['expires_at'],
+                    name: 'token_expires_at_index'
+                }
+            ],
         }
     )
 

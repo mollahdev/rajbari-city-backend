@@ -12,46 +12,45 @@ module.exports = {
             },
             name: {
                 type: Sequelize.STRING,
-                allowNull: false,
-                collate: 'utf8mb4_unicode_ci'
+                allowNull: false
             },
             thumbnail_url: {
                 type: Sequelize.STRING,
+                allowNull: false,
             },
             description: {
-                type: Sequelize.STRING,
-                collate: 'utf8mb4_unicode_ci'
+                type: Sequelize.TEXT,
+                allowNull: false,
             },
             mobiles: {
                 type: Sequelize.JSON,
                 allowNull: false,
+                defaultValue: [],
             },
             socials: {
                 type: Sequelize.JSON,
+                defaultValue: [],
             },
             district: {
                 type: Sequelize.STRING,
                 allowNull: false,
             },
-            upazila: {
-                type: Sequelize.STRING,
-                allowNull: false,
-            },
-            union: {
-                type: Sequelize.STRING,
-                allowNull: false,
-            },
+            upazila: Sequelize.STRING,
+            union: Sequelize.STRING,
             is_municipality: {
                 type: Sequelize.BOOLEAN,
                 defaultValue: false,
                 allowNull: false,
             },
-            municipality: {
-                type: Sequelize.STRING,
-            },
+            municipality: Sequelize.STRING,
             user_id: {
                 type: Sequelize.UUID,
                 allowNull: false,
+                references: {
+                    model: 'Users',
+                    key: 'id',
+                },
+                onDelete: 'CASCADE',
             },
             is_verified: {
                 type: Sequelize.BOOLEAN,
@@ -70,7 +69,7 @@ module.exports = {
                     'pending',
                     'blocked'
                 ),
-                defaultValue: 'pending',
+                defaultValue: 'active',
                 allowNull: false,
             },
             created_at: {
@@ -83,10 +82,46 @@ module.exports = {
                 allowNull: false,
                 defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
             },
+        },
+        {
+            charset: 'utf8mb4',
+            collate: 'utf8mb4_unicode_ci',
+            timestamps: true
+        })
+
+        await queryInterface.addIndex('BloodFoundations', ['user_id'], {
+            name: 'blood_foundation_user_id_index',
+        })
+
+        await queryInterface.addIndex('BloodFoundations', ['district'], {
+            name: 'blood_foundation_district_index',
+        })
+
+        await queryInterface.addIndex('BloodFoundations', ['upazila'], {
+            name: 'blood_foundation_upazila_index',
+        })
+
+        await queryInterface.addIndex('BloodFoundations', ['union'], {
+            name: 'blood_foundation_union_index',
+        })
+
+        await queryInterface.addIndex('BloodFoundations', ['municipality'], {
+            name: 'blood_foundation_municipality_index'
+        })
+
+        await queryInterface.addIndex('BloodFoundations', ['status'], {
+            name: 'blood_foundation_status_index'
         })
     },
 
     async down(queryInterface, Sequelize) {
+        await queryInterface.removeIndex('BloodFoundations', 'user_id');
+        await queryInterface.removeIndex('BloodFoundations', 'district');
+        await queryInterface.removeIndex('BloodFoundations', 'upazila');
+        await queryInterface.removeIndex('BloodFoundations', 'union');
+        await queryInterface.removeIndex('BloodFoundations', 'municipality');
+        await queryInterface.removeIndex('BloodFoundations', 'status');
+
         await queryInterface.dropTable('BloodFoundations')
     },
 }

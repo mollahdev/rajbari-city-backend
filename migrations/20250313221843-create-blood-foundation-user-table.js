@@ -50,6 +50,10 @@ module.exports = {
                 allowNull: false,
                 defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
             },
+        }, {
+            timestamps: true,
+            charset: 'utf8mb4',
+            collate: 'utf8mb4_unicode_ci'
         })
     },
 
