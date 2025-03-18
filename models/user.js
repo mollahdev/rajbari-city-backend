@@ -31,6 +31,7 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.UUID,
                 defaultValue: DataTypes.UUIDV4, // Ensures automatic UUID generation
                 primaryKey: true,
+                allowNull: false
             },
             name: DataTypes.STRING,
             mobile: {
@@ -97,7 +98,7 @@ module.exports = (sequelize, DataTypes) => {
                 {
                     fields: ['municipality'],
                     name: 'user_municipality_index',
-                },
+                }
             ],
         }
     )

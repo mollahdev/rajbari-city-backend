@@ -91,6 +91,7 @@ module.exports = (sequelize, DataTypes) => {
                     'pending'
                 ),
                 defaultValue: 'active',
+                allowNull: false,
             },
             lastDonatedAt: DataTypes.DATE,
         },
@@ -104,41 +105,9 @@ module.exports = (sequelize, DataTypes) => {
             collate: 'utf8mb4_unicode_ci',
             indexes: [
                 {
-                    fields: ['mobile'],
-                    name: 'blood_foundation_donor_mobile_index',
-                },
-                {
                     fields: ['foundation_id'],
                     name: 'blood_foundation_donor_foundation_id_index',
-                },
-                {
-                    fields: ['blood_group'],
-                    name: 'blood_foundation_donor_blood_group_index',
-                },
-                {
-                    fields: ['status'],
-                    name: 'blood_foundation_donor_status_index',
-                },
-                {
-                    fields: ['district'],
-                    name: 'blood_foundation_donor_district_index',
-                },
-                {
-                    fields: ['upazila'],
-                    name: 'blood_foundation_donor_upazila_index',
-                },
-                {
-                    fields: ['union'],
-                    name: 'blood_foundation_donor_union_index',
-                },
-                {
-                    fields: ['municipality'],
-                    name: 'blood_foundation_donor_municipality_index',
-                },
-                {
-                    fields: ['last_donated_at'],
-                    name: 'blood_foundation_donor_last_donated_at_index',
-                },
+                }
             ],
         }
     )

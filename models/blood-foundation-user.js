@@ -19,6 +19,7 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.UUID,
                 defaultValue: DataTypes.UUIDV4, // Ensures automatic UUID generation
                 primaryKey: true,
+                allowNull: false,
             },
             userId: {
                 type: DataTypes.UUID,
@@ -27,6 +28,7 @@ module.exports = (sequelize, DataTypes) => {
                     key: 'id',
                 },
                 onDelete: 'CASCADE',
+                allowNull: false,
             },
             foundationId: {
                 type: DataTypes.UUID,
@@ -35,10 +37,12 @@ module.exports = (sequelize, DataTypes) => {
                     key: 'id',
                 },
                 onDelete: 'CASCADE',
+                allowNull: false,
             },
             role: {
                 type: DataTypes.ENUM('admin', 'member'),
                 defaultValue: 'member',
+                allowNull: false,
             },
             status: {
                 type: DataTypes.ENUM(
@@ -48,6 +52,7 @@ module.exports = (sequelize, DataTypes) => {
                     'pending'
                 ),
                 defaultValue: 'pending',
+                allowNull: false,
             },
         },
         {
@@ -56,6 +61,16 @@ module.exports = (sequelize, DataTypes) => {
             tableName: 'BloodFoundationUsers',
             timestamps: true,
             underscored: true,
+            indexes: [
+                {
+                    fields: ['user_id', 'foundation_id'],
+                    name: 'blood_foundation_user_id_foundation_id_index',
+                },
+                {
+                    fields: ['foundation_id'],
+                    name: 'blood_foundation_user_foundation_id_index',
+                }
+            ],
         }
     )
 

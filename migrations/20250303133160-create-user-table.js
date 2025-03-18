@@ -85,7 +85,6 @@ module.exports = {
         await queryInterface.removeIndex('Users', 'user_upazila_index')
         await queryInterface.removeIndex('Users', 'user_union_index')
         await queryInterface.removeIndex('Users', 'user_municipality_index')
-
         await queryInterface.dropTable('Users')
     },
 }
