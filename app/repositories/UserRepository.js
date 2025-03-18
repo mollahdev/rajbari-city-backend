@@ -10,12 +10,36 @@ const models = require('./../../models')
 const bcrypt = require('bcryptjs')
 
 class UserRepository {
-    async getById(id) {
-        return this.findBy('id', id)
-    }
-
     async findOneByMobileNumber(mobileNumber) {
         return this.findBy('mobile', mobileNumber)
+    }
+
+    async findOneUserById(id) {
+        return models.User.findByPk(id, {
+            attributes: {
+                exclude: ['password', 'otp', 'otpCreatedAt'],
+            },
+            include: [
+                {
+                    model: models.BloodDonor,
+                    as: 'bloodDonor',
+                    attributes: ['id'],
+                },
+                {
+                    model: models.BloodFoundation,
+                    as: 'bloodFoundations',
+                    attributes: ['id'],
+                    through: {
+                        attributes: [],
+                    },
+                },
+                {
+                    model: models.BloodFoundation,
+                    as: 'ownedBloodFoundations',
+                    attributes: ['id'],
+                },
+            ],
+        })
     }
 
     async findBy(column, value) {

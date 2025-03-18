@@ -1,5 +1,20 @@
 const yup = require('yup')
 
+const createDonorSchema = yup.object({
+    // blood group should be one of the following: A+, A-, B+, B-, AB+, AB-, O+, O-
+    bloodGroup: yup
+        .string()
+        .matches(
+            /^(A|B|AB|O)[+-]$/,
+            'bloodGroup must be one of the following: A+, A-, B+, B-, AB+, AB-, O+, O-'
+        )
+        .required('bloodGroup is required'),
+
+    description: yup.string().nullable(),
+    lastDonatedAt: yup.date().nullable(),
+    isActive: yup.boolean().default(true),
+})
+
 const foundationCreateSchema = yup.object({
     name: yup.string().required('name is required'),
     mobiles: yup
@@ -47,14 +62,11 @@ const foundationCreateSchema = yup.object({
 })
 
 const foundationJoinSchema = yup.object({
-    foundationId: yup
-        .array()
-        .of(yup.string().required()) // Ensures each item is a non-empty string
-        .min(1, 'foundationId must have at least one item') // Ensures the array is not empty
-        .required('foundationId is required'), // Ensures the field exists
+    foundationId: yup.string().required('foundationId is required'),
 })
 
 module.exports = {
     foundationCreateSchema,
     foundationJoinSchema,
+    createDonorSchema,
 }

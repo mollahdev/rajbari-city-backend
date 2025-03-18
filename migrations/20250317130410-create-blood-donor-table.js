@@ -6,14 +6,9 @@ module.exports = {
         await queryInterface.createTable(
             'BloodDonors',
             {
-                id: {
-                    type: Sequelize.UUID, // Ensures UUID type
-                    defaultValue: Sequelize.UUIDV4, // Generates UUID automatically
-                    primaryKey: true,
-                    allowNull: false,
-                },
                 user_id: {
                     type: Sequelize.UUID,
+                    primaryKey: true,
                     allowNull: false,
                     unique: true,
                     references: {
@@ -66,10 +61,6 @@ module.exports = {
         await queryInterface.addIndex('BloodDonors', ['is_active'], {
             name: 'blood_donor_is_active_index',
         })
-
-        await queryInterface.addIndex('BloodDonors', ['last_donated_at'], {
-            name: 'blood_donor_last_donated_at_index',
-        })
     },
 
     async down(queryInterface, Sequelize) {
@@ -81,10 +72,6 @@ module.exports = {
         await queryInterface.removeIndex(
             'BloodDonors',
             'blood_donor_is_active_index'
-        )
-        await queryInterface.removeIndex(
-            'BloodDonors',
-            'blood_donor_last_donated_at_index'
         )
         await queryInterface.dropTable('BloodDonors')
     },

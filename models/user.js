@@ -11,17 +11,17 @@ module.exports = (sequelize, DataTypes) => {
             User.belongsToMany(models.BloodFoundation, {
                 through: models.BloodFoundationUser,
                 foreignKey: 'user_id',
-                as: 'blood_foundations',
+                as: 'bloodFoundations',
             })
 
             User.hasOne(models.BloodDonor, {
                 foreignKey: 'user_id',
-                as: 'blood_donor',
+                as: 'bloodDonor',
             })
 
             User.hasMany(models.BloodFoundation, {
                 foreignKey: 'user_id',
-                as: 'owned_blood_foundations',
+                as: 'ownedBloodFoundations',
             })
         }
     }

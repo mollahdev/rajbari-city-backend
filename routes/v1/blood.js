@@ -3,10 +3,21 @@ const auth = require('../../app/middleware/auth')
 const {
     foundationCreateSchema,
     foundationJoinSchema,
+    createDonorSchema,
 } = require('./blood.schema')
+
 const { validateBody } = require('../../app/helpers/validation')
 
 module.exports = async function (routes) {
+    routes.post('/donor', {
+        preValidation: validateBody(createDonorSchema),
+        handler: BloodController.createDonor,
+    })
+
+    routes.delete('/donor', {
+        handler: BloodController.deleteDonor,
+    })
+
     routes.get('/foundations', {
         handler: BloodController.getAllFoundations,
     })

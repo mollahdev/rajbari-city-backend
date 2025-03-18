@@ -18,14 +18,10 @@ module.exports = (sequelize, DataTypes) => {
 
     BloodDonor.init(
         {
-            id: {
-                type: DataTypes.UUID,
-                defaultValue: DataTypes.UUIDV4, // Ensures automatic UUID generation
-                primaryKey: true,
-            },
             userId: {
                 type: DataTypes.UUID,
                 unique: true,
+                primaryKey: true,
                 allowNull: false,
                 references: {
                     model: 'Users',
@@ -70,13 +66,15 @@ module.exports = (sequelize, DataTypes) => {
                     fields: ['is_active'],
                     name: 'blood_donor_is_active_index',
                 },
-                {
-                    fields: ['last_donated_at'],
-                    name: 'blood_donor_last_donated_at_index',
-                },
             ],
         }
     )
+
+    BloodDonor.afterDestroy(async (data, options) => {
+        await sequelize.models.BloodFoundationUser.destroy({
+            where: { userId: data.userId },
+        })
+    })
 
     return BloodDonor
 }
