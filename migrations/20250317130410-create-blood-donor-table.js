@@ -10,7 +10,6 @@ module.exports = {
                     type: Sequelize.UUID,
                     primaryKey: true,
                     allowNull: false,
-                    unique: true,
                     references: {
                         model: 'Users',
                         key: 'id',
@@ -34,6 +33,7 @@ module.exports = {
                 is_active: {
                     type: Sequelize.BOOLEAN,
                     defaultValue: true,
+                    allowNull: false
                 },
                 last_donated_at: Sequelize.DATE,
                 created_at: {

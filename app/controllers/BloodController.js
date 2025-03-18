@@ -117,6 +117,10 @@ class BloodController {
                 ? `${foundation.userId}/${foundation.thumbnailUrl}`
                 : PLACEHOLDER_IMAGE
 
+            const ownerFile = foundation.owner.profilePictureUrl
+                ? `${foundation.owner.id}/${foundation.owner.profilePictureUrl}`
+                : PLACEHOLDER_AVATAR
+
             assign(foundation, {
                 thumbnailUrl: getFileUrl(thumbnailFile),
                 members: foundation.members.map((member) => {
@@ -149,6 +153,10 @@ class BloodController {
                         status: donor.status,
                     }
                 }),
+                owner: {
+                    name: foundation.owner.name,
+                    profilePictureUrl: getFileUrl(ownerFile),
+                },
             })
 
             reply.send({

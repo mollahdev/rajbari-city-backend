@@ -98,10 +98,6 @@ module.exports = {
             }
         )
 
-        await queryInterface.addIndex('BloodFoundationDonors', ['mobile'], {
-            name: 'blood_foundation_donor_mobile_index',
-        })
-
         await queryInterface.addIndex(
             'BloodFoundationDonors',
             ['foundation_id'],
@@ -109,85 +105,12 @@ module.exports = {
                 name: 'blood_foundation_donor_foundation_id_index',
             }
         )
-
-        await queryInterface.addIndex(
-            'BloodFoundationDonors',
-            ['blood_group'],
-            {
-                name: 'blood_foundation_donor_blood_group_index',
-            }
-        )
-
-        await queryInterface.addIndex('BloodFoundationDonors', ['status'], {
-            name: 'blood_foundation_donor_status_index',
-        })
-
-        await queryInterface.addIndex('BloodFoundationDonors', ['district'], {
-            name: 'blood_foundation_donor_district_index',
-        })
-
-        await queryInterface.addIndex('BloodFoundationDonors', ['upazila'], {
-            name: 'blood_foundation_donor_upazila_index',
-        })
-
-        await queryInterface.addIndex('BloodFoundationDonors', ['union'], {
-            name: 'blood_foundation_donor_union_index',
-        })
-
-        await queryInterface.addIndex(
-            'BloodFoundationDonors',
-            ['municipality'],
-            {
-                name: 'blood_foundation_donor_municipality_index',
-            }
-        )
-
-        await queryInterface.addIndex(
-            'BloodFoundationDonors',
-            ['last_donated_at'],
-            {
-                name: 'blood_foundation_donor_last_donated_at_index',
-            }
-        )
     },
 
     async down(queryInterface, Sequelize) {
-        // Removing indexes before dropping the table
-        await queryInterface.removeIndex(
-            'BloodFoundationDonors',
-            'blood_foundation_donor_mobile_index'
-        )
         await queryInterface.removeIndex(
             'BloodFoundationDonors',
             'blood_foundation_donor_foundation_id_index'
-        )
-        await queryInterface.removeIndex(
-            'BloodFoundationDonors',
-            'blood_foundation_donor_blood_group_index'
-        )
-        await queryInterface.removeIndex(
-            'BloodFoundationDonors',
-            'blood_foundation_donor_status_index'
-        )
-        await queryInterface.removeIndex(
-            'BloodFoundationDonors',
-            'blood_foundation_donor_district_index'
-        )
-        await queryInterface.removeIndex(
-            'BloodFoundationDonors',
-            'blood_foundation_donor_upazila_index'
-        )
-        await queryInterface.removeIndex(
-            'BloodFoundationDonors',
-            'blood_foundation_donor_union_index'
-        )
-        await queryInterface.removeIndex(
-            'BloodFoundationDonors',
-            'blood_foundation_donor_municipality_index'
-        )
-        await queryInterface.removeIndex(
-            'BloodFoundationDonors',
-            'blood_foundation_donor_last_donated_at_index'
         )
         await queryInterface.dropTable('BloodFoundationDonors')
     },

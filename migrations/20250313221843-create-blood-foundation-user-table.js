@@ -19,6 +19,7 @@ module.exports = {
                         key: 'id',
                     },
                     onDelete: 'CASCADE',
+                    allowNull: false,
                 },
                 foundation_id: {
                     type: Sequelize.UUID,
@@ -27,10 +28,12 @@ module.exports = {
                         key: 'id',
                     },
                     onDelete: 'CASCADE',
+                    allowNull: false,
                 },
                 role: {
                     type: Sequelize.ENUM('admin', 'member'),
                     defaultValue: 'member',
+                    allowNull: false,
                 },
                 status: {
                     type: Sequelize.ENUM(
@@ -59,9 +62,27 @@ module.exports = {
                 collate: 'utf8mb4_unicode_ci',
             }
         )
+
+        await queryInterface.addIndex('BloodFoundationUsers', ['user_id', 'foundation_id'], {
+            name: 'blood_foundation_user_id_foundation_id_index',
+        })
+
+        await queryInterface.addIndex('BloodFoundationUsers', ['foundation_id'], {
+            name: 'blood_foundation_user_foundation_id_index',
+        })
     },
 
     async down(queryInterface, Sequelize) {
+        await queryInterface.removeIndex(
+            'BloodFoundationUsers',
+            'blood_foundation_user_id_foundation_id_index'
+        )
+
+        await queryInterface.removeIndex(
+            'BloodFoundationUsers',
+            'blood_foundation_user_foundation_id_index'
+        )
+
         await queryInterface.dropTable('BloodFoundationUsers')
     },
 }

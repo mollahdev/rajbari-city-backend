@@ -20,7 +20,6 @@ module.exports = (sequelize, DataTypes) => {
         {
             userId: {
                 type: DataTypes.UUID,
-                unique: true,
                 primaryKey: true,
                 allowNull: false,
                 references: {
@@ -46,6 +45,7 @@ module.exports = (sequelize, DataTypes) => {
             isActive: {
                 type: DataTypes.BOOLEAN,
                 defaultValue: true,
+                allowNull: false,
             },
             lastDonatedAt: DataTypes.DATE,
         },

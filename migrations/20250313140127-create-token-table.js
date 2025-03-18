@@ -6,14 +6,8 @@ module.exports = {
         await queryInterface.createTable(
             'Tokens',
             {
-                id: {
-                    type: Sequelize.UUID, // Ensures UUID type
-                    defaultValue: Sequelize.UUIDV4, // Generates UUID automatically
-                    primaryKey: true,
-                    allowNull: false,
-                },
                 token: {
-                    unique: true,
+                    primaryKey: true,
                     type: Sequelize.STRING,
                     allowNull: false,
                 },
@@ -43,19 +37,13 @@ module.exports = {
             }
         )
 
-        await queryInterface.addIndex('Tokens', ['user_id'], {
-            name: 'tokens_user_id_index',
-        })
-
         await queryInterface.addIndex('Tokens', ['expires_at'], {
             name: 'tokens_expires_at_index',
         })
     },
 
     async down(queryInterface, Sequelize) {
-        await queryInterface.removeIndex('Tokens', 'tokens_user_id_index')
         await queryInterface.removeIndex('Tokens', 'tokens_expires_at_index')
-
         await queryInterface.dropTable('Tokens')
     },
 }

@@ -23,7 +23,7 @@ class UserRepository {
                 {
                     model: models.BloodDonor,
                     as: 'bloodDonor',
-                    attributes: ['id'],
+                    attributes: ['bloodGroup']
                 },
                 {
                     model: models.BloodFoundation,

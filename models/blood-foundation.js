@@ -33,6 +33,7 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.UUID,
                 defaultValue: DataTypes.UUIDV4, // Ensures automatic UUID generation
                 primaryKey: true,
+                allowNull: false,
             },
             name: {
                 type: DataTypes.STRING,

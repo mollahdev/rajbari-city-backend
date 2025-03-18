@@ -62,6 +62,11 @@ class BloodRepository {
                     where: { status: ['active', 'inactive'] },
                     required: false,
                 },
+                {
+                    model: models.User,
+                    as: 'owner',
+                    attributes: ['id', 'name', 'profilePictureUrl'],
+                }
             ],
         })
     }
