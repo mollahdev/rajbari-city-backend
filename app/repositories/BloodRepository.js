@@ -25,6 +25,12 @@ class BloodRepository {
         })
     }
 
+    async findManyFoundationByIds(foundationIds) {
+        return await models.BloodFoundation.findAll({
+            where: { id: foundationIds },
+        })
+    }
+
     async createFoundation(foundationDTO) {
         let data = foundationDTO.toObject()
 
@@ -32,27 +38,34 @@ class BloodRepository {
         return newToken.id
     }
 
-    async addUserToFoundation(userId, foundationId, role = 'member') {
+    async addUserToManyFoundations(userId, foundationIds, role = 'member') {
         // Check if the user and foundation exist
         const user = await models.User.findByPk(userId)
 
         if (!user) throw new Error('User not found')
 
         // Check if user is already a member
-        const existingMember = await models.BloodFoundationUser.findOne({
-            where: { userId, foundationId },
+        const existingMembers = await models.BloodFoundationUser.findAll({
+            where: { userId, foundationId: foundationIds },
         })
 
-        if (existingMember) {
-            throw new Error('User is already a member')
-        }
+        // skip the existing members
+        const existingFoundationIds = existingMembers.map(
+            (member) => member.foundationId
+        )
+
+        const newFoundationIds = foundationIds.filter(
+            (foundationId) => !existingFoundationIds.includes(foundationId)
+        )
 
         // Add user as a member
-        return await models.BloodFoundationUser.create({
-            userId,
-            foundationId,
-            role,
-        })
+        return await models.BloodFoundationUser.bulkCreate(
+            newFoundationIds.map((foundationId) => ({
+                userId,
+                foundationId,
+                role,
+            }))
+        )
     }
 
     async deleteFoundationById(foundationId) {

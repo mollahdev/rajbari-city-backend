@@ -87,7 +87,7 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.BOOLEAN,
                 defaultValue: true,
             },
-            lastDonatedAt: DataTypes.DATE
+            lastDonatedAt: DataTypes.DATE,
         },
         {
             sequelize,

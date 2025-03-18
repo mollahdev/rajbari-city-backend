@@ -1,5 +1,7 @@
 const AuthController = require('../../app/controllers/AuthController')
 const auth = require('../../app/middleware/auth')
+const { updateProfileSchema } = require('./auth.schema')
+const { validateBody } = require('../../app/helpers/validation')
 
 module.exports = async function (routes) {
     routes.post('/register', {
@@ -51,47 +53,7 @@ module.exports = async function (routes) {
     })
 
     routes.patch('/update-profile', {
-        schema: {
-            body: {
-                type: 'object',
-                required: [
-                    'name',
-                    'password',
-                    'dob',
-                    'gender',
-                    'upazila',
-                    'isMunicipality',
-                ],
-                properties: {
-                    name: {
-                        type: 'string',
-                    },
-                    password: {
-                        type: 'string',
-                        minLength: 4,
-                    },
-                    dob: {
-                        type: 'string',
-                    },
-                    gender: {
-                        type: 'string',
-                        enum: ['male', 'female'],
-                    },
-                    upazila: {
-                        type: 'string',
-                    },
-                    isMunicipality: {
-                        type: 'boolean',
-                    },
-                    municipality: {
-                        type: 'string',
-                    },
-                    union: {
-                        type: 'string',
-                    },
-                },
-            },
-        },
+        preValidation: validateBody(updateProfileSchema),
         preHandler: auth,
         handler: AuthController.updateProfile,
     })

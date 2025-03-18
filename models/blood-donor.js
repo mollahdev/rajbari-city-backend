@@ -51,7 +51,7 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.BOOLEAN,
                 defaultValue: true,
             },
-            lastDonatedAt: DataTypes.DATE
+            lastDonatedAt: DataTypes.DATE,
         },
         {
             sequelize,
@@ -72,7 +72,7 @@ module.exports = (sequelize, DataTypes) => {
                 },
                 {
                     fields: ['last_donated_at'],
-                    name: 'blood_donor_last_donated_at_index'
+                    name: 'blood_donor_last_donated_at_index',
                 },
             ],
         }

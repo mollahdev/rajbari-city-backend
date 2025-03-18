@@ -96,7 +96,16 @@ class AuthController {
     }
 
     static async updateProfile(request, reply) {
-        const { name, password, dob, gender, upazila, union, isMunicipality, municipality } = request.body
+        const {
+            name,
+            password,
+            dob,
+            gender,
+            upazila,
+            union,
+            isMunicipality,
+            municipality,
+        } = request.body
 
         try {
             const userRepository = new UserRepository()

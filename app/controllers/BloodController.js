@@ -1,4 +1,11 @@
-const { assign, every, isPlainObject, isString, size } = require('lodash')
+const {
+    assign,
+    every,
+    isPlainObject,
+    isString,
+    size,
+    isEmpty,
+} = require('lodash')
 /**
  * Internal dependencies
  */
@@ -156,7 +163,7 @@ class BloodController {
             foundationDTO.upazila = upazila
             foundationDTO.userId = id
             foundationDTO.isMunicipality = isMunicipality
-            
+
             if (isMunicipality) {
                 foundationDTO.municipality = municipality
                 foundationDTO.union = null
@@ -193,14 +200,14 @@ class BloodController {
 
         try {
             const bloodRepository = new BloodRepository()
-            const foundation =
-                await bloodRepository.findOneFoundationById(foundationId)
+            const foundations =
+                await bloodRepository.findManyFoundationByIds(foundationId)
 
-            if (!foundation) {
+            if (isEmpty(foundations)) {
                 throw new Error('Foundation not found')
             }
 
-            const result = await bloodRepository.addUserToFoundation(
+            const result = await bloodRepository.addUserToManyFoundations(
                 id,
                 foundationId
             )

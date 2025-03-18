@@ -50,8 +50,8 @@ module.exports = (sequelize, DataTypes) => {
                 },
                 {
                     fields: ['expires_at'],
-                    name: 'token_expires_at_index'
-                }
+                    name: 'token_expires_at_index',
+                },
             ],
         }
     )

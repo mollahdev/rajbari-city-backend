@@ -66,7 +66,7 @@ class ProfileController {
 
             assign(userDTO, request.body)
 
-            if ( request.body.isMunicipality) {
+            if (request.body.isMunicipality) {
                 userDTO.isMunicipality = true
                 userDTO.municipality = request.body.municipality || null
                 userDTO.union = null

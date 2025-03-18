@@ -20,7 +20,7 @@ module.exports = class SMS {
         try {
             // const response = await fetch(url)
             // const data = await response.json()
-            return url;
+            return url
         } catch (err) {
             return err
         }
