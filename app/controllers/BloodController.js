@@ -85,6 +85,18 @@ class BloodController {
                         status: BloodFoundationUser.status,
                     }
                 }),
+                donors: foundation.donors.map((donor) => {
+                    const avatarFile = donor.profilePictureUrl
+                        ? `${donor.id}/${donor.profilePictureUrl}`
+                        : PLACEHOLDER_AVATAR
+
+                    return {
+                        id: donor.id,
+                        name: donor.name,
+                        profilePictureUrl: getFileUrl(avatarFile),
+                        status: donor.status,
+                    }
+                }),
             })
 
             reply.send({

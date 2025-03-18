@@ -2,6 +2,7 @@
  * Internal dependencies
  */
 const models = require('./../../models')
+const { Op } = require('sequelize')
 
 class BloodRepository {
     async findAllFoundationBy(query) {
@@ -18,8 +19,16 @@ class BloodRepository {
                     through: {
                         // show if status is active or inactive
                         where: { status: ['active', 'inactive'] },
-                        attributes: ['status', 'role'],
+                        attributes: ['status'],
                     },
+                },
+                {
+                    model: models.BloodFoundationDonor,
+                    as: 'donors',
+                    attributes: ['id', 'name', 'profilePictureUrl', 'status'],
+                    // i want only active donors
+                    where: { status: ['active', 'inactive'] },
+                    required: false,
                 },
             ],
         })

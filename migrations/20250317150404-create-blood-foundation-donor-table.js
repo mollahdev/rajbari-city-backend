@@ -69,9 +69,14 @@ module.exports = {
                 municipality: Sequelize.STRING,
                 profile_picture_url: Sequelize.STRING,
                 description: Sequelize.TEXT,
-                is_active: {
-                    type: Sequelize.BOOLEAN,
-                    defaultValue: true,
+                status: {
+                    type: Sequelize.ENUM(
+                        'active',
+                        'inactive',
+                        'pending',
+                        'blocked'
+                    ),
+                    defaultValue: 'active',
                     allowNull: false,
                 },
                 last_donated_at: Sequelize.DATE,
@@ -113,8 +118,8 @@ module.exports = {
             }
         )
 
-        await queryInterface.addIndex('BloodFoundationDonors', ['is_active'], {
-            name: 'blood_foundation_donor_is_active_index',
+        await queryInterface.addIndex('BloodFoundationDonors', ['status'], {
+            name: 'blood_foundation_donor_status_index',
         })
 
         await queryInterface.addIndex('BloodFoundationDonors', ['district'], {
@@ -162,7 +167,7 @@ module.exports = {
         )
         await queryInterface.removeIndex(
             'BloodFoundationDonors',
-            'blood_foundation_donor_is_active_index'
+            'blood_foundation_donor_status_index'
         )
         await queryInterface.removeIndex(
             'BloodFoundationDonors',

@@ -83,9 +83,14 @@ module.exports = (sequelize, DataTypes) => {
             municipality: DataTypes.STRING,
             profilePictureUrl: DataTypes.STRING,
             description: DataTypes.TEXT,
-            isActive: {
-                type: DataTypes.BOOLEAN,
-                defaultValue: true,
+            status: {
+                type: DataTypes.ENUM(
+                    'active',
+                    'inactive',
+                    'blocked',
+                    'pending'
+                ),
+                defaultValue: 'active',
             },
             lastDonatedAt: DataTypes.DATE,
         },
@@ -111,8 +116,8 @@ module.exports = (sequelize, DataTypes) => {
                     name: 'blood_foundation_donor_blood_group_index',
                 },
                 {
-                    fields: ['is_active'],
-                    name: 'blood_foundation_donor_is_active_index',
+                    fields: ['status'],
+                    name: 'blood_foundation_donor_status_index',
                 },
                 {
                     fields: ['district'],
