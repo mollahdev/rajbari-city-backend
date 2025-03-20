@@ -15,12 +15,9 @@ module.exports = (sequelize, DataTypes) => {
 
     Token.init(
         {
-            id: {
-                type: DataTypes.UUID,
-                defaultValue: DataTypes.UUIDV4, // Ensures automatic UUID generation
-                primaryKey: true,
-            },
             token: {
+                primaryKey: true,
+                unique: true,
                 type: DataTypes.STRING,
                 allowNull: false,
             },
@@ -41,6 +38,12 @@ module.exports = (sequelize, DataTypes) => {
             tableName: 'Tokens',
             timestamps: true,
             underscored: true,
+            indexes: [
+                {
+                    fields: ['expires_at'],
+                    name: 'token_expires_at_index',
+                },
+            ],
         }
     )
 

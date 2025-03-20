@@ -96,7 +96,16 @@ class AuthController {
     }
 
     static async updateProfile(request, reply) {
-        const { name, password, dob, gender, upazila, union, isMunicipality, municipality } = request.body
+        const {
+            name,
+            password,
+            dob,
+            gender,
+            upazila,
+            union,
+            isMunicipality,
+            municipality,
+        } = request.body
 
         try {
             const userRepository = new UserRepository()
@@ -272,9 +281,7 @@ class AuthController {
             id: user.id,
             district: user.district,
         }
-        return jwt.sign(data, process.env.JWT_SECRET, {
-            expiresIn: '7d',
-        })
+        return jwt.sign(data, process.env.JWT_SECRET)
     }
 
     static generateTempJWT(user) {

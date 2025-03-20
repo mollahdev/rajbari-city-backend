@@ -13,29 +13,22 @@ class ProfileController {
     static async getCurrentProfile(request, reply) {
         try {
             const userRepository = new UserRepository()
-            const user = await userRepository.findBy('id', request.user.id)
+            const user = await userRepository.findOneUserById(request.user.id)
 
             if (!user) {
                 throw new Error('User not found')
             }
 
-            const filteredUser = omit(user.dataValues, [
-                'password',
-                'id',
-                'otp',
-                'otpCreatedAt',
-            ])
-
             const avatarFile = user.profilePictureUrl
                 ? `${user.id}/${user.profilePictureUrl}`
                 : PLACEHOLDER_AVATAR
-            assign(filteredUser, {
+            assign(user.dataValues, {
                 profilePictureUrl: getFileUrl(avatarFile),
             })
 
             return {
                 message: 'User profile fetched successfully',
-                data: filteredUser,
+                data: user,
             }
         } catch (error) {
             Controller.handleError(reply, error)
@@ -66,7 +59,7 @@ class ProfileController {
 
             assign(userDTO, request.body)
 
-            if ( request.body.isMunicipality) {
+            if (request.body.isMunicipality) {
                 userDTO.isMunicipality = true
                 userDTO.municipality = request.body.municipality || null
                 userDTO.union = null

@@ -19,8 +19,8 @@ module.exports = class SMS {
         const url = `http://bulksmsbd.net/api/smsapi?api_key=${api_key}&type=text&number=${mobile}&senderid=${senderid}&message=${message}`
         try {
             const response = await fetch(url)
-            const data = await response.json()
-            return data
+            return await response.json()
+            // return url
         } catch (err) {
             return err
         }

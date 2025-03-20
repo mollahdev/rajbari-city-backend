@@ -1,9 +1,18 @@
-const { assign, every, isPlainObject, isString, size } = require('lodash')
+const {
+    assign,
+    every,
+    isPlainObject,
+    isString,
+    size,
+    isEmpty,
+} = require('lodash')
 /**
  * Internal dependencies
  */
 const BloodRepository = require('../repositories/BloodRepository')
 const BloodFoundationDTO = require('../dtos/BloodFoundationDTO')
+const BloodDonorDTO = require('../dtos/BloodDonorDTO')
+
 const Controller = require('./Controller')
 const { getFileUrl } = require('../helpers')
 const {
@@ -12,6 +21,52 @@ const {
 } = require('../helpers/constants')
 
 class BloodController {
+    static async createDonor(request, reply) {
+        const { id } = request.user
+        const { bloodGroup, description, isActive, lastDonatedAt } =
+            request.body
+
+        try {
+            const bloodRepository = new BloodRepository()
+            const isExists = await bloodRepository.isAlreadyDonor(id)
+
+            if (isExists) {
+                throw new Error('You are already a donor')
+            }
+
+            const donorDTO = new BloodDonorDTO()
+            donorDTO.userId = id
+            donorDTO.bloodGroup = bloodGroup
+            donorDTO.description = description
+            donorDTO.isActive = isActive
+            donorDTO.lastDonatedAt = lastDonatedAt
+
+            const response = await bloodRepository.createDonor(donorDTO)
+
+            reply.send({
+                message: 'Donor created successfully',
+                data: response,
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    static async deleteDonor(request, reply) {
+        const { id } = request.user
+
+        try {
+            const bloodRepository = new BloodRepository()
+            await bloodRepository.deleteDonorById(id)
+
+            reply.send({
+                message: 'Donor deleted successfully',
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
     static async getAllFoundations(request, reply) {
         const { district, id } = request.user
 
@@ -62,6 +117,10 @@ class BloodController {
                 ? `${foundation.userId}/${foundation.thumbnailUrl}`
                 : PLACEHOLDER_IMAGE
 
+            const ownerFile = foundation.owner.profilePictureUrl
+                ? `${foundation.owner.id}/${foundation.owner.profilePictureUrl}`
+                : PLACEHOLDER_AVATAR
+
             assign(foundation, {
                 thumbnailUrl: getFileUrl(thumbnailFile),
                 members: foundation.members.map((member) => {
@@ -76,8 +135,28 @@ class BloodController {
                         profilePictureUrl: getFileUrl(avatarFile),
                         role: BloodFoundationUser.role,
                         status: BloodFoundationUser.status,
+                        bloodGroup: member.bloodDonor.bloodGroup,
+                        description: member.bloodDonor.description,
+                        isActive: member.bloodDonor.isActive,
+                        lastDonatedAt: member.bloodDonor.lastDonatedAt,
                     }
                 }),
+                donors: foundation.donors.map((donor) => {
+                    const avatarFile = donor.profilePictureUrl
+                        ? `${donor.id}/${donor.profilePictureUrl}`
+                        : PLACEHOLDER_AVATAR
+
+                    return {
+                        id: donor.id,
+                        name: donor.name,
+                        profilePictureUrl: getFileUrl(avatarFile),
+                        status: donor.status,
+                    }
+                }),
+                owner: {
+                    name: foundation.owner.name,
+                    profilePictureUrl: getFileUrl(ownerFile),
+                },
             })
 
             reply.send({
@@ -136,14 +215,6 @@ class BloodController {
         } = request.body
 
         try {
-            if (!every(mobiles, BloodController.isValidMobileObj)) {
-                throw new Error('Invalid mobiles')
-            }
-
-            if (!every(socials, BloodController.isValidSocialObj)) {
-                throw new Error('Invalid socials')
-            }
-
             const bloodRepository = new BloodRepository()
             const foundationDTO = new BloodFoundationDTO()
 
@@ -156,7 +227,7 @@ class BloodController {
             foundationDTO.upazila = upazila
             foundationDTO.userId = id
             foundationDTO.isMunicipality = isMunicipality
-            
+
             if (isMunicipality) {
                 foundationDTO.municipality = municipality
                 foundationDTO.union = null
@@ -165,10 +236,8 @@ class BloodController {
                 foundationDTO.municipality = null
             }
 
-            const foundationId =
-                await bloodRepository.createFoundation(foundationDTO)
             const foundation =
-                await bloodRepository.findOneFoundationById(foundationId)
+                await bloodRepository.createFoundation(foundationDTO)
 
             const thumbnailFile = foundation.thumbnailUrl
                 ? `${foundation.userId}/${foundation.thumbnailUrl}`
@@ -193,11 +262,20 @@ class BloodController {
 
         try {
             const bloodRepository = new BloodRepository()
-            const foundation =
-                await bloodRepository.findOneFoundationById(foundationId)
+            const isAlreadyJoined =
+                await bloodRepository.isAlreadyJoinedFoundation(
+                    id,
+                    foundationId
+                )
 
-            if (!foundation) {
-                throw new Error('Foundation not found')
+            if (isAlreadyJoined) {
+                throw new Error('You have already joined this foundation')
+            }
+
+            const isDonor = await bloodRepository.isAlreadyDonor(id)
+
+            if (!isDonor) {
+                throw new Error('You are not a donor')
             }
 
             const result = await bloodRepository.addUserToFoundation(
@@ -212,20 +290,6 @@ class BloodController {
         } catch (error) {
             Controller.handleError(reply, error)
         }
-    }
-
-    static isValidMobileObj(obj) {
-        return (
-            isPlainObject(obj) &&
-            isString(obj.dialCode) &&
-            obj.dialCode === '880' &&
-            isString(obj.mobile) &&
-            size(obj.mobile) === 10
-        )
-    }
-
-    static isValidSocialObj(obj) {
-        return isPlainObject(obj) && isString(obj.title) && isString(obj.url)
     }
 }
 

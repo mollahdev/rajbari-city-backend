@@ -1,7 +1,23 @@
 const BloodController = require('../../app/controllers/BloodController')
 const auth = require('../../app/middleware/auth')
+const {
+    foundationCreateSchema,
+    foundationJoinSchema,
+    createDonorSchema,
+} = require('./blood.schema')
+
+const { validateBody } = require('../../app/helpers/validation')
 
 module.exports = async function (routes) {
+    routes.post('/donor', {
+        preValidation: validateBody(createDonorSchema),
+        handler: BloodController.createDonor,
+    })
+
+    routes.delete('/donor', {
+        handler: BloodController.deleteDonor,
+    })
+
     routes.get('/foundations', {
         handler: BloodController.getAllFoundations,
     })
@@ -15,40 +31,12 @@ module.exports = async function (routes) {
     })
 
     routes.post('/foundation', {
-        schema: {
-            body: {
-                type: 'object',
-                required: ['name', 'mobiles', 'socials', 'upazila', 'isMunicipality'],
-                properties: {
-                    name: { type: 'string' },
-                    thumbnailUrl: { type: 'string' },
-                    description: { type: 'string' },
-                    mobiles: { type: 'array' },
-                    socials: { type: 'array' },
-                    upazila: { type: 'string' },
-                    isMunicipality: {
-                        type: 'boolean',
-                    },
-                    municipality: {
-                        type: 'string',
-                    },
-                    union: { type: 'string' },
-                },
-            },
-        },
+        preValidation: validateBody(foundationCreateSchema),
         handler: BloodController.createFoundation,
     })
 
     routes.post('/join-foundation', {
-        schema: {
-            body: {
-                type: 'object',
-                required: ['foundationId'],
-                properties: {
-                    foundationId: { type: 'string' },
-                },
-            },
-        },
+        preValidation: validateBody(foundationJoinSchema),
         handler: BloodController.joinFoundation,
     })
 
