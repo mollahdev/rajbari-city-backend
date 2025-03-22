@@ -22,6 +22,7 @@ const updateProfileSchema = yup.object({
         then: (schema) => schema.required('union is required'),
         otherwise: (schema) => schema.notRequired(),
     }),
+    profilePictureFile: yup.string().nullable(),
 })
 
 const passwordChangeSchema = yup.object({

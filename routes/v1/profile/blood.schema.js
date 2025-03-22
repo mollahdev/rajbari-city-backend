@@ -15,7 +15,7 @@ const createDonorSchema = yup.object({
     isActive: yup.boolean().default(true),
 })
 
-const foundationCreateSchema = yup.object({
+const baseFoundationSchema = yup.object({
     name: yup.string().required('name is required'),
     mobiles: yup
         .array()
@@ -57,8 +57,15 @@ const foundationCreateSchema = yup.object({
         then: (schema) => schema.required('union is required'),
         otherwise: (schema) => schema.notRequired(),
     }),
-    thumbnailUrl: yup.string().nullable(),
     description: yup.string().nullable(),
+})
+
+const foundationCreateSchema = baseFoundationSchema.shape({
+    thumbnailUrl: yup.string().nullable(),
+})
+
+const foundationUpdateSchema = baseFoundationSchema.shape({
+    thumbnailFile: yup.string().nullable(),
 })
 
 const foundationJoinSchema = yup.object({
@@ -67,6 +74,7 @@ const foundationJoinSchema = yup.object({
 
 module.exports = {
     foundationCreateSchema,
+    foundationUpdateSchema,
     foundationJoinSchema,
     createDonorSchema,
 }

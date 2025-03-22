@@ -37,6 +37,13 @@ class BloodRepository {
         })
     }
 
+    async updateFoundation(foundationDTO) {
+        let data = foundationDTO.toObject()
+        return await models.BloodFoundation.update(data, {
+            where: { id: foundationDTO.id },
+        })
+    }
+
     async deleteDonorById(userId) {
         return await models.BloodDonor.destroy({
             where: { userId },

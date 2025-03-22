@@ -68,16 +68,17 @@ class ProfileController {
                 throw new Error('User is not verified or onboarded')
             }
 
-            const userDTO = new UserDTO()
-            userDTO.id = request.user.id
-
             if (request.body.profilePictureFile) {
                 request.body.profilePictureUrl = getFileFromPath(
                     request.body.profilePictureFile
                 )
             }
 
-            assign(userDTO, request.body)
+            const userDTO = new UserDTO()
+            assign(userDTO, {
+                id: request.user.id,
+                ...request.body,
+            })
 
             if (request.body.isMunicipality) {
                 userDTO.isMunicipality = true

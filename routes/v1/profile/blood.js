@@ -1,6 +1,7 @@
 const { BloodController } = require('@/app/controllers/profile')
 const {
     foundationCreateSchema,
+    foundationUpdateSchema,
     foundationJoinSchema,
     createDonorSchema,
 } = require('./blood.schema')
@@ -13,29 +14,34 @@ module.exports = async function (routes) {
         handler: BloodController.createDonor,
     })
 
-    // routes.delete('/donor', {
-    //     handler: BloodController.deleteDonor,
-    // })
+    routes.delete('/donor', {
+        handler: BloodController.deleteDonor,
+    })
 
-    // routes.get('/foundations', {
-    //     handler: BloodController.getAllFoundations,
-    // })
+    routes.get('/foundations', {
+        handler: BloodController.getAllFoundations,
+    })
 
-    // routes.get('/foundation/:id', {
-    //     handler: BloodController.getOneFoundation,
-    // })
+    routes.get('/foundation/:id', {
+        handler: BloodController.getFoundationDetails,
+    })
 
-    // routes.delete('/foundation/:id', {
-    //     handler: BloodController.deleteOneFoundation,
-    // })
+    routes.patch('/foundation/:id', {
+        preValidation: validateBody(foundationUpdateSchema),
+        handler: BloodController.updateFoundationDetails,
+    })
 
-    // routes.post('/foundation', {
-    //     preValidation: validateBody(foundationCreateSchema),
-    //     handler: BloodController.createFoundation,
-    // })
+    routes.delete('/foundation/:id', {
+        handler: BloodController.deleteOneFoundation,
+    })
 
-    // routes.post('/join-foundation', {
-    //     preValidation: validateBody(foundationJoinSchema),
-    //     handler: BloodController.joinFoundation,
-    // })
+    routes.post('/foundation', {
+        preValidation: validateBody(foundationCreateSchema),
+        handler: BloodController.createFoundation,
+    })
+
+    routes.post('/join-foundation', {
+        preValidation: validateBody(foundationJoinSchema),
+        handler: BloodController.joinFoundation,
+    })
 }
