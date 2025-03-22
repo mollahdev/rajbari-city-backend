@@ -14,7 +14,7 @@ module.exports = async function (routes) {
                         'সরকারি ওয়েবসাইট যোগ করা হয়েছে',
                     ],
                     android: {
-                        49: 'https://drive.google.com/file/d/1tdXkIJ8L49qq69jhJZjFtTYeK1eUXCn3/view?usp=sharing',
+                        49: 'https://play.google.com/store/apps/details?id=com.flexlab.rajbaricity',
                     },
                     ios: {
                         49: 'https://rajbaricity.com/',
