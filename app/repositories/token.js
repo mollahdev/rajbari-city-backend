@@ -1,7 +1,7 @@
 /**
  * Internal dependencies
  */
-const models = require('./../../models')
+const models = require('@/models')
 
 class TokenRepository {
     async findBy(column, value) {

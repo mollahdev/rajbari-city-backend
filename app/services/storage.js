@@ -1,5 +1,6 @@
 const AWS = require('aws-sdk')
 const { isString } = require('lodash')
+const sharp = require('sharp')
 
 // Configure Cloudflare R2 (Replace with your details)
 const r2 = new AWS.S3({
@@ -20,10 +21,15 @@ module.exports = class Storage {
 
         const payload = await data.toBuffer()
 
+        const compressedBuffer = await sharp(payload)
+            .toFormat('webp', { quality: 60 })
+            .withMetadata({ exif: {} })
+            .toBuffer()
+
         const params = {
             Bucket: process.env.STORAGE_BUCKET,
             Key: fileKey,
-            Body: payload,
+            Body: compressedBuffer,
             ACL: 'public-read',
             ContentType: data.mimetype,
         }

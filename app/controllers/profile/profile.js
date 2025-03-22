@@ -3,11 +3,11 @@ const bcrypt = require('bcryptjs')
 /**
  * Internal dependencies
  */
-const UserRepository = require('../repositories/UserRepository')
-const UserDTO = require('../dtos/UserDTO')
-const Controller = require('./Controller')
-const { getFileUrl, getFileFromPath } = require('../helpers')
-const { PLACEHOLDER_AVATAR } = require('../helpers/constants')
+const UserRepository = require('@/app/repositories/user')
+const UserDTO = require('@/app/dtos/user')
+const Controller = require('@/app/controllers/controller')
+const { getFileUrl, getFileFromPath } = require('@/app/helpers')
+const { PLACEHOLDER_AVATAR } = require('@/app/helpers/constants')
 
 class ProfileController {
     static async getCurrentProfile(request, reply) {

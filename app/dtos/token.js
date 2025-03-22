@@ -1,4 +1,4 @@
-const DTO = require('./DTO')
+const DTO = require('./dto')
 
 class UserDTO extends DTO {
     id

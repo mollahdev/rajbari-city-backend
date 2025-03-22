@@ -1,0 +1,9 @@
+{
+    "compilerOptions": {
+        "baseUrl": ".", // Your project root
+        "paths": {
+            "@/*": ["./*"] // Makes @ point to root and enable suggestions
+        }
+    },
+    "include": ["./**/*"]
+}

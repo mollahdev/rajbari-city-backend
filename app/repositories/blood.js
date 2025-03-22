@@ -1,7 +1,7 @@
 /**
  * Internal dependencies
  */
-const models = require('./../../models')
+const models = require('@/models')
 const { isEmpty } = require('lodash')
 class BloodRepository {
     async createDonor(donorDTO) {

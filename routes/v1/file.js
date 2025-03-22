@@ -1,4 +1,4 @@
-const FileController = require('../../app/controllers/FileController')
+const FileController = require('../../app/controllers/file')
 const auth = require('../../app/middleware/auth')
 
 module.exports = async function (routes) {

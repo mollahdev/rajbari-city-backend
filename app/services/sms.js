@@ -1,4 +1,4 @@
-const Geocode = require('../geocode')
+const Geocode = require('@/app/geocode')
 
 module.exports = class SMS {
     static registrationTemplate(district, otp) {

@@ -1,12 +1,12 @@
 /**
  * External dependencies
  */
+require('module-alias/register')
 const dotenv = require('dotenv')
 const Fastify = require('fastify')
 const fastifyFormbody = require('@fastify/formbody')
 const fastifyMultipart = require('@fastify/multipart')
 const jwt = require('@fastify/jwt')
-
 /**
  * Internal dependencies
  */
@@ -30,7 +30,7 @@ fastify.register(jwt, {
 fastify.removeContentTypeParser('multipart/form-data')
 fastify.register(fastifyMultipart, {
     limits: {
-        fileSize: 2 * 1024 * 1024, // ✅ Max field size: 10MB
+        fileSize: 3 * 1024 * 1024, // ✅ Max field size: 3MB
         files: 1, // ✅ Max 5 files at a time
     },
 })

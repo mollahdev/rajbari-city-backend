@@ -1,8 +1,8 @@
 /**
  * Internal dependencies
  */
-const UserDTO = require('../dtos/UserDTO')
-const models = require('./../../models')
+const UserDTO = require('@/app/dtos/user')
+const models = require('@/models')
 
 /**
  * External dependencies

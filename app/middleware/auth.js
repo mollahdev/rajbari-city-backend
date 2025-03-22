@@ -5,8 +5,8 @@ const dayjs = require('dayjs')
 /**
  * Internal dependencies
  */
-const TokenRepository = require('../repositories/TokenRepository')
-const { DATE_TIME_FORMAT } = require('../helpers/constants')
+const TokenRepository = require('@/app/repositories/token')
+const { DATE_TIME_FORMAT } = require('@/app/helpers/constants')
 
 async function auth(request, reply) {
     try {

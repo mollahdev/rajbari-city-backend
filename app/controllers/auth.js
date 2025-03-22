@@ -6,13 +6,13 @@ const jwt = require('jsonwebtoken')
 /**
  * Internal dependencies
  */
-const UserRepository = require('../repositories/UserRepository')
-const TokenRepository = require('../repositories/TokenRepository')
-const UserDTO = require('../dtos/UserDTO')
-const TokenDTO = require('../dtos/TokenDTO')
-const Controller = require('./Controller')
-const SMS = require('../services/sms')
-const { now, generateOTP, isOTPResendAllowed } = require('../helpers')
+const Controller = require('./controller')
+const UserRepository = require('@/app/repositories/user')
+const TokenRepository = require('@/app/repositories/token')
+const UserDTO = require('@/app/dtos/user')
+const TokenDTO = require('@/app/dtos/token')
+const SMS = require('@/app/services/sms')
+const { now, generateOTP, isOTPResendAllowed } = require('@/app/helpers')
 
 class AuthController {
     static async register(request, reply) {
@@ -281,7 +281,9 @@ class AuthController {
             id: user.id,
             district: user.district,
         }
-        return jwt.sign(data, process.env.JWT_SECRET)
+        return jwt.sign(data, process.env.JWT_SECRET, {
+            expiresIn: '30d',
+        })
     }
 
     static generateTempJWT(user) {
