@@ -107,7 +107,7 @@ module.exports = (sequelize, DataTypes) => {
                 {
                     fields: ['foundation_id'],
                     name: 'blood_foundation_donor_foundation_id_index',
-                }
+                },
             ],
         }
     )

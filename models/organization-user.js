@@ -2,7 +2,7 @@
 const { Model } = require('sequelize')
 
 module.exports = (sequelize, DataTypes) => {
-    class BloodFoundationUser extends Model {
+    class OrganizationUser extends Model {
         /**
          * Helper method for defining associations.
          * This method is not a part of Sequelize lifecycle.
@@ -10,37 +10,37 @@ module.exports = (sequelize, DataTypes) => {
          */
         static associate(models) {
             // define association here
+            OrganizationUser.belongsTo(models.User, {
+                foreignKey: 'user_id',
+                as: 'organizationMembers',
+            })
         }
     }
 
-    BloodFoundationUser.init(
+    OrganizationUser.init(
         {
             id: {
                 type: DataTypes.UUID,
-                defaultValue: DataTypes.UUIDV4, // Ensures automatic UUID generation
                 primaryKey: true,
                 allowNull: false,
+                unique: true,
+                defaultValue: DataTypes.UUIDV4,
             },
             userId: {
                 type: DataTypes.UUID,
-                references: {
-                    model: 'Users',
-                    key: 'id',
-                },
-                onDelete: 'CASCADE',
                 allowNull: false,
-            },
-            foundationId: {
-                type: DataTypes.UUID,
                 references: {
-                    model: 'BloodFoundations',
+                    model: 'User',
                     key: 'id',
                 },
                 onDelete: 'CASCADE',
+            },
+            organizationId: {
+                type: DataTypes.UUID,
                 allowNull: false,
             },
             role: {
-                type: DataTypes.ENUM('admin', 'member'),
+                type: DataTypes.ENUM('admin', 'member', 'owner'),
                 defaultValue: 'member',
                 allowNull: false,
             },
@@ -57,22 +57,22 @@ module.exports = (sequelize, DataTypes) => {
         },
         {
             sequelize,
-            modelName: 'BloodFoundationUser',
-            tableName: 'BloodFoundationUsers',
+            modelName: 'OrganizationUser',
+            tableName: 'OrganizationUsers',
             timestamps: true,
             underscored: true,
             indexes: [
                 {
-                    fields: ['user_id', 'foundation_id'],
-                    name: 'blood_foundation_user_id_foundation_id_index',
+                    fields: ['user_id'],
+                    name: 'organization_user_user_id_index',
                 },
                 {
-                    fields: ['foundation_id'],
-                    name: 'blood_foundation_user_foundation_id_index',
-                }
+                    fields: ['organization_id'],
+                    name: 'organization_user_organization_id_index',
+                },
             ],
         }
     )
 
-    return BloodFoundationUser
+    return OrganizationUser
 }

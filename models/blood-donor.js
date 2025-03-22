@@ -71,7 +71,7 @@ module.exports = (sequelize, DataTypes) => {
     )
 
     BloodDonor.afterDestroy(async (data, options) => {
-        await sequelize.models.BloodFoundationUser.destroy({
+        await sequelize.models.OrganizationUser.destroy({
             where: { userId: data.userId },
         })
     })

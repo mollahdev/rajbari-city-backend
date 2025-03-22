@@ -8,21 +8,7 @@ module.exports = (sequelize, DataTypes) => {
          * The `models/index` file will call this method automatically.
          */
         static associate(models) {
-            User.belongsToMany(models.BloodFoundation, {
-                through: models.BloodFoundationUser,
-                foreignKey: 'user_id',
-                as: 'bloodFoundations',
-            })
-
-            User.hasOne(models.BloodDonor, {
-                foreignKey: 'user_id',
-                as: 'bloodDonor',
-            })
-
-            User.hasMany(models.BloodFoundation, {
-                foreignKey: 'user_id',
-                as: 'ownedBloodFoundations',
-            })
+            // define association here
         }
     }
     User.init(
@@ -31,7 +17,7 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.UUID,
                 defaultValue: DataTypes.UUIDV4, // Ensures automatic UUID generation
                 primaryKey: true,
-                allowNull: false
+                allowNull: false,
             },
             name: DataTypes.STRING,
             mobile: {
@@ -98,9 +84,10 @@ module.exports = (sequelize, DataTypes) => {
                 {
                     fields: ['municipality'],
                     name: 'user_municipality_index',
-                }
+                },
             ],
         }
     )
+
     return User
 }

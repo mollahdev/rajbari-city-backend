@@ -9,9 +9,8 @@ module.exports = (sequelize, DataTypes) => {
          * The `models/index` file will call this method automatically.
          */
         static associate(models) {
-            BloodFoundation.belongsToMany(models.User, {
-                through: models.BloodFoundationUser,
-                foreignKey: 'foundation_id',
+            BloodFoundation.hasMany(models.OrganizationUser, {
+                foreignKey: 'organization_id',
                 as: 'members',
             })
 
@@ -134,6 +133,12 @@ module.exports = (sequelize, DataTypes) => {
             ],
         }
     )
+
+    BloodFoundation.afterDestroy(async (data, options) => {
+        await sequelize.models.OrganizationUser.destroy({
+            where: { organizationId: data.id },
+        })
+    })
 
     return BloodFoundation
 }

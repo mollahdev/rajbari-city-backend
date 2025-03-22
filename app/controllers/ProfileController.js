@@ -13,7 +13,7 @@ class ProfileController {
     static async getCurrentProfile(request, reply) {
         try {
             const userRepository = new UserRepository()
-            const user = await userRepository.findOneUserById(request.user.id)
+            const user = await userRepository.findOneById(request.user.id)
 
             if (!user) {
                 throw new Error('User not found')
@@ -26,10 +26,30 @@ class ProfileController {
                 profilePictureUrl: getFileUrl(avatarFile),
             })
 
-            return {
+            reply.send({
                 message: 'User profile fetched successfully',
                 data: user,
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    static async deleteCurrentProfile(request, reply) {
+        const { id } = request.user
+        try {
+            const userRepository = new UserRepository()
+            const user = await userRepository.findOneById(id)
+
+            if (!user) {
+                throw new Error('User not found')
             }
+
+            await userRepository.delete(id)
+
+            reply.send({
+                message: 'User profile deleted successfully',
+            })
         } catch (error) {
             Controller.handleError(reply, error)
         }

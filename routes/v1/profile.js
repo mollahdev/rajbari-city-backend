@@ -6,6 +6,10 @@ module.exports = async function (routes) {
         handler: ProfileController.getCurrentProfile,
     })
 
+    routes.delete('/', {
+        handler: ProfileController.deleteCurrentProfile,
+    })
+
     routes.patch('/', {
         schema: {
             body: {

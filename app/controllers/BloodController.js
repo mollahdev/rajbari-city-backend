@@ -1,15 +1,9 @@
-const {
-    assign,
-    every,
-    isPlainObject,
-    isString,
-    size,
-    isEmpty,
-} = require('lodash')
+const { assign } = require('lodash')
 /**
  * Internal dependencies
  */
 const BloodRepository = require('../repositories/BloodRepository')
+const UserRepository = require('../repositories/UserRepository')
 const BloodFoundationDTO = require('../dtos/BloodFoundationDTO')
 const BloodDonorDTO = require('../dtos/BloodDonorDTO')
 
@@ -105,58 +99,18 @@ class BloodController {
             }
 
             const bloodRepository = new BloodRepository()
-            let foundation = await bloodRepository.findOneFoundationById(id)
+            const foundation = await bloodRepository.findOneFoundationById(id)
 
             if (!foundation) {
                 throw new Error('Foundation not found')
             }
 
-            foundation = foundation.dataValues
-
             const thumbnailFile = foundation.thumbnailUrl
                 ? `${foundation.userId}/${foundation.thumbnailUrl}`
                 : PLACEHOLDER_IMAGE
 
-            const ownerFile = foundation.owner.profilePictureUrl
-                ? `${foundation.owner.id}/${foundation.owner.profilePictureUrl}`
-                : PLACEHOLDER_AVATAR
-
-            assign(foundation, {
+            assign(foundation.dataValues, {
                 thumbnailUrl: getFileUrl(thumbnailFile),
-                members: foundation.members.map((member) => {
-                    const BloodFoundationUser = member.BloodFoundationUser
-                    const avatarFile = member.profilePictureUrl
-                        ? `${member.id}/${member.profilePictureUrl}`
-                        : PLACEHOLDER_AVATAR
-
-                    return {
-                        id: member.id,
-                        name: member.name,
-                        profilePictureUrl: getFileUrl(avatarFile),
-                        role: BloodFoundationUser.role,
-                        status: BloodFoundationUser.status,
-                        bloodGroup: member.bloodDonor.bloodGroup,
-                        description: member.bloodDonor.description,
-                        isActive: member.bloodDonor.isActive,
-                        lastDonatedAt: member.bloodDonor.lastDonatedAt,
-                    }
-                }),
-                donors: foundation.donors.map((donor) => {
-                    const avatarFile = donor.profilePictureUrl
-                        ? `${donor.id}/${donor.profilePictureUrl}`
-                        : PLACEHOLDER_AVATAR
-
-                    return {
-                        id: donor.id,
-                        name: donor.name,
-                        profilePictureUrl: getFileUrl(avatarFile),
-                        status: donor.status,
-                    }
-                }),
-                owner: {
-                    name: foundation.owner.name,
-                    profilePictureUrl: getFileUrl(ownerFile),
-                },
             })
 
             reply.send({
@@ -262,26 +216,22 @@ class BloodController {
 
         try {
             const bloodRepository = new BloodRepository()
-            const isAlreadyJoined =
-                await bloodRepository.isAlreadyJoinedFoundation(
-                    id,
-                    foundationId
-                )
-
-            if (isAlreadyJoined) {
-                throw new Error('You have already joined this foundation')
-            }
-
+            const user = new UserRepository()
             const isDonor = await bloodRepository.isAlreadyDonor(id)
 
             if (!isDonor) {
                 throw new Error('You are not a donor')
             }
 
-            const result = await bloodRepository.addUserToFoundation(
-                id,
-                foundationId
-            )
+            // check if the foundation exists
+            const foundation =
+                await bloodRepository.findOneFoundationById(foundationId)
+
+            if (!foundation) {
+                throw new Error('Foundation not found')
+            }
+
+            const result = await user.addOrganization(id, foundationId)
 
             reply.send({
                 message: 'Foundation joined successfully',

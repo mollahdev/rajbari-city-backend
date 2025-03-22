@@ -33,7 +33,7 @@ module.exports = {
                 is_active: {
                     type: Sequelize.BOOLEAN,
                     defaultValue: true,
-                    allowNull: false
+                    allowNull: false,
                 },
                 last_donated_at: Sequelize.DATE,
                 created_at: {
