@@ -12,7 +12,7 @@ module.exports = async function (routes) {
                 properties: {
                     mobile: {
                         type: 'string',
-                        pattern: '^[0-9]{10}$',
+                        pattern: '^[1][0-9]{9}$',
                     },
                     dialCode: {
                         type: 'string',
@@ -36,7 +36,7 @@ module.exports = async function (routes) {
                 properties: {
                     mobile: {
                         type: 'string',
-                        pattern: '^[0-9]{10}$',
+                        pattern: '^[1][0-9]{9}$',
                     },
                     dialCode: {
                         type: 'string',
@@ -66,7 +66,7 @@ module.exports = async function (routes) {
                 properties: {
                     mobile: {
                         type: 'string',
-                        pattern: '^[0-9]{10}$',
+                        pattern: '^[1][0-9]{9}$',
                     },
                     dialCode: {
                         type: 'string',
@@ -94,7 +94,7 @@ module.exports = async function (routes) {
                 properties: {
                     mobile: {
                         type: 'string',
-                        pattern: '^[0-9]{10}$',
+                        pattern: '^[1][0-9]{9}$',
                     },
                     dialCode: {
                         type: 'string',
