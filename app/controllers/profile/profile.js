@@ -6,7 +6,7 @@ const bcrypt = require('bcryptjs')
 const UserRepository = require('@/app/repositories/user')
 const UserDTO = require('@/app/dtos/user')
 const Controller = require('@/app/controllers/controller')
-const { getFileUrl, getFileFromPath } = require('@/app/helpers')
+const { getFileUrl } = require('@/app/helpers')
 const { PLACEHOLDER_AVATAR } = require('@/app/helpers/constants')
 
 class ProfileController {
@@ -69,9 +69,7 @@ class ProfileController {
             }
 
             if (request.body.profilePictureFile) {
-                request.body.profilePictureUrl = getFileFromPath(
-                    request.body.profilePictureFile
-                )
+                request.body.profilePictureUrl = request.body.profilePictureFile
             }
 
             const userDTO = new UserDTO()

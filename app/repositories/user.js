@@ -8,6 +8,7 @@ const models = require('@/models')
  * External dependencies
  */
 const bcrypt = require('bcryptjs')
+const { getFileFromPath } = require('@/app/helpers')
 
 class UserRepository {
     async findOneByMobileNumber(mobileNumber) {
@@ -37,7 +38,9 @@ class UserRepository {
         return newUser.id
     }
     async update(userDTO) {
-        let data = userDTO.toObject()
+        const data = userDTO.toObject()
+
+        data.profilePictureUrl = getFileFromPath(data.profilePictureUrl)
 
         if (undefined !== userDTO.password) {
             data.password = await bcrypt.hash(userDTO.password, 10) // Hash password
