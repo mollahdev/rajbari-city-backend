@@ -3,6 +3,7 @@
  */
 const dayjs = require('dayjs')
 const utc = require('dayjs/plugin/utc')
+const { isString } = require('lodash')
 /**
  * Internal dependencies
  */
@@ -29,10 +30,16 @@ function isOTPResendAllowed(otpCreatedAt) {
 }
 
 function getFileUrl(path) {
+    if (!isString(path)) {
+        return null
+    }
     return `${process.env.STORAGE_BASE}/${path}`
 }
 
 function getFileFromPath(path) {
+    if (!isString(path)) {
+        return null
+    }
     return path.split('/').pop()
 }
 
