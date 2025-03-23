@@ -3,10 +3,15 @@
  */
 const dayjs = require('dayjs')
 const utc = require('dayjs/plugin/utc')
+const { isString } = require('lodash')
 /**
  * Internal dependencies
  */
-const { DATE_TIME_FORMAT } = require('./constants')
+const {
+    DATE_TIME_FORMAT,
+    PLACEHOLDER_AVATAR,
+    PLACEHOLDER_IMAGE,
+} = require('./constants')
 
 function now() {
     dayjs.extend(utc)
@@ -29,11 +34,24 @@ function isOTPResendAllowed(otpCreatedAt) {
 }
 
 function getFileUrl(path) {
+    if (!isString(path)) {
+        return null
+    }
     return `${process.env.STORAGE_BASE}/${path}`
 }
 
 function getFileFromPath(path) {
-    return path.split('/').pop()
+    if (!isString(path)) {
+        return null
+    }
+
+    const imageFile = path.split('/').pop()
+
+    if ([PLACEHOLDER_AVATAR, PLACEHOLDER_IMAGE].includes(imageFile)) {
+        return null
+    }
+
+    return imageFile
 }
 
 module.exports = {
