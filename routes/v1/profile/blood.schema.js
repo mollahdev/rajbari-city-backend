@@ -1,7 +1,5 @@
 const yup = require('yup')
-
-const createDonorSchema = yup.object({
-    // blood group should be one of the following: A+, A-, B+, B-, AB+, AB-, O+, O-
+const donorBaseSchema = yup.object({
     bloodGroup: yup
         .string()
         .matches(
@@ -12,7 +10,14 @@ const createDonorSchema = yup.object({
 
     description: yup.string().nullable(),
     lastDonatedAt: yup.date().nullable(),
+})
+
+const createDonorSchema = donorBaseSchema.shape({
     isActive: yup.boolean().default(true),
+})
+
+const updateDonorSchema = donorBaseSchema.shape({
+    isActive: yup.boolean().nullable(),
 })
 
 const baseFoundationSchema = yup.object({
@@ -77,4 +82,5 @@ module.exports = {
     foundationUpdateSchema,
     foundationJoinSchema,
     createDonorSchema,
+    updateDonorSchema,
 }

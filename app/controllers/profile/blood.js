@@ -4,6 +4,7 @@ const { assign } = require('lodash')
  */
 const BloodRepository = require('@/app/repositories/blood')
 const UserRepository = require('@/app/repositories/user')
+const BloodDonorRepository = require('@/app/repositories/blood-donor')
 const BloodFoundationDTO = require('@/app/dtos/blood-foundation')
 const BloodDonorDTO = require('@/app/dtos/blood-donor')
 
@@ -14,25 +15,22 @@ const { PLACEHOLDER_IMAGE } = require('@/app/helpers/constants')
 class BloodController {
     static async createDonor(request, reply) {
         const { id } = request.user
-        const { bloodGroup, description, isActive, lastDonatedAt } =
-            request.body
 
         try {
-            const bloodRepository = new BloodRepository()
-            const isExists = await bloodRepository.isAlreadyDonor(id)
+            const donorRepository = new BloodDonorRepository()
+            const isExists = await donorRepository.isAlreadyDonor(id)
 
             if (isExists) {
                 throw new Error('You are already a donor')
             }
 
             const donorDTO = new BloodDonorDTO()
-            donorDTO.userId = id
-            donorDTO.bloodGroup = bloodGroup
-            donorDTO.description = description
-            donorDTO.isActive = isActive
-            donorDTO.lastDonatedAt = lastDonatedAt
+            assign(donorDTO, {
+                userId: id,
+                ...request.body,
+            })
 
-            const response = await bloodRepository.createDonor(donorDTO)
+            const response = await donorRepository.create(donorDTO)
 
             reply.send({
                 message: 'Donor created successfully',
@@ -43,12 +41,63 @@ class BloodController {
         }
     }
 
+    static async getDonorDetails(request, reply) {
+        const { id } = request.user
+
+        try {
+            const donorRepository = new BloodDonorRepository()
+            const donor = await donorRepository.findOne({
+                where: { userId: id },
+                attributes: { exclude: ['userId', 'user_id'] },
+            })
+
+            if (!donor) {
+                throw new Error('Donor not found')
+            }
+
+            reply.send({
+                message: 'Donor fetched successfully',
+                data: donor,
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    static async updateDonorDetails(request, reply) {
+        const { id } = request.user
+
+        try {
+            const donorRepository = new BloodDonorRepository()
+            const isExists = await donorRepository.isAlreadyDonor(id)
+
+            if (!isExists) {
+                throw new Error('You are not a donor')
+            }
+
+            const donorDTO = new BloodDonorDTO()
+            assign(donorDTO, request.body)
+
+            await donorRepository.update(donorDTO, {
+                where: { userId: id },
+            })
+
+            reply.send({
+                message: 'Donor updated successfully',
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
     static async deleteDonor(request, reply) {
         const { id } = request.user
 
         try {
-            const bloodRepository = new BloodRepository()
-            await bloodRepository.deleteDonorById(id)
+            const donorRepository = new BloodDonorRepository()
+            await donorRepository.destroy({
+                where: { userId: id },
+            })
 
             reply.send({
                 message: 'Donor deleted successfully',

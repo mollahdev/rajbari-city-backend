@@ -13,7 +13,7 @@ class ProfileController {
     static async getCurrentProfile(request, reply) {
         try {
             const userRepository = new UserRepository()
-            const user = await userRepository.findOneById(request.user.id)
+            const user = await userRepository.findCurrentUser(request.user.id)
 
             if (!user) {
                 throw new Error('User not found')

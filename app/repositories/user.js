@@ -15,6 +15,29 @@ class UserRepository {
         return this.findBy('mobile', mobileNumber)
     }
 
+    async findCurrentUser(id) {
+        const result = await models.User.findByPk(id, {
+            attributes: {
+                exclude: ['password', 'otp', 'otpCreatedAt'],
+            },
+            include: [
+                {
+                    model: models.BloodDonor,
+                    as: 'bloodDonor',
+                    attributes: ['bloodGroup', 'description', 'lastDonatedAt'],
+                    required: false,
+                },
+            ],
+        })
+
+        const userData = {
+            ...result.dataValues,
+            bloodDonor: !!result.bloodDonor,
+        }
+
+        return userData
+    }
+
     async findOneById(id) {
         return models.User.findByPk(id, {
             attributes: {

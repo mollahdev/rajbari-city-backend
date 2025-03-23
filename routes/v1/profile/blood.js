@@ -4,20 +4,36 @@ const {
     foundationUpdateSchema,
     foundationJoinSchema,
     createDonorSchema,
+    updateDonorSchema,
 } = require('./blood.schema')
 
 const { validateBody } = require('@/app/helpers/validation')
 
 module.exports = async function (routes) {
+    /**
+     * Blood donor routes
+     */
     routes.post('/donor', {
         preValidation: validateBody(createDonorSchema),
         handler: BloodController.createDonor,
+    })
+
+    routes.get('/donor', {
+        handler: BloodController.getDonorDetails,
     })
 
     routes.delete('/donor', {
         handler: BloodController.deleteDonor,
     })
 
+    routes.patch('/donor', {
+        preValidation: validateBody(updateDonorSchema),
+        handler: BloodController.updateDonorDetails,
+    })
+
+    /**
+     * Blood foundation routes
+     */
     routes.get('/foundations', {
         handler: BloodController.getAllFoundations,
     })

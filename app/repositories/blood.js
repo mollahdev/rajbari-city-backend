@@ -4,19 +4,6 @@
 const models = require('@/models')
 const { isEmpty } = require('lodash')
 class BloodRepository {
-    async createDonor(donorDTO) {
-        let data = donorDTO.toObject()
-        return await models.BloodDonor.create(data)
-    }
-
-    async isAlreadyDonor(userId) {
-        const result = await models.BloodDonor.findOne({
-            where: { userId },
-        })
-
-        return !isEmpty(result)
-    }
-
     async findAllFoundationBy(query) {
         return await models.BloodFoundation.findAll(query)
     }
@@ -41,13 +28,6 @@ class BloodRepository {
         let data = foundationDTO.toObject()
         return await models.BloodFoundation.update(data, {
             where: { id: foundationDTO.id },
-        })
-    }
-
-    async deleteDonorById(userId) {
-        return await models.BloodDonor.destroy({
-            where: { userId },
-            individualHooks: true,
         })
     }
 }
