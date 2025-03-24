@@ -7,7 +7,11 @@ const { isString } = require('lodash')
 /**
  * Internal dependencies
  */
-const { DATE_TIME_FORMAT } = require('./constants')
+const {
+    DATE_TIME_FORMAT,
+    PLACEHOLDER_AVATAR,
+    PLACEHOLDER_IMAGE,
+} = require('./constants')
 
 function now() {
     dayjs.extend(utc)
@@ -40,7 +44,14 @@ function getFileFromPath(path) {
     if (!isString(path)) {
         return null
     }
-    return path.split('/').pop()
+
+    const imageFile = path.split('/').pop()
+
+    if ([PLACEHOLDER_AVATAR, PLACEHOLDER_IMAGE].includes(imageFile)) {
+        return null
+    }
+
+    return imageFile
 }
 
 module.exports = {
