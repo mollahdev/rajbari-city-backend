@@ -34,8 +34,9 @@ module.exports = async function (routes) {
     /**
      * Blood foundation routes
      */
-    routes.get('/foundations', {
-        handler: BloodController.getAllFoundations,
+    routes.post('/foundation', {
+        preValidation: validateBody(foundationCreateSchema),
+        handler: BloodController.createFoundation,
     })
 
     routes.get('/foundation/:id', {
@@ -51,9 +52,8 @@ module.exports = async function (routes) {
         handler: BloodController.deleteOneFoundation,
     })
 
-    routes.post('/foundation', {
-        preValidation: validateBody(foundationCreateSchema),
-        handler: BloodController.createFoundation,
+    routes.get('/foundations', {
+        handler: BloodController.getAllFoundations,
     })
 
     routes.post('/join-foundation', {

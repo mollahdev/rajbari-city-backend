@@ -12,7 +12,7 @@ module.exports = class BloodDonorRepository extends RepositoryBase {
         super('BloodDonor')
     }
 
-    async isAlreadyDonor(userId) {
+    async isExists(userId) {
         const result = await this.findOne({
             where: { userId },
         })

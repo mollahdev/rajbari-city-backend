@@ -31,9 +31,9 @@ async function auth(request, reply) {
 
         // Check if the token is valid
         const tokenRepository = new TokenRepository()
-        const isTokenValid = await tokenRepository.isTokenValid(token)
+        const isValid = await tokenRepository.isValid(token)
 
-        if (!isTokenValid) {
+        if (!isValid) {
             return reply.code(401).send({ error: 'Token is invalid' })
         }
 
