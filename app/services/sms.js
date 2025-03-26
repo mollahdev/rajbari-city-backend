@@ -17,12 +17,12 @@ module.exports = class SMS {
         const api_key = process.env.SMS_API_KEY
         const senderid = process.env.SMS_SENDER_ID
         const url = `http://bulksmsbd.net/api/smsapi?api_key=${api_key}&type=text&number=${mobile}&senderid=${senderid}&message=${message}`
-        try {
-            const response = await fetch(url)
-            return await response.json()
-            // return url
-        } catch (err) {
-            return err
+
+        const response = await fetch(url)
+        const { response_code } = await response.json()
+
+        if (response_code != 202) {
+            throw new Error('Failed to send SMS')
         }
     }
 }
