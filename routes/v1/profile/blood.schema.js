@@ -66,7 +66,7 @@ const baseFoundationSchema = yup.object({
 })
 
 const foundationCreateSchema = baseFoundationSchema.shape({
-    thumbnailUrl: yup.string().nullable(),
+    thumbnailUrl: yup.string().required(),
 })
 
 const foundationUpdateSchema = baseFoundationSchema.shape({

@@ -115,6 +115,7 @@ class BloodController {
             const foundationRepository = new BloodFoundationRepository()
             const foundations = await foundationRepository.findAllFoundation({
                 where: { userId },
+                order: [['createdAt', 'DESC']],
             })
 
             foundations.forEach((foundation) => {

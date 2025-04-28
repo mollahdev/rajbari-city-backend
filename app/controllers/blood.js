@@ -21,6 +21,7 @@ module.exports = class BloodController {
                     district,
                     status: 'active',
                 },
+                order: [['createdAt', 'DESC']],
             })
 
             foundations.forEach((foundation) => {
@@ -35,6 +36,45 @@ module.exports = class BloodController {
             reply.send({
                 message: 'Foundations fetched successfully',
                 data: foundations,
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    static async getFoundationDetails(request, reply) {
+        const { id } = request.params
+        const { district } = request.user
+
+        try {
+            if (!id) {
+                throw new Error('Foundation id is required')
+            }
+
+            const foundationRepository = new BloodFoundationRepository()
+            const foundation = await foundationRepository.findOne({
+                where: {
+                    id,
+                    district,
+                    status: 'active',
+                },
+            })
+
+            if (!foundation) {
+                throw new Error('Foundation not found')
+            }
+
+            const thumbnailFile = foundation.thumbnailUrl
+                ? `${foundation.userId}/${foundation.thumbnailUrl}`
+                : PLACEHOLDER_IMAGE
+
+            assign(foundation, {
+                thumbnailUrl: getFileUrl(thumbnailFile),
+            })
+
+            reply.send({
+                message: 'Foundation details',
+                data: foundation,
             })
         } catch (error) {
             Controller.handleError(reply, error)
