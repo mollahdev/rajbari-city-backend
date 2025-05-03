@@ -10,6 +10,8 @@ const BloodFoundationRepository = require('@/app/repositories/blood-foundation')
 const BloodFoundationDonorRepository = require('@/app/repositories/blood-foundation-donor')
 const OrganizationUserRepository = require('@/app/repositories/organization-user')
 const BloodDonorRepository = require('@/app/repositories/blood-donor')
+const models = require('@/models')
+
 // const UserRe
 const { getFileUrl } = require('@/app/helpers')
 const {
@@ -135,6 +137,58 @@ module.exports = class BloodController {
             reply.send({
                 message: 'Foundation details',
                 data: foundation,
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    static async getAllDonors(request, reply) {
+        const { district } = request.user
+
+        try {
+            const bloodDonorRepository = new BloodDonorRepository()
+            const donors = await bloodDonorRepository.findAll({
+                where: {
+                    isActive: true,
+                },
+                include: [
+                    {
+                        model: models.User,
+                        as: 'donor',
+                        where: {
+                            district,
+                        },
+                        required: true,
+                    },
+                ],
+            })
+
+            const result = []
+            donors.forEach((donor) => {
+                const values = donor.dataValues
+
+                const profileFile = values.donor.profilePictureUrl
+                    ? `${values.donor.id}/${values.donor.profilePictureUrl}`
+                    : PLACEHOLDER_AVATAR
+
+                result.push({
+                    id: values.id,
+                    name: values.donor.name,
+                    profilePictureUrl: getFileUrl(profileFile),
+                    bloodGroup: values.bloodGroup,
+                    lastDonatedAt: values.lastDonatedAt,
+                    updatedAt: values.updatedAt,
+                    description: values.description,
+                    upazila: values.donor.upazila,
+                    mobile: values.donor.mobile,
+                    dialCode: values.donor.dialCode,
+                })
+            })
+
+            reply.send({
+                message: 'Donors fetched successfully',
+                data: orderBy(result, ['updatedAt'], ['desc']),
             })
         } catch (error) {
             Controller.handleError(reply, error)
