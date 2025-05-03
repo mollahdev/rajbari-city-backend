@@ -33,4 +33,8 @@ module.exports = class RepositoryBase {
     async findOne(query) {
         return await this.model.findOne(query)
     }
+
+    async findAll(query) {
+        return await this.model.findAll(query)
+    }
 }

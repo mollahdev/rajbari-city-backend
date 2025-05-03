@@ -8,6 +8,8 @@ const BloodDonorRepository = require('@/app/repositories/blood-donor')
 const BloodFoundationDTO = require('@/app/dtos/blood-foundation')
 const BloodDonorDTO = require('@/app/dtos/blood-donor')
 const OrganizationUserRepository = require('@/app/repositories/organization-user')
+const BloodFoundationDonorDTO = require('@/app/dtos/blood-foundation-donor')
+const BloodFoundationDonorRepository = require('@/app/repositories/blood-foundation-donor')
 
 const Controller = require('@/app/controllers/controller')
 const { getFileUrl, getFileFromPath } = require('@/app/helpers')
@@ -161,9 +163,7 @@ class BloodController {
                 ? `${foundation.userId}/${foundation.thumbnailUrl}`
                 : PLACEHOLDER_IMAGE
 
-            assign(foundation, {
-                thumbnailUrl: getFileUrl(thumbnailFile),
-            })
+            foundation.setDataValue('thumbnailUrl', getFileUrl(thumbnailFile))
 
             reply.send({
                 message: 'Foundation details',
@@ -325,7 +325,7 @@ class BloodController {
     }
 
     static async joinFoundation(request, reply) {
-        const { foundationId } = request.body
+        const { id } = request.params
         const { id: userId } = request.user
 
         try {
@@ -333,21 +333,133 @@ class BloodController {
             const donorRepository = new BloodDonorRepository()
             const organizationRepository = new OrganizationUserRepository()
             const isDonor = await donorRepository.isExists(userId)
-            const isFoundation =
-                await foundationRepository.isExists(foundationId)
+            const isFoundation = await foundationRepository.isExists(id)
 
             if (!isDonor || !isFoundation) {
                 throw new Error('Donor or foundation not found')
             }
 
-            const result = await organizationRepository.create(
-                userId,
-                foundationId
-            )
+            const result = await organizationRepository.create(userId, id)
 
             reply.send({
                 message: 'Joined successfully',
                 data: result,
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    static async addFoundationDonor(request, reply) {
+        const { id } = request.params
+        const { id: userId } = request.user
+
+        try {
+            const donorDTO = new BloodFoundationDonorDTO()
+            const donorRepository = new BloodFoundationDonorRepository()
+            const foundationRepository = new BloodFoundationRepository()
+            const foundation = await foundationRepository.findOne({
+                where: { id, userId },
+            })
+
+            if (!foundation) {
+                throw new Error('Foundation not found')
+            }
+
+            const donorExists = await donorRepository.findOne({
+                where: { mobile: request.body.mobile, foundationId: id },
+            })
+
+            if (donorExists) {
+                throw new Error('Donor already exists')
+            }
+
+            assign(donorDTO, {
+                ...request.body,
+                foundationId: id,
+            })
+
+            await donorRepository.create(donorDTO)
+
+            reply.send({
+                message: 'Joined successfully',
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    static async updateFoundationDonor(request, reply) {
+        const { foundationId, donorId } = request.params
+        const { id: userId } = request.user
+
+        try {
+            const donorDTO = new BloodFoundationDonorDTO()
+            const donorRepository = new BloodFoundationDonorRepository()
+            const foundationRepository = new BloodFoundationRepository()
+            const foundation = await foundationRepository.findOne({
+                where: { id: foundationId, userId },
+            })
+
+            if (!foundation) {
+                throw new Error('Foundation not found')
+            }
+
+            const donor = await donorRepository.findOne({
+                where: { id: donorId, foundationId },
+            })
+
+            if (!donor) {
+                throw new Error('Donor not found')
+            }
+
+            assign(donorDTO, {
+                ...request.body,
+                id: donorId,
+                foundationId,
+            })
+
+            await donorRepository.update(donorDTO, {
+                where: { id: donorId, foundationId },
+            })
+
+            reply.send({
+                message: 'Donor updated successfully',
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    static async deleteFoundationDonor(request, reply) {
+        const { foundationId, donorId } = request.params
+        const { id: userId } = request.user
+
+        try {
+            const donorRepository = new BloodFoundationDonorRepository()
+            const foundationRepository = new BloodFoundationRepository()
+            const foundation = await foundationRepository.findOne({
+                where: { id: foundationId, userId },
+            })
+
+            if (!foundation) {
+                throw new Error('Foundation not found')
+            }
+
+            const donor = await donorRepository.findOne({
+                where: { id: donorId, foundationId },
+            })
+
+            if (!donor) {
+                throw new Error('Donor not found')
+            }
+
+            await donorRepository.destroy({
+                where: { id: donorId, foundationId },
+            })
+
+            reply.send({
+                message: 'Donor deleted successfully',
             })
         } catch (error) {
             Controller.handleError(reply, error)

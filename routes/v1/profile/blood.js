@@ -2,9 +2,9 @@ const { BloodController } = require('@/app/controllers/profile')
 const {
     foundationCreateSchema,
     foundationUpdateSchema,
-    foundationJoinSchema,
     createDonorSchema,
     updateDonorSchema,
+    foundationDonorSchema,
 } = require('./blood.schema')
 
 const { validateBody } = require('@/app/helpers/validation')
@@ -56,8 +56,20 @@ module.exports = async function (routes) {
         handler: BloodController.getAllFoundations,
     })
 
-    routes.post('/join-foundation', {
-        preValidation: validateBody(foundationJoinSchema),
+    routes.get('/foundation/:id/join-request', {
         handler: BloodController.joinFoundation,
+    })
+
+    routes.post('/foundation/:id/donor', {
+        preValidation: validateBody(foundationDonorSchema),
+        handler: BloodController.addFoundationDonor,
+    })
+
+    routes.patch('/foundation/:foundationId/donor/:donorId', {
+        handler: BloodController.updateFoundationDonor,
+    })
+
+    routes.delete('/foundation/:foundationId/donor/:donorId', {
+        handler: BloodController.deleteFoundationDonor,
     })
 }
