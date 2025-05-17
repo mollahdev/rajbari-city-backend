@@ -42,6 +42,7 @@ module.exports = class BloodDonorRepository extends RepositoryBase {
             user.setDataValue('createdAt', donor.createdAt)
             user.setDataValue('updatedAt', donor.updatedAt)
             user.setDataValue('password', null)
+            user.setDataValue('isActive', donor.isActive)
         })
 
         return usersDetails

@@ -1,4 +1,4 @@
-const { assign } = require('lodash')
+const { assign, orderBy } = require('lodash')
 /**
  * Internal dependencies
  */
@@ -7,13 +7,16 @@ const UserRepository = require('@/app/repositories/user')
 const BloodDonorRepository = require('@/app/repositories/blood-donor')
 const BloodFoundationDTO = require('@/app/dtos/blood-foundation')
 const BloodDonorDTO = require('@/app/dtos/blood-donor')
-const OrganizationUserRepository = require('@/app/repositories/organization-user')
 const BloodFoundationDonorDTO = require('@/app/dtos/blood-foundation-donor')
 const BloodFoundationDonorRepository = require('@/app/repositories/blood-foundation-donor')
+const OrganizationUserRepository = require('@/app/repositories/organization-user')
 
 const Controller = require('@/app/controllers/controller')
 const { getFileUrl, getFileFromPath } = require('@/app/helpers')
-const { PLACEHOLDER_IMAGE } = require('@/app/helpers/constants')
+const {
+    PLACEHOLDER_IMAGE,
+    PLACEHOLDER_AVATAR,
+} = require('@/app/helpers/constants')
 
 class BloodController {
     static async createDonor(request, reply) {
@@ -121,12 +124,10 @@ class BloodController {
             })
 
             foundations.forEach((foundation) => {
-                const thumbnailFile = foundation.thumbnailUrl
-                    ? `${foundation.userId}/${foundation.thumbnailUrl}`
-                    : PLACEHOLDER_IMAGE
-                assign(foundation, {
-                    thumbnailUrl: getFileUrl(thumbnailFile),
-                })
+                foundation.setDataValue(
+                    'thumbnailUrl',
+                    getFileUrl(foundation.thumbnailUrl || PLACEHOLDER_IMAGE)
+                )
             })
 
             reply.send({
@@ -159,11 +160,10 @@ class BloodController {
                 throw new Error('Foundation not found')
             }
 
-            const thumbnailFile = foundation.thumbnailUrl
-                ? `${foundation.userId}/${foundation.thumbnailUrl}`
-                : PLACEHOLDER_IMAGE
-
-            foundation.setDataValue('thumbnailUrl', getFileUrl(thumbnailFile))
+            foundation.setDataValue(
+                'thumbnailUrl',
+                getFileUrl(foundation.thumbnailUrl || PLACEHOLDER_IMAGE)
+            )
 
             reply.send({
                 message: 'Foundation details',
@@ -307,44 +307,15 @@ class BloodController {
 
             const foundation = await foundationRepository.create(foundationDTO)
 
-            const thumbnailFile = foundation.thumbnailUrl
-                ? `${foundation.userId}/${foundation.thumbnailUrl}`
-                : PLACEHOLDER_IMAGE
-
-            assign(foundation, {
-                thumbnailUrl: getFileUrl(thumbnailFile),
-            })
+            foundation.setDataValue(
+                'thumbnailUrl',
+                getFileUrl(foundation.thumbnailUrl || PLACEHOLDER_IMAGE)
+            )
 
             return {
                 message: 'Foundation created successfully',
                 data: foundation,
             }
-        } catch (error) {
-            Controller.handleError(reply, error)
-        }
-    }
-
-    static async joinFoundation(request, reply) {
-        const { id } = request.params
-        const { id: userId } = request.user
-
-        try {
-            const foundationRepository = new BloodFoundationRepository()
-            const donorRepository = new BloodDonorRepository()
-            const organizationRepository = new OrganizationUserRepository()
-            const isDonor = await donorRepository.isExists(userId)
-            const isFoundation = await foundationRepository.isExists(id)
-
-            if (!isDonor || !isFoundation) {
-                throw new Error('Donor or foundation not found')
-            }
-
-            const result = await organizationRepository.create(userId, id)
-
-            reply.send({
-                message: 'Joined successfully',
-                data: result,
-            })
         } catch (error) {
             Controller.handleError(reply, error)
         }
@@ -460,6 +431,82 @@ class BloodController {
 
             reply.send({
                 message: 'Donor deleted successfully',
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    static async getFoundationDonorList(request, reply) {
+        const { id: userId } = request.user
+        const { foundationId } = request.params
+
+        try {
+            const donorRepository = new BloodFoundationDonorRepository()
+            const foundationRepository = new BloodFoundationRepository()
+            const foundation = await foundationRepository.findOne({
+                where: { id: foundationId, userId },
+            })
+
+            if (!foundation) {
+                throw new Error('Foundation not found')
+            }
+
+            const donors = await donorRepository.findAll({
+                where: { foundationId },
+                order: [['createdAt', 'DESC']],
+            })
+
+            donors.forEach((donor) => {
+                donor.setDataValue(
+                    'profilePictureUrl',
+                    getFileUrl(donor.profilePictureUrl || PLACEHOLDER_AVATAR)
+                )
+            })
+
+            reply.send({
+                message: 'Donors fetched successfully',
+                data: donors,
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    static async getFoundationMemberList(request, reply) {
+        const { foundationId } = request.params
+
+        try {
+            const bloodDonorRepository = new BloodDonorRepository()
+            const organizationUserRepository = new OrganizationUserRepository()
+            const organizationDonors = await organizationUserRepository.findAll(
+                {
+                    where: {
+                        organizationId: foundationId,
+                        status: 'active',
+                    },
+                }
+            )
+
+            const organizationDonorIds = organizationDonors.map(
+                (donor) => donor.userId
+            )
+
+            const bloodDonors =
+                await bloodDonorRepository.getDonorByUserId(
+                    organizationDonorIds
+                )
+
+            bloodDonors.forEach((donor) => {
+                donor.setDataValue(
+                    'profilePictureUrl',
+                    getFileUrl(donor.profilePictureUrl || PLACEHOLDER_AVATAR)
+                )
+            })
+
+            reply.send({
+                message: 'Members fetched successfully',
+                data: orderBy(bloodDonors, ['createdAt'], ['desc']),
             })
         } catch (error) {
             Controller.handleError(reply, error)

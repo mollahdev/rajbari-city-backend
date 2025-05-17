@@ -34,13 +34,9 @@ module.exports = class BloodController {
             })
 
             foundations.forEach((foundation) => {
-                const thumbnailFile = foundation.thumbnailUrl
-                    ? `${foundation.userId}/${foundation.thumbnailUrl}`
-                    : PLACEHOLDER_IMAGE
-
                 foundation.setDataValue(
                     'thumbnailUrl',
-                    getFileUrl(thumbnailFile)
+                    getFileUrl(foundation.thumbnailUrl || PLACEHOLDER_IMAGE)
                 )
             })
 
@@ -107,28 +103,28 @@ module.exports = class BloodController {
             const finalDonors = []
 
             donors.forEach((donor) => {
-                const profileFile = donor.profilePictureUrl
-                    ? `${donor.id}/${donor.profilePictureUrl}`
-                    : PLACEHOLDER_AVATAR
-
-                donor.setDataValue('profilePictureUrl', getFileUrl(profileFile))
+                donor.setDataValue(
+                    'profilePictureUrl',
+                    getFileUrl(donor.profilePictureUrl || PLACEHOLDER_AVATAR)
+                )
                 const values = donor.dataValues
-                finalDonors.push({
-                    id: values.id,
-                    name: values.name,
-                    profilePictureUrl: values.profilePictureUrl,
-                    bloodGroup: values.bloodGroup,
-                    lastDonatedAt: values.lastDonatedAt,
-                    createdAt: values.createdAt,
-                    updatedAt: values.updatedAt,
-                })
+                if (values.isActive || values.status === 'active') {
+                    finalDonors.push({
+                        id: values.id,
+                        name: values.name,
+                        profilePictureUrl: values.profilePictureUrl,
+                        bloodGroup: values.bloodGroup,
+                        lastDonatedAt: values.lastDonatedAt,
+                        createdAt: values.createdAt,
+                        updatedAt: values.updatedAt,
+                    })
+                }
             })
 
-            const thumbnailFile = foundation.thumbnailUrl
-                ? `${foundation.userId}/${foundation.thumbnailUrl}`
-                : PLACEHOLDER_IMAGE
-
-            foundation.setDataValue('thumbnailUrl', getFileUrl(thumbnailFile))
+            foundation.setDataValue(
+                'thumbnailUrl',
+                getFileUrl(foundation.thumbnailUrl || PLACEHOLDER_IMAGE)
+            )
             foundation.setDataValue(
                 'donors',
                 orderBy(finalDonors, ['createdAt'], ['desc'])
@@ -168,14 +164,12 @@ module.exports = class BloodController {
             donors.forEach((donor) => {
                 const values = donor.dataValues
 
-                const profileFile = values.donor.profilePictureUrl
-                    ? `${values.donor.id}/${values.donor.profilePictureUrl}`
-                    : PLACEHOLDER_AVATAR
-
                 result.push({
                     id: values.id,
                     name: values.donor.name,
-                    profilePictureUrl: getFileUrl(profileFile),
+                    profilePictureUrl: getFileUrl(
+                        values.donor.profilePictureUr || PLACEHOLDER_AVATAR
+                    ),
                     bloodGroup: values.bloodGroup,
                     lastDonatedAt: values.lastDonatedAt,
                     updatedAt: values.updatedAt,
@@ -189,6 +183,32 @@ module.exports = class BloodController {
             reply.send({
                 message: 'Donors fetched successfully',
                 data: orderBy(result, ['updatedAt'], ['desc']),
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    static async joinFoundation(request, reply) {
+        const { id } = request.params
+        const { id: userId } = request.user
+
+        try {
+            const foundationRepository = new BloodFoundationRepository()
+            const donorRepository = new BloodDonorRepository()
+            const organizationRepository = new OrganizationUserRepository()
+            const isDonor = await donorRepository.isExists(userId)
+            const isFoundation = await foundationRepository.isExists(id)
+
+            if (!isDonor || !isFoundation) {
+                throw new Error('Donor or foundation not found')
+            }
+
+            const result = await organizationRepository.create(userId, id)
+
+            reply.send({
+                message: 'Joined successfully',
+                data: result,
             })
         } catch (error) {
             Controller.handleError(reply, error)

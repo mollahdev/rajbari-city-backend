@@ -56,10 +56,6 @@ module.exports = async function (routes) {
         handler: BloodController.getAllFoundations,
     })
 
-    routes.get('/foundation/:id/join-request', {
-        handler: BloodController.joinFoundation,
-    })
-
     routes.post('/foundation/:id/donor', {
         preValidation: validateBody(foundationDonorSchema),
         handler: BloodController.addFoundationDonor,
@@ -71,5 +67,13 @@ module.exports = async function (routes) {
 
     routes.delete('/foundation/:foundationId/donor/:donorId', {
         handler: BloodController.deleteFoundationDonor,
+    })
+
+    routes.get('/foundation/:foundationId/donor-list', {
+        handler: BloodController.getFoundationDonorList,
+    })
+
+    routes.get('/foundation/:foundationId/member-list', {
+        handler: BloodController.getFoundationMemberList,
     })
 }

@@ -39,7 +39,7 @@ class FileController {
                 throw new Error('User not found')
             }
 
-            const response = await storage.upload(data, request.user.id)
+            const response = await storage.upload(data)
 
             return {
                 message: 'File uploaded successfully',

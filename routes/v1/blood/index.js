@@ -10,6 +10,10 @@ module.exports = async function (routes) {
         handler: BloodController.getFoundationDetails,
     })
 
+    routes.get('/foundation/:id/join', {
+        handler: BloodController.joinFoundation,
+    })
+
     routes.get('/donors', {
         handler: BloodController.getAllDonors,
     })

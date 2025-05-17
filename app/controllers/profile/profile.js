@@ -19,12 +19,10 @@ class ProfileController {
                 throw new Error('User not found')
             }
 
-            const avatarFile = user.profilePictureUrl
-                ? `${user.id}/${user.profilePictureUrl}`
-                : PLACEHOLDER_AVATAR
-
             assign(user, {
-                profilePictureUrl: getFileUrl(avatarFile),
+                profilePictureUrl: getFileUrl(
+                    user.profilePictureUrl || PLACEHOLDER_AVATAR
+                ),
             })
 
             reply.send({
