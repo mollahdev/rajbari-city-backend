@@ -106,10 +106,26 @@ const foundationDonorSchema = donorBaseSchema.shape({
     profilePictureUrl: yup.string().nullable(),
 })
 
+const bloodFoundationMemberSchema = yup.object({
+    status: yup.lazy((value) => {
+        if (Array.isArray(value)) {
+            return yup.array().of(yup.string().oneOf(['active', 'pending']))
+        }
+        return yup.string().oneOf(['active', 'pending'])
+    }),
+})
+
+const bloodFoundationMemberStatusSchema = yup.object({
+    status: yup.string().oneOf(['active', 'inactive', 'pending', 'blocked']),
+    role: yup.string().oneOf(['admin', 'member', 'owner']),
+})
+
 module.exports = {
     foundationCreateSchema,
     foundationUpdateSchema,
     createDonorSchema,
     updateDonorSchema,
     foundationDonorSchema,
+    bloodFoundationMemberSchema,
+    bloodFoundationMemberStatusSchema,
 }

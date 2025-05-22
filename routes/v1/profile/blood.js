@@ -5,9 +5,11 @@ const {
     createDonorSchema,
     updateDonorSchema,
     foundationDonorSchema,
+    bloodFoundationMemberSchema,
+    bloodFoundationMemberStatusSchema,
 } = require('./blood.schema')
 
-const { validateBody } = require('@/app/helpers/validation')
+const { validateBody, validateQuery } = require('@/app/helpers/validation')
 
 module.exports = async function (routes) {
     /**
@@ -74,6 +76,16 @@ module.exports = async function (routes) {
     })
 
     routes.get('/foundation/:foundationId/member-list', {
+        preValidation: validateQuery(bloodFoundationMemberSchema),
         handler: BloodController.getFoundationMemberList,
+    })
+
+    routes.patch('/foundation/:foundationId/member/:memberId', {
+        preValidation: validateBody(bloodFoundationMemberStatusSchema),
+        handler: BloodController.updateFoundationMember,
+    })
+
+    routes.delete('/foundation/:foundationId/member/:memberId', {
+        handler: BloodController.deleteFoundationMember,
     })
 }
