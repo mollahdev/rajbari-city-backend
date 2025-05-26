@@ -213,6 +213,9 @@ class BloodController {
             assign(foundationDTO, {
                 id: foundationId,
                 ...request.body,
+                thumbnailUrl: getFileFromPath(
+                    request.body.thumbnailUrl || foundation.thumbnailUrl
+                ),
             })
 
             if (request.body.isMunicipality) {
@@ -296,6 +299,7 @@ class BloodController {
                 ...request.body,
                 userId: id,
                 district,
+                thumbnailUrl: getFileFromPath(request.body.thumbnailUrl),
             })
 
             if (isMunicipality) {
@@ -349,6 +353,9 @@ class BloodController {
             assign(donorDTO, {
                 ...request.body,
                 foundationId: id,
+                profilePictureUrl: getFileFromPath(
+                    request.body.profilePictureUrl
+                ),
             })
 
             await donorRepository.create(donorDTO)
@@ -389,6 +396,9 @@ class BloodController {
                 ...request.body,
                 id: donorId,
                 foundationId,
+                profilePictureUrl: getFileFromPath(
+                    request.body.profilePictureUrl || donor.profilePictureUrl
+                ),
             })
 
             await donorRepository.update(donorDTO, {

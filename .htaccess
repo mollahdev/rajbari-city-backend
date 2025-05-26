@@ -1,10 +1,20 @@
 DirectoryIndex disabled
 RewriteEngine On
 
-# Redirect dev-api.flexlab.studio to port 3000
+# WebSocket support for dev-api.flexlab.studio
+RewriteCond %{HTTP_HOST} ^dev-api\.flexlab\.studio$ [NC]
+RewriteCond %{HTTP:Upgrade} =websocket [NC]
+RewriteRule ^(.*)$ ws://127.0.0.1:3000/$1 [P,L]
+
+# HTTP support for dev-api.flexlab.studio
 RewriteCond %{HTTP_HOST} ^dev-api\.flexlab\.studio$ [NC]
 RewriteRule ^(.*)$ http://127.0.0.1:3000/$1 [P,L]
 
-# Redirect api.flexlab.studio to port 11000
+# WebSocket support for api.flexlab.studio
+RewriteCond %{HTTP_HOST} ^api\.flexlab\.studio$ [NC]
+RewriteCond %{HTTP:Upgrade} =websocket [NC]
+RewriteRule ^(.*)$ ws://127.0.0.1:11000/$1 [P,L]
+
+# HTTP support for api.flexlab.studio
 RewriteCond %{HTTP_HOST} ^api\.flexlab\.studio$ [NC]
 RewriteRule ^(.*)$ http://127.0.0.1:11000/$1 [P,L]

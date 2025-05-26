@@ -18,6 +18,7 @@ const {
     PLACEHOLDER_IMAGE,
     PLACEHOLDER_AVATAR,
 } = require('@/app/helpers/constants')
+const { RECEIVE } = require('@/socket/events')
 
 module.exports = class BloodController {
     static async getAllFoundations(request, reply) {
@@ -168,7 +169,7 @@ module.exports = class BloodController {
                     id: values.id,
                     name: values.donor.name,
                     profilePictureUrl: getFileUrl(
-                        values.donor.profilePictureUr || PLACEHOLDER_AVATAR
+                        values.donor.profilePictureUrl || PLACEHOLDER_AVATAR
                     ),
                     bloodGroup: values.bloodGroup,
                     lastDonatedAt: values.lastDonatedAt,
@@ -205,6 +206,27 @@ module.exports = class BloodController {
             }
 
             const result = await organizationRepository.create(userId, id)
+            const bloodDonors = await donorRepository.getDonorByUserId(userId)
+            const foundation = await foundationRepository.findOne({
+                where: { id },
+            })
+
+            bloodDonors.forEach((donor) => {
+                donor.setDataValue(
+                    'profilePictureUrl',
+                    getFileUrl(donor.profilePictureUrl || PLACEHOLDER_AVATAR)
+                )
+
+                donor.setDataValue('status', result.status)
+            })
+
+            // send real time data to foundation owner
+            this.io
+                .to(`user:${foundation.userId}`)
+                .emit(RECEIVE.FOUNDATION_JOIN_REQUEST, {
+                    foundationId: id,
+                    user: bloodDonors[0],
+                })
 
             reply.send({
                 message: 'Joined successfully',
