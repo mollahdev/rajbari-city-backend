@@ -129,6 +129,16 @@ class BloodController {
                     'thumbnailUrl',
                     getFileUrl(foundation.thumbnailUrl || PLACEHOLDER_IMAGE)
                 )
+
+                foundation.setDataValue(
+                    'mobiles',
+                    JSON.parse(foundation.mobiles || '[]')
+                )
+
+                foundation.setDataValue(
+                    'socials',
+                    JSON.parse(foundation.socials || '[]')
+                )
             })
 
             reply.send({
@@ -164,6 +174,16 @@ class BloodController {
             foundation.setDataValue(
                 'thumbnailUrl',
                 getFileUrl(foundation.thumbnailUrl || PLACEHOLDER_IMAGE)
+            )
+
+            foundation.setDataValue(
+                'mobiles',
+                JSON.parse(foundation.mobiles || '[]')
+            )
+
+            foundation.setDataValue(
+                'socials',
+                JSON.parse(foundation.socials || '[]')
             )
 
             reply.send({
