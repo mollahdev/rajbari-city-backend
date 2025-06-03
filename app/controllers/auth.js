@@ -3,6 +3,7 @@
  */
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
+const { assign } = require('lodash')
 /**
  * Internal dependencies
  */
@@ -16,12 +17,13 @@ const { now, generateOTP, isOTPResendAllowed } = require('@/app/helpers')
 
 class AuthController {
     static async register(request, reply) {
-        const { mobile, dialCode, district } = request.body
+        const { mobile, district } = request.body
 
         try {
             const userRepository = new UserRepository()
-            const existingUser =
-                await userRepository.findOneByMobileNumber(mobile)
+            const existingUser = await userRepository.findOne({
+                where: { mobile },
+            })
 
             if (existingUser) {
                 if (existingUser.isOnboarded) {
@@ -39,17 +41,18 @@ class AuthController {
             await SMS.send(mobile, message)
 
             const userDTO = new UserDTO()
-            userDTO.mobile = mobile
-            userDTO.dialCode = dialCode
-            userDTO.district = district
-            userDTO.otp = otp
-            userDTO.otpCreatedAt = now()
+            assign(userDTO, {
+                ...request.body,
+                otp,
+                otpCreatedAt: now(),
+            })
 
             if (existingUser) {
-                userDTO.id = existingUser.id
-                await userRepository.update(userDTO)
+                await userRepository.update(userDTO, {
+                    where: { id: existingUser.id },
+                })
             } else {
-                userDTO.id = await userRepository.create(userDTO)
+                await userRepository.create(userDTO)
             }
 
             reply.status(201).send({
@@ -65,7 +68,9 @@ class AuthController {
 
         try {
             const userRepository = new UserRepository()
-            const user = await userRepository.findOneByMobileNumber(mobile)
+            const user = await userRepository.findOne({
+                where: { mobile },
+            })
 
             if (!user) {
                 throw new Error('User not found')
@@ -81,7 +86,9 @@ class AuthController {
             userDTO.otpCreatedAt = null
             userDTO.isVerified = true // Mark user as verified
 
-            await userRepository.update(userDTO)
+            await userRepository.update(userDTO, {
+                where: { id: user.id },
+            })
             const token = AuthController.generateTempJWT(user)
 
             reply.send({
@@ -96,20 +103,13 @@ class AuthController {
     }
 
     static async updateProfile(request, reply) {
-        const {
-            name,
-            password,
-            dob,
-            gender,
-            upazila,
-            union,
-            isMunicipality,
-            municipality,
-        } = request.body
+        const { union, isMunicipality, municipality } = request.body
 
         try {
             const userRepository = new UserRepository()
-            const user = await userRepository.findBy('id', request.user.id)
+            const user = await userRepository.findOne({
+                where: { id: request.user.id },
+            })
 
             if (!user) {
                 throw new Error('User not found')
@@ -120,13 +120,10 @@ class AuthController {
             }
 
             const userDTO = new UserDTO()
-            userDTO.id = request.user.id
-            userDTO.name = name
-            userDTO.password = password
-            userDTO.dob = dob
-            userDTO.gender = gender
-            userDTO.upazila = upazila
-            userDTO.isOnboarded = true
+            assign(userDTO, {
+                ...request.body,
+                isOnboarded: true,
+            })
 
             if (isMunicipality) {
                 userDTO.isMunicipality = true
@@ -138,7 +135,9 @@ class AuthController {
                 userDTO.municipality = null
             }
 
-            await userRepository.update(userDTO)
+            await userRepository.update(userDTO, {
+                where: { id: request.user.id },
+            })
             const token = AuthController.generateJWT(user)
 
             reply.send({
@@ -157,7 +156,9 @@ class AuthController {
 
         try {
             const userRepository = new UserRepository()
-            const user = await userRepository.findOneByMobileNumber(mobile)
+            const user = await userRepository.findOne({
+                where: { mobile },
+            })
 
             if (!user) {
                 throw new Error('User not found')
@@ -194,7 +195,9 @@ class AuthController {
 
         try {
             const tokenRepository = new TokenRepository()
-            const existingToken = await tokenRepository.findBy('token', token)
+            const existingToken = await tokenRepository.findOne({
+                where: { token },
+            })
 
             if (existingToken) {
                 throw new Error('You are already logged out')
@@ -218,7 +221,9 @@ class AuthController {
 
         try {
             const userRepository = new UserRepository()
-            const user = await userRepository.findOneByMobileNumber(mobile)
+            const user = await userRepository.findOne({
+                where: { mobile },
+            })
 
             if (!user) {
                 throw new Error('User not found')
@@ -237,11 +242,12 @@ class AuthController {
             await SMS.send(mobile, message)
 
             const userDTO = new UserDTO()
-            userDTO.id = user.id
             userDTO.otp = otp
             userDTO.otpCreatedAt = now()
 
-            await userRepository.update(userDTO)
+            await userRepository.update(userDTO, {
+                where: { id: user.id },
+            })
 
             reply.send({ message: 'OTP sent successfully' })
         } catch (error) {
@@ -254,7 +260,9 @@ class AuthController {
 
         try {
             const userRepository = new UserRepository()
-            const user = await userRepository.findBy('id', request.user.id)
+            const user = await userRepository.findOne({
+                where: { id: request.user.id },
+            })
 
             if (!user) {
                 throw new Error('User not found')
@@ -265,10 +273,11 @@ class AuthController {
             }
 
             const userDTO = new UserDTO()
-            userDTO.id = request.user.id
             userDTO.password = password
 
-            await userRepository.update(userDTO)
+            await userRepository.update(userDTO, {
+                where: { id: request.user.id },
+            })
 
             reply.send({ message: 'Password reset successfully' })
         } catch (error) {

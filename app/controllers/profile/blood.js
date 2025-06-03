@@ -1,38 +1,44 @@
-const { assign } = require('lodash')
+const { assign, orderBy } = require('lodash')
+const { Op } = require('@sequelize/core')
 /**
  * Internal dependencies
  */
-const BloodRepository = require('@/app/repositories/blood')
+const BloodFoundationRepository = require('@/app/repositories/blood-foundation')
 const UserRepository = require('@/app/repositories/user')
+const BloodDonorRepository = require('@/app/repositories/blood-donor')
 const BloodFoundationDTO = require('@/app/dtos/blood-foundation')
 const BloodDonorDTO = require('@/app/dtos/blood-donor')
+const BloodFoundationDonorDTO = require('@/app/dtos/blood-foundation-donor')
+const BloodFoundationDonorRepository = require('@/app/repositories/blood-foundation-donor')
+const OrganizationUserRepository = require('@/app/repositories/organization-user')
+const OrganizationUserDTO = require('@/app/dtos/organization-user')
 
 const Controller = require('@/app/controllers/controller')
-const { getFileUrl } = require('@/app/helpers')
-const { PLACEHOLDER_IMAGE } = require('@/app/helpers/constants')
+const { getFileUrl, getFileFromPath } = require('@/app/helpers')
+const {
+    PLACEHOLDER_IMAGE,
+    PLACEHOLDER_AVATAR,
+} = require('@/app/helpers/constants')
 
 class BloodController {
     static async createDonor(request, reply) {
         const { id } = request.user
-        const { bloodGroup, description, isActive, lastDonatedAt } =
-            request.body
 
         try {
-            const bloodRepository = new BloodRepository()
-            const isExists = await bloodRepository.isAlreadyDonor(id)
+            const donorRepository = new BloodDonorRepository()
+            const isExists = await donorRepository.isExists(id)
 
             if (isExists) {
                 throw new Error('You are already a donor')
             }
 
             const donorDTO = new BloodDonorDTO()
-            donorDTO.userId = id
-            donorDTO.bloodGroup = bloodGroup
-            donorDTO.description = description
-            donorDTO.isActive = isActive
-            donorDTO.lastDonatedAt = lastDonatedAt
+            assign(donorDTO, {
+                userId: id,
+                ...request.body,
+            })
 
-            const response = await bloodRepository.createDonor(donorDTO)
+            const response = await donorRepository.create(donorDTO)
 
             reply.send({
                 message: 'Donor created successfully',
@@ -43,209 +49,602 @@ class BloodController {
         }
     }
 
-    // static async deleteDonor(request, reply) {
-    //     const { id } = request.user
+    static async getDonorDetails(request, reply) {
+        const { id } = request.user
 
-    //     try {
-    //         const bloodRepository = new BloodRepository()
-    //         await bloodRepository.deleteDonorById(id)
+        try {
+            const donorRepository = new BloodDonorRepository()
+            const donor = await donorRepository.findOne({
+                where: { userId: id },
+                attributes: { exclude: ['userId', 'user_id'] },
+            })
 
-    //         reply.send({
-    //             message: 'Donor deleted successfully',
-    //         })
-    //     } catch (error) {
-    //         Controller.handleError(reply, error)
-    //     }
-    // }
+            if (!donor) {
+                throw new Error('Donor not found')
+            }
 
-    // static async getAllFoundations(request, reply) {
-    //     const { district, id } = request.user
+            reply.send({
+                message: 'Donor fetched successfully',
+                data: donor,
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
 
-    //     try {
-    //         const bloodRepository = new BloodRepository()
-    //         const foundations = await bloodRepository.findAllFoundationBy({
-    //             where: {
-    //                 district,
-    //             },
-    //         })
+    static async updateDonorDetails(request, reply) {
+        const { id } = request.user
 
-    //         foundations.forEach((foundation) => {
-    //             const thumbnailFile = foundation.thumbnailUrl
-    //                 ? `${foundation.userId}/${foundation.thumbnailUrl}`
-    //                 : PLACEHOLDER_IMAGE
-    //             assign(foundation, {
-    //                 thumbnailUrl: getFileUrl(thumbnailFile),
-    //             })
-    //         })
+        try {
+            const donorRepository = new BloodDonorRepository()
+            const isExists = await donorRepository.isExists(id)
 
-    //         reply.send({
-    //             message: 'Foundations fetched successfully',
-    //             data: foundations,
-    //         })
-    //     } catch (error) {
-    //         Controller.handleError(reply, error)
-    //     }
-    // }
+            if (!isExists) {
+                throw new Error('You are not a donor')
+            }
 
-    // static async getOneFoundation(request, reply) {
-    //     const { id } = request.params
+            const donorDTO = new BloodDonorDTO()
+            assign(donorDTO, request.body)
 
-    //     try {
-    //         if (!id) {
-    //             throw new Error('Foundation id is required')
-    //         }
+            await donorRepository.update(donorDTO, {
+                where: { userId: id },
+            })
 
-    //         const bloodRepository = new BloodRepository()
-    //         const foundation = await bloodRepository.findOneFoundationById(id)
+            reply.send({
+                message: 'Donor updated successfully',
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
 
-    //         if (!foundation) {
-    //             throw new Error('Foundation not found')
-    //         }
+    static async deleteDonor(request, reply) {
+        const { id } = request.user
 
-    //         const thumbnailFile = foundation.thumbnailUrl
-    //             ? `${foundation.userId}/${foundation.thumbnailUrl}`
-    //             : PLACEHOLDER_IMAGE
+        try {
+            const donorRepository = new BloodDonorRepository()
+            await donorRepository.destroy({
+                where: { userId: id },
+            })
 
-    //         assign(foundation.dataValues, {
-    //             thumbnailUrl: getFileUrl(thumbnailFile),
-    //         })
+            reply.send({
+                message: 'Donor deleted successfully',
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
 
-    //         reply.send({
-    //             message: 'Foundation fetched successfully',
-    //             data: foundation,
-    //         })
-    //     } catch (error) {
-    //         Controller.handleError(reply, error)
-    //     }
-    // }
+    static async getAllFoundations(request, reply) {
+        const { id: userId } = request.user
 
-    // static async deleteOneFoundation(request, reply) {
-    //     const { id } = request.params
+        try {
+            const foundationRepository = new BloodFoundationRepository()
+            const foundations = await foundationRepository.findAllFoundation({
+                where: { userId },
+                order: [['createdAt', 'DESC']],
+            })
 
-    //     try {
-    //         if (!id) {
-    //             throw new Error('Foundation id is required')
-    //         }
+            foundations.forEach((foundation) => {
+                foundation.setDataValue(
+                    'thumbnailUrl',
+                    getFileUrl(foundation.thumbnailUrl || PLACEHOLDER_IMAGE)
+                )
 
-    //         const bloodRepository = new BloodRepository()
-    //         const foundation = await bloodRepository.findOneFoundationById(id)
+                foundation.setDataValue(
+                    'mobiles',
+                    JSON.parse(foundation.mobiles || '[]')
+                )
 
-    //         if (!foundation) {
-    //             throw new Error('Foundation not found')
-    //         }
+                foundation.setDataValue(
+                    'socials',
+                    JSON.parse(foundation.socials || '[]')
+                )
+            })
 
-    //         // check if the user is the owner of the foundation
-    //         if (foundation.userId !== request.user.id) {
-    //             throw new Error(
-    //                 'You are not authorized to delete this foundation'
-    //             )
-    //         }
+            reply.send({
+                message: 'Foundations fetched successfully',
+                data: foundations,
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
 
-    //         await bloodRepository.deleteFoundationById(id)
+    static async getFoundationDetails(request, reply) {
+        const { id } = request.params
+        const { id: userId } = request.user
 
-    //         reply.send({
-    //             message: 'Foundation deleted successfully',
-    //         })
-    //     } catch (error) {
-    //         Controller.handleError(reply, error)
-    //     }
-    // }
+        try {
+            if (!id) {
+                throw new Error('Foundation id is required')
+            }
 
-    // static async createFoundation(request, reply) {
-    //     const { district, id } = request.user
-    //     const {
-    //         name,
-    //         thumbnailUrl,
-    //         description,
-    //         mobiles,
-    //         socials,
-    //         upazila,
-    //         isMunicipality,
-    //         municipality,
-    //         union,
-    //     } = request.body
+            const foundationRepository = new BloodFoundationRepository()
+            const foundation = await foundationRepository.findOne({
+                where: {
+                    id,
+                    userId: userId,
+                },
+            })
 
-    //     try {
-    //         const bloodRepository = new BloodRepository()
-    //         const foundationDTO = new BloodFoundationDTO()
-    //         const userRepository = new UserRepository()
+            if (!foundation) {
+                throw new Error('Foundation not found')
+            }
 
-    //         // check if the user exists
-    //         const user = await userRepository.findOneById(id)
+            foundation.setDataValue(
+                'thumbnailUrl',
+                getFileUrl(foundation.thumbnailUrl || PLACEHOLDER_IMAGE)
+            )
 
-    //         if (!user) {
-    //             throw new Error('User not found')
-    //         }
+            foundation.setDataValue(
+                'mobiles',
+                JSON.parse(foundation.mobiles || '[]')
+            )
 
-    //         foundationDTO.name = name
-    //         foundationDTO.thumbnailUrl = thumbnailUrl
-    //         foundationDTO.description = description
-    //         foundationDTO.mobiles = mobiles
-    //         foundationDTO.socials = socials
-    //         foundationDTO.district = district
-    //         foundationDTO.upazila = upazila
-    //         foundationDTO.userId = id
-    //         foundationDTO.isMunicipality = isMunicipality
+            foundation.setDataValue(
+                'socials',
+                JSON.parse(foundation.socials || '[]')
+            )
 
-    //         if (isMunicipality) {
-    //             foundationDTO.municipality = municipality
-    //             foundationDTO.union = null
-    //         } else {
-    //             foundationDTO.union = union
-    //             foundationDTO.municipality = null
-    //         }
+            reply.send({
+                message: 'Foundation details',
+                data: foundation,
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
 
-    //         const foundation =
-    //             await bloodRepository.createFoundation(foundationDTO)
+    static async updateFoundationDetails(request, reply) {
+        const { id: foundationId } = request.params
+        const { id: userId } = request.user
 
-    //         const thumbnailFile = foundation.thumbnailUrl
-    //             ? `${foundation.userId}/${foundation.thumbnailUrl}`
-    //             : PLACEHOLDER_IMAGE
+        try {
+            if (!foundationId) {
+                throw new Error('Foundation id is required')
+            }
 
-    //         assign(foundation, {
-    //             thumbnailUrl: getFileUrl(thumbnailFile),
-    //         })
+            const foundationRepository = new BloodFoundationRepository()
+            const foundation = await foundationRepository.findOne({
+                where: {
+                    id: foundationId,
+                    userId: userId,
+                },
+            })
 
-    //         return {
-    //             message: 'Foundation created successfully',
-    //             data: foundation,
-    //         }
-    //     } catch (error) {
-    //         Controller.handleError(reply, error)
-    //     }
-    // }
+            if (!foundation) {
+                throw new Error('Foundation not found')
+            }
 
-    // static async joinFoundation(request, reply) {
-    //     const { foundationId } = request.body
-    //     const { id } = request.user
+            // check if the user is the owner of the foundation
+            if (foundation.userId !== userId) {
+                throw new Error(
+                    'You are not authorized to update this foundation'
+                )
+            }
 
-    //     try {
-    //         const bloodRepository = new BloodRepository()
-    //         const user = new UserRepository()
-    //         const isDonor = await bloodRepository.isAlreadyDonor(id)
+            if (request.body.thumbnailFile) {
+                request.body.thumbnailUrl = getFileFromPath(
+                    request.body.thumbnailFile
+                )
+            }
 
-    //         if (!isDonor) {
-    //             throw new Error('You are not a donor')
-    //         }
+            const foundationDTO = new BloodFoundationDTO()
+            assign(foundationDTO, {
+                id: foundationId,
+                ...request.body,
+                thumbnailUrl: getFileFromPath(
+                    request.body.thumbnailUrl || foundation.thumbnailUrl
+                ),
+            })
 
-    //         // check if the foundation exists
-    //         const foundation =
-    //             await bloodRepository.findOneFoundationById(foundationId)
+            if (request.body.isMunicipality) {
+                foundationDTO.isMunicipality = true
+                foundationDTO.municipality = request.body.municipality || null
+                foundationDTO.union = null
+            } else {
+                foundationDTO.isMunicipality = false
+                foundationDTO.union = request.body.union || null
+                foundationDTO.municipality = null
+            }
 
-    //         if (!foundation) {
-    //             throw new Error('Foundation not found')
-    //         }
+            await foundationRepository.update(foundationDTO, {
+                where: { id: foundationId, userId },
+            })
 
-    //         const result = await user.addOrganization(id, foundationId)
+            reply.send({
+                message: 'Foundation updated successfully',
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
 
-    //         reply.send({
-    //             message: 'Foundation joined successfully',
-    //             data: result,
-    //         })
-    //     } catch (error) {
-    //         Controller.handleError(reply, error)
-    //     }
-    // }
+    static async deleteOneFoundation(request, reply) {
+        const { id } = request.params
+        const { id: userId } = request.user
+
+        try {
+            if (!id) {
+                throw new Error('Foundation id is required')
+            }
+
+            const foundationRepository = new BloodFoundationRepository()
+            const foundation = await foundationRepository.findOne({
+                where: { id, userId },
+            })
+
+            if (!foundation) {
+                throw new Error('Foundation not found')
+            }
+
+            // check if the user is the owner of the foundation
+            if (foundation.userId !== request.user.id) {
+                throw new Error(
+                    'You are not authorized to delete this foundation'
+                )
+            }
+
+            await foundationRepository.destroy({
+                where: { id, userId },
+            })
+
+            reply.send({
+                message: 'Foundation deleted successfully',
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    static async createFoundation(request, reply) {
+        const { district, id } = request.user
+        const { isMunicipality, municipality, union } = request.body
+
+        try {
+            const foundationRepository = new BloodFoundationRepository()
+            const foundationDTO = new BloodFoundationDTO()
+            const userRepository = new UserRepository()
+
+            // check if the user exists
+            const user = await userRepository.findOne({
+                where: { id },
+            })
+
+            if (!user || !user.isVerified || !user.isOnboarded) {
+                throw new Error('User not found')
+            }
+
+            assign(foundationDTO, {
+                ...request.body,
+                userId: id,
+                district,
+                thumbnailUrl: getFileFromPath(request.body.thumbnailUrl),
+            })
+
+            if (isMunicipality) {
+                foundationDTO.municipality = municipality
+                foundationDTO.union = null
+            } else {
+                foundationDTO.union = union
+                foundationDTO.municipality = null
+            }
+
+            const foundation = await foundationRepository.create(foundationDTO)
+
+            foundation.setDataValue(
+                'thumbnailUrl',
+                getFileUrl(foundation.thumbnailUrl || PLACEHOLDER_IMAGE)
+            )
+
+            return {
+                message: 'Foundation created successfully',
+                data: foundation,
+            }
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    static async addFoundationDonor(request, reply) {
+        const { id } = request.params
+        const { id: userId } = request.user
+
+        try {
+            const donorDTO = new BloodFoundationDonorDTO()
+            const donorRepository = new BloodFoundationDonorRepository()
+            const foundationRepository = new BloodFoundationRepository()
+            const foundation = await foundationRepository.findOne({
+                where: { id, userId },
+            })
+
+            if (!foundation) {
+                throw new Error('Foundation not found')
+            }
+
+            const donorExists = await donorRepository.findOne({
+                where: { mobile: request.body.mobile, foundationId: id },
+            })
+
+            if (donorExists) {
+                throw new Error('Donor already exists')
+            }
+
+            assign(donorDTO, {
+                ...request.body,
+                foundationId: id,
+                profilePictureUrl: getFileFromPath(
+                    request.body.profilePictureUrl
+                ),
+            })
+
+            await donorRepository.create(donorDTO)
+
+            reply.send({
+                message: 'Joined successfully',
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    static async updateFoundationDonor(request, reply) {
+        const { foundationId, donorId } = request.params
+        const { id: userId } = request.user
+
+        try {
+            const donorDTO = new BloodFoundationDonorDTO()
+            const donorRepository = new BloodFoundationDonorRepository()
+            const foundationRepository = new BloodFoundationRepository()
+            const foundation = await foundationRepository.findOne({
+                where: { id: foundationId, userId },
+            })
+
+            if (!foundation) {
+                throw new Error('Foundation not found')
+            }
+
+            const donor = await donorRepository.findOne({
+                where: { id: donorId, foundationId },
+            })
+
+            if (!donor) {
+                throw new Error('Donor not found')
+            }
+
+            if (request.body.mobile) {
+                const donorExists = await donorRepository.findOne({
+                    where: {
+                        mobile: request.body.mobile,
+                        foundationId,
+                        id: { [Op.ne]: donorId }, // exclude current donor
+                    },
+                })
+
+                if (donorExists) {
+                    throw new Error(
+                        'Donor with this mobile number already exists'
+                    )
+                }
+            }
+
+            assign(donorDTO, {
+                ...request.body,
+                id: donorId,
+                foundationId,
+                profilePictureUrl: getFileFromPath(
+                    request.body.profilePictureUrl || donor.profilePictureUrl
+                ),
+            })
+
+            await donorRepository.update(donorDTO, {
+                where: { id: donorId, foundationId },
+            })
+
+            reply.send({
+                message: 'Donor updated successfully',
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    static async deleteFoundationDonor(request, reply) {
+        const { foundationId, donorId } = request.params
+        const { id: userId } = request.user
+
+        try {
+            const donorRepository = new BloodFoundationDonorRepository()
+            const foundationRepository = new BloodFoundationRepository()
+            const foundation = await foundationRepository.findOne({
+                where: { id: foundationId, userId },
+            })
+
+            if (!foundation) {
+                throw new Error('Foundation not found')
+            }
+
+            const donor = await donorRepository.findOne({
+                where: { id: donorId, foundationId },
+            })
+
+            if (!donor) {
+                throw new Error('Donor not found')
+            }
+
+            await donorRepository.destroy({
+                where: { id: donorId, foundationId },
+            })
+
+            reply.send({
+                message: 'Donor deleted successfully',
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    static async getFoundationDonorList(request, reply) {
+        const { id: userId } = request.user
+        const { foundationId } = request.params
+
+        try {
+            const donorRepository = new BloodFoundationDonorRepository()
+            const foundationRepository = new BloodFoundationRepository()
+            const foundation = await foundationRepository.findOne({
+                where: { id: foundationId, userId },
+            })
+
+            if (!foundation) {
+                throw new Error('Foundation not found')
+            }
+
+            const donors = await donorRepository.findAll({
+                where: { foundationId },
+                order: [['createdAt', 'DESC']],
+            })
+
+            donors.forEach((donor) => {
+                donor.setDataValue(
+                    'profilePictureUrl',
+                    getFileUrl(donor.profilePictureUrl || PLACEHOLDER_AVATAR)
+                )
+            })
+
+            reply.send({
+                message: 'Donors fetched successfully',
+                data: donors,
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    static async getFoundationMemberList(request, reply) {
+        const { foundationId } = request.params
+
+        try {
+            const bloodDonorRepository = new BloodDonorRepository()
+            const organizationUserRepository = new OrganizationUserRepository()
+            const organizationDonors = await organizationUserRepository.findAll(
+                {
+                    where: {
+                        organizationId: foundationId,
+                        status: request.query.status || 'active',
+                    },
+                }
+            )
+
+            const organizationDonorIds = organizationDonors.map(
+                (donor) => donor.userId
+            )
+
+            const bloodDonors =
+                await bloodDonorRepository.getDonorByUserId(
+                    organizationDonorIds
+                )
+
+            bloodDonors.forEach((donor) => {
+                donor.setDataValue(
+                    'profilePictureUrl',
+                    getFileUrl(donor.profilePictureUrl || PLACEHOLDER_AVATAR)
+                )
+            })
+
+            reply.send({
+                message: 'Members fetched successfully',
+                data: orderBy(bloodDonors, ['createdAt'], ['desc']),
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    static async updateFoundationMember(request, reply) {
+        const { foundationId, memberId } = request.params
+        const { status, role } = request.body
+
+        try {
+            const organizationUserRepository = new OrganizationUserRepository()
+            const organizationUserDTO = new OrganizationUserDTO()
+            const bloodFoundationRepository = new BloodFoundationRepository()
+            const bloodFoundation = await bloodFoundationRepository.findOne({
+                where: {
+                    id: foundationId,
+                    userId: request.user.id,
+                },
+            })
+
+            if (!bloodFoundation) {
+                throw new Error('Access denied')
+            }
+
+            const organizationUser = await organizationUserRepository.findOne({
+                where: {
+                    userId: memberId,
+                    organizationId: foundationId,
+                },
+            })
+
+            if (!organizationUser) {
+                throw new Error('Member not found')
+            }
+
+            organizationUserDTO.status = status
+            organizationUserDTO.role = role
+
+            await organizationUserRepository.update(organizationUserDTO, {
+                where: { id: organizationUser.id },
+            })
+
+            reply.send({
+                message: 'Member updated successfully',
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    static async deleteFoundationMember(request, reply) {
+        const { foundationId, memberId } = request.params
+
+        try {
+            const organizationUserRepository = new OrganizationUserRepository()
+            const bloodFoundationRepository = new BloodFoundationRepository()
+            const bloodFoundation = await bloodFoundationRepository.findOne({
+                where: {
+                    id: foundationId,
+                    userId: request.user.id,
+                },
+            })
+
+            if (!bloodFoundation) {
+                throw new Error('Access denied')
+            }
+
+            const organizationUser = await organizationUserRepository.findOne({
+                where: {
+                    userId: memberId,
+                    organizationId: foundationId,
+                },
+            })
+
+            if (!organizationUser) {
+                throw new Error('Member not found')
+            }
+
+            await organizationUserRepository.destroy({
+                where: { id: organizationUser.id },
+            })
+
+            reply.send({
+                message: 'Member deleted successfully',
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
 }
 
 module.exports = BloodController

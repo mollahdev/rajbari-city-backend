@@ -31,13 +31,15 @@ class FileController {
             }
 
             const user = new UserRepository()
-            const existingUser = await user.findOneById(request.user.id)
+            const existingUser = await user.findOne({
+                where: { id: request.user.id },
+            })
 
             if (!existingUser) {
                 throw new Error('User not found')
             }
 
-            const response = await storage.upload(data, request.user.id)
+            const response = await storage.upload(data)
 
             return {
                 message: 'File uploaded successfully',

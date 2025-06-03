@@ -6,6 +6,15 @@ const validateBody = (schema) => async (req, reply) => {
     }
 }
 
+const validateQuery = (schema) => async (req, reply) => {
+    try {
+        req.query = await schema.validate(req.query, { abortEarly: false })
+    } catch (error) {
+        return reply.code(400).send({ error: error.errors })
+    }
+}
+
 module.exports = {
     validateBody,
+    validateQuery,
 }

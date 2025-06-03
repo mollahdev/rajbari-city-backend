@@ -7,6 +7,7 @@ const Fastify = require('fastify')
 const fastifyFormbody = require('@fastify/formbody')
 const fastifyMultipart = require('@fastify/multipart')
 const jwt = require('@fastify/jwt')
+const fastitySocketIo = require('fastify-socket.io')
 /**
  * Internal dependencies
  */
@@ -20,6 +21,17 @@ const fastify = new Fastify({
         customOptions: {
             removeAdditional: 'all',
         },
+    },
+})
+
+fastify.register(fastitySocketIo, {
+    cors: {
+        origin: '*',
+    },
+    preClose: (done) => {
+        // do other things
+        fastify.io.local.disconnectSockets(true)
+        done()
     },
 })
 

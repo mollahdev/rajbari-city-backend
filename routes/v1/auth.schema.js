@@ -3,7 +3,7 @@ const yup = require('yup')
 const updateProfileSchema = yup.object({
     name: yup.string().required('name is required'),
     password: yup.string().required('password is required'),
-    dob: yup.date().required('Date of birth is required'),
+    dob: yup.date().required('dob is required'),
     gender: yup
         .string()
         .oneOf(['male', 'female'], 'Gender must be either male or female')

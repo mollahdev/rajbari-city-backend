@@ -1,7 +1,5 @@
 const yup = require('yup')
-
-const createDonorSchema = yup.object({
-    // blood group should be one of the following: A+, A-, B+, B-, AB+, AB-, O+, O-
+const donorBaseSchema = yup.object({
     bloodGroup: yup
         .string()
         .matches(
@@ -12,10 +10,17 @@ const createDonorSchema = yup.object({
 
     description: yup.string().nullable(),
     lastDonatedAt: yup.date().nullable(),
+})
+
+const createDonorSchema = donorBaseSchema.shape({
     isActive: yup.boolean().default(true),
 })
 
-const foundationCreateSchema = yup.object({
+const updateDonorSchema = donorBaseSchema.shape({
+    isActive: yup.boolean().nullable(),
+})
+
+const baseFoundationSchema = yup.object({
     name: yup.string().required('name is required'),
     mobiles: yup
         .array()
@@ -57,16 +62,70 @@ const foundationCreateSchema = yup.object({
         then: (schema) => schema.required('union is required'),
         otherwise: (schema) => schema.notRequired(),
     }),
-    thumbnailUrl: yup.string().nullable(),
     description: yup.string().nullable(),
 })
 
-const foundationJoinSchema = yup.object({
-    foundationId: yup.string().required('foundationId is required'),
+const foundationCreateSchema = baseFoundationSchema.shape({
+    thumbnailUrl: yup.string().required(),
+})
+
+const foundationUpdateSchema = baseFoundationSchema.shape({
+    thumbnailFile: yup.string().nullable(),
+})
+
+const foundationDonorSchema = donorBaseSchema.shape({
+    status: yup
+        .string()
+        .oneOf(['active', 'inactive', 'pending', 'blocked'])
+        .default('active')
+        .required('status is required'),
+    name: yup.string().required('name is required'),
+    mobile: yup.string().required('mobile is required'),
+    dialCode: yup.string().required('dialCode is required'),
+    dob: yup.date().required('Date of birth is required'),
+    gender: yup
+        .string()
+        .oneOf(['male', 'female'], 'Gender must be either male or female')
+        .required('Gender is required'),
+    district: yup.string().required('district is required'),
+    upazila: yup.string().required('upazila is required'),
+    isMunicipality: yup
+        .boolean()
+        .strict() // Ensures `true/false` is not interpreted as `"true"` or `"false"`
+        .default(false),
+    municipality: yup.string().when('isMunicipality', {
+        is: true,
+        then: (schema) => schema.required('municipality is required'),
+        otherwise: (schema) => schema.notRequired(),
+    }),
+    union: yup.string().when('isMunicipality', {
+        is: false,
+        then: (schema) => schema.required('union is required'),
+        otherwise: (schema) => schema.notRequired(),
+    }),
+    profilePictureUrl: yup.string().nullable(),
+})
+
+const bloodFoundationMemberSchema = yup.object({
+    status: yup.lazy((value) => {
+        if (Array.isArray(value)) {
+            return yup.array().of(yup.string().oneOf(['active', 'pending']))
+        }
+        return yup.string().oneOf(['active', 'pending'])
+    }),
+})
+
+const bloodFoundationMemberStatusSchema = yup.object({
+    status: yup.string().oneOf(['active', 'inactive', 'pending', 'blocked']),
+    role: yup.string().oneOf(['admin', 'member', 'owner']),
 })
 
 module.exports = {
     foundationCreateSchema,
-    foundationJoinSchema,
+    foundationUpdateSchema,
     createDonorSchema,
+    updateDonorSchema,
+    foundationDonorSchema,
+    bloodFoundationMemberSchema,
+    bloodFoundationMemberStatusSchema,
 }

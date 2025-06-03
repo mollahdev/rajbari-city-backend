@@ -1,4 +1,4 @@
-const { omit, assign } = require('lodash')
+const { assign } = require('lodash')
 const bcrypt = require('bcryptjs')
 /**
  * Internal dependencies
@@ -13,17 +13,16 @@ class ProfileController {
     static async getCurrentProfile(request, reply) {
         try {
             const userRepository = new UserRepository()
-            const user = await userRepository.findOneById(request.user.id)
+            const user = await userRepository.findCurrentUser(request.user.id)
 
             if (!user) {
                 throw new Error('User not found')
             }
 
-            const avatarFile = user.profilePictureUrl
-                ? `${user.id}/${user.profilePictureUrl}`
-                : PLACEHOLDER_AVATAR
-            assign(user.dataValues, {
-                profilePictureUrl: getFileUrl(avatarFile),
+            assign(user, {
+                profilePictureUrl: getFileUrl(
+                    user.profilePictureUrl || PLACEHOLDER_AVATAR
+                ),
             })
 
             reply.send({
@@ -39,13 +38,15 @@ class ProfileController {
         const { id } = request.user
         try {
             const userRepository = new UserRepository()
-            const user = await userRepository.findOneById(id)
+            const user = await userRepository.findOne({ where: { id } })
 
             if (!user) {
                 throw new Error('User not found')
             }
 
-            await userRepository.delete(id)
+            await userRepository.destroy({
+                where: { id },
+            })
 
             reply.send({
                 message: 'User profile deleted successfully',
@@ -58,7 +59,9 @@ class ProfileController {
     static async updateProfile(request, reply) {
         try {
             const userRepository = new UserRepository()
-            const user = await userRepository.findBy('id', request.user.id)
+            const user = await userRepository.findOne({
+                where: { id: request.user.id },
+            })
 
             if (!user) {
                 throw new Error('User not found')
@@ -68,13 +71,11 @@ class ProfileController {
                 throw new Error('User is not verified or onboarded')
             }
 
-            const userDTO = new UserDTO()
-            userDTO.id = request.user.id
-
             if (request.body.profilePictureFile) {
                 request.body.profilePictureUrl = request.body.profilePictureFile
             }
 
+            const userDTO = new UserDTO()
             assign(userDTO, request.body)
 
             if (request.body.isMunicipality) {
@@ -87,7 +88,9 @@ class ProfileController {
                 userDTO.municipality = null
             }
 
-            await userRepository.update(userDTO)
+            await userRepository.update(userDTO, {
+                where: { id: request.user.id },
+            })
 
             return {
                 message: 'User profile updated successfully',
@@ -102,7 +105,9 @@ class ProfileController {
 
         try {
             const userRepository = new UserRepository()
-            const user = await userRepository.findBy('id', request.user.id)
+            const user = await userRepository.findOne({
+                where: { id: request.user.id },
+            })
 
             if (!user) {
                 throw new Error('User not found')
@@ -122,10 +127,11 @@ class ProfileController {
             }
 
             const userDTO = new UserDTO()
-            userDTO.id = request.user.id
             userDTO.password = newPassword
 
-            await userRepository.update(userDTO)
+            await userRepository.update(userDTO, {
+                where: { id: request.user.id },
+            })
 
             return {
                 message: 'User password updated successfully',
