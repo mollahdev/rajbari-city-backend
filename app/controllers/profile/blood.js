@@ -1,4 +1,5 @@
 const { assign, orderBy } = require('lodash')
+const { Op } = require('@sequelize/core')
 /**
  * Internal dependencies
  */
@@ -410,6 +411,22 @@ class BloodController {
 
             if (!donor) {
                 throw new Error('Donor not found')
+            }
+
+            if (request.body.mobile) {
+                const donorExists = await donorRepository.findOne({
+                    where: {
+                        mobile: request.body.mobile,
+                        foundationId,
+                        id: { [Op.ne]: donorId }, // exclude current donor
+                    },
+                })
+
+                if (donorExists) {
+                    throw new Error(
+                        'Donor with this mobile number already exists'
+                    )
+                }
             }
 
             assign(donorDTO, {
