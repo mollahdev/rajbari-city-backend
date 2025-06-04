@@ -6,7 +6,7 @@ module.exports = async function (routes) {
                 data: {
                     version: '0.0.1',
                     updateFor: ['android'], // ios, android, optional
-                    updateType: 'force', // force, optional
+                    updateType: 'optional', // force, optional
                     changeLog: [
                         'পৌরসভা যোগ করা হয়েছে',
                         'ছবির আকার বৃদ্ধি করা হয়েছে',
