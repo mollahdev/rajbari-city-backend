@@ -6,6 +6,7 @@ const { orderBy } = require('lodash')
  * Internal dependencies
  */
 const Controller = require('./controller')
+const UserRepository = require('@/app/repositories/user')
 const BloodFoundationRepository = require('@/app/repositories/blood-foundation')
 const BloodFoundationDonorRepository = require('@/app/repositories/blood-foundation-donor')
 const OrganizationUserRepository = require('@/app/repositories/organization-user')
@@ -31,7 +32,11 @@ module.exports = class BloodController {
                     district,
                     status: 'active',
                 },
-                order: [['createdAt', 'DESC']],
+                order: [
+                    ['is_partner', 'DESC'],
+                    ['is_verified', 'DESC'],
+                    ['createdAt', 'DESC'],
+                ],
             })
 
             foundations.forEach((foundation) => {
@@ -150,10 +155,23 @@ module.exports = class BloodController {
     }
 
     static async getAllDonors(request, reply) {
-        const { district } = request.user
+        const { id } = request.user
 
         try {
+            const userRepository = new UserRepository()
             const bloodDonorRepository = new BloodDonorRepository()
+
+            const user = await userRepository.findOne({
+                where: {
+                    id,
+                },
+                attributes: ['upazila', 'district'],
+            })
+
+            if (!user) {
+                throw new Error('User not found')
+            }
+
             const donors = await bloodDonorRepository.findAll({
                 where: {
                     isActive: true,
@@ -163,18 +181,26 @@ module.exports = class BloodController {
                         model: models.User,
                         as: 'donor',
                         where: {
-                            district,
+                            district: user.district,
                         },
                         required: true,
                     },
                 ],
+                order: [['updatedAt', 'DESC']],
             })
 
             const result = []
             donors.forEach((donor) => {
                 const values = donor.dataValues
+                let pushingMethod = null
 
-                result.push({
+                if (values.donor.upazila == user.upazila) {
+                    pushingMethod = 'unshift'
+                } else {
+                    pushingMethod = 'push'
+                }
+
+                result[pushingMethod]({
                     id: values.id,
                     name: values.donor.name,
                     profilePictureUrl: getFileUrl(
@@ -192,7 +218,7 @@ module.exports = class BloodController {
 
             reply.send({
                 message: 'Donors fetched successfully',
-                data: orderBy(result, ['updatedAt'], ['desc']),
+                data: result,
             })
         } catch (error) {
             Controller.handleError(reply, error)
