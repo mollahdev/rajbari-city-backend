@@ -1,4 +1,5 @@
 const { assign } = require('lodash')
+const { Op } = require('@sequelize/core')
 /**
  * Internal dependencies
  */
@@ -22,16 +23,69 @@ class CategoryController extends Controller {
             assign(categoryDTO, request.body)
             const response = await categoryRepository.create(categoryDTO)
 
-            return {
+            reply.send({
                 message: 'Category created successfully',
-                data: {
-                    id: response.id,
-                    slug: response.slug,
-                    name: response.name,
-                    createdAt: response.createdAt,
-                    updatedAt: response.updatedAt,
-                },
+                data: response,
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    static async getAll(request, reply) {
+        try {
+            const categoryRepository = new CategoryRepository()
+            const categories = await categoryRepository.findAll({
+                order: [['createdAt', 'DESC']],
+            })
+
+            reply.send({
+                message: 'Categories retrieved successfully',
+                data: categories,
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    static async update(request, reply) {
+        const { id } = request.params
+        const { slug } = request.body
+
+        try {
+            const categoryRepository = new CategoryRepository()
+            const categoryDTO = new CategoryDTO()
+            const isAlreadyExists = await categoryRepository.findOne({
+                where: { slug, id: { [Op.ne]: id } },
+            })
+
+            if (isAlreadyExists) {
+                throw new Error('Category with this slug already exists')
             }
+
+            assign(categoryDTO, request.body)
+            await categoryRepository.update(categoryDTO, {
+                where: { id },
+            })
+
+            reply.send({
+                message: 'Category updated successfully',
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    static async delete(request, reply) {
+        const { id } = request.params
+
+        try {
+            const categoryRepository = new CategoryRepository()
+            await categoryRepository.destroy({ where: { id } })
+
+            reply.send({
+                message: 'Category deleted successfully',
+            })
         } catch (error) {
             Controller.handleError(reply, error)
         }
