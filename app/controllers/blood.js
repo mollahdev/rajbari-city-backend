@@ -155,23 +155,10 @@ module.exports = class BloodController {
     }
 
     static async getAllDonors(request, reply) {
-        const { id } = request.user
+        const { district } = request.user
 
         try {
-            const userRepository = new UserRepository()
             const bloodDonorRepository = new BloodDonorRepository()
-
-            const user = await userRepository.findOne({
-                where: {
-                    id,
-                },
-                attributes: ['upazila', 'district'],
-            })
-
-            if (!user) {
-                throw new Error('User not found')
-            }
-
             const donors = await bloodDonorRepository.findAll({
                 where: {
                     isActive: true,
@@ -181,26 +168,18 @@ module.exports = class BloodController {
                         model: models.User,
                         as: 'donor',
                         where: {
-                            district: user.district,
+                            district,
                         },
                         required: true,
                     },
                 ],
-                order: [['updatedAt', 'DESC']],
             })
 
             const result = []
             donors.forEach((donor) => {
                 const values = donor.dataValues
-                let pushingMethod = null
 
-                if (values.donor.upazila == user.upazila) {
-                    pushingMethod = 'unshift'
-                } else {
-                    pushingMethod = 'push'
-                }
-
-                result[pushingMethod]({
+                result.push({
                     id: values.id,
                     name: values.donor.name,
                     profilePictureUrl: getFileUrl(
@@ -218,7 +197,7 @@ module.exports = class BloodController {
 
             reply.send({
                 message: 'Donors fetched successfully',
-                data: result,
+                data: orderBy(result, ['updatedAt'], ['desc']),
             })
         } catch (error) {
             Controller.handleError(reply, error)
