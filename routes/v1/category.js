@@ -8,11 +8,12 @@ module.exports = async function (fastify) {
                 type: 'object',
                 required: ['name', 'group'],
                 properties: {
-                    name: { type: 'string', minLength: 1, maxLength: 100 },
+                    name: { type: 'string', minLength: 1, maxLength: 40 },
                     group: {
                         type: 'string',
                         enum: ['general', 'hospital'],
                         default: 'general',
+                        maxLength: 40,
                     },
                 },
             },
@@ -36,8 +37,8 @@ module.exports = async function (fastify) {
             body: {
                 type: 'object',
                 properties: {
-                    name: { type: 'string', minLength: 1, maxLength: 100 },
-                    slug: { type: 'string', minLength: 1, maxLength: 100 },
+                    name: { type: 'string', minLength: 1, maxLength: 40 },
+                    group: { type: 'string', minLength: 1, maxLength: 40 },
                 },
             },
         },

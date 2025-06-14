@@ -64,10 +64,12 @@ class CategoryController extends Controller {
             }
 
             const groupName = request.body.group || category.group
+            const categoryName = request.body.name || category.name
+
             const isAlreadyExists = await categoryRepository.findOne({
                 where: {
                     group: lowerCase(trim(groupName)),
-                    name: lowerCase(trim(request.body.name)),
+                    name: lowerCase(trim(categoryName)),
                     id: { [Op.ne]: id },
                 },
             })

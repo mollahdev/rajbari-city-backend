@@ -1,10 +1,11 @@
+const socketConnection = require('@/socket')
 const authRoutes = require('./auth')
 const profileRoutes = require('./profile')
 const fileRoutes = require('./file')
 const appRoutes = require('./app')
 const bloodRoutes = require('./blood')
-const socketConnection = require('@/socket')
-const category = require('./category')
+const categoryRoutes = require('./category')
+const serviceRoutes = require('./service')
 
 module.exports = async (fastify) => {
     /**
@@ -15,7 +16,8 @@ module.exports = async (fastify) => {
     fastify.register(bloodRoutes, { prefix: '/blood' })
     fastify.register(fileRoutes, { prefix: '/file' })
     fastify.register(appRoutes, { prefix: '/app' })
-    fastify.register(category, { prefix: '/category' })
+    fastify.register(categoryRoutes, { prefix: '/category' })
+    fastify.register(serviceRoutes, { prefix: '/service' })
     /**
      * socket connection
      */
