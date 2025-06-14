@@ -25,13 +25,13 @@ module.exports = (sequelize, DataTypes) => {
                 primaryKey: true,
                 allowNull: false,
             },
-            slug: {
-                unique: true,
+            name: {
                 type: DataTypes.STRING,
                 allowNull: false,
             },
-            name: {
+            group: {
                 type: DataTypes.STRING,
+                defaultValue: 'general',
                 allowNull: false,
             },
         },
@@ -41,12 +41,6 @@ module.exports = (sequelize, DataTypes) => {
             tableName: 'Categories',
             timestamps: true,
             underscored: true,
-            indexes: [
-                {
-                    fields: ['slug'],
-                    name: 'category_slug_index',
-                },
-            ],
         }
     )
 

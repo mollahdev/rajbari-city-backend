@@ -2,8 +2,8 @@ const DTO = require('./dto')
 
 class CategoryDTO extends DTO {
     id
-    slug
     name
+    group
 }
 
 module.exports = CategoryDTO

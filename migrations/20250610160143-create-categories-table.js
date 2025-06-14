@@ -12,13 +12,13 @@ module.exports = {
                     primaryKey: true,
                     allowNull: false,
                 },
-                slug: {
-                    type: Sequelize.STRING,
-                    allowNull: false,
-                    unique: true,
-                },
                 name: {
                     type: Sequelize.STRING,
+                    allowNull: false,
+                },
+                group: {
+                    type: Sequelize.STRING,
+                    defaultValue: 'general',
                     allowNull: false,
                 },
                 created_at: {
@@ -38,15 +38,9 @@ module.exports = {
                 timestamps: true,
             }
         )
-
-        // Optional: explicitly add index (already handled by `unique: true` on slug)
-        await queryInterface.addIndex('Categories', ['slug'], {
-            name: 'category_slug_index',
-        })
     },
 
     async down(queryInterface, Sequelize) {
-        await queryInterface.removeIndex('Categories', 'category_slug_index')
         await queryInterface.dropTable('Categories')
     },
 }

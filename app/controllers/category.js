@@ -1,4 +1,4 @@
-const { assign } = require('lodash')
+const { assign, lowerCase, trim } = require('lodash')
 const { Op } = require('@sequelize/core')
 /**
  * Internal dependencies
@@ -13,11 +13,14 @@ class CategoryController extends Controller {
             const categoryRepository = new CategoryRepository()
             const categoryDTO = new CategoryDTO()
             const isAlreadyExists = await categoryRepository.findOne({
-                where: { slug: request.body.slug },
+                where: {
+                    group: lowerCase(trim(request.body.group)),
+                    name: lowerCase(trim(request.body.name)),
+                },
             })
 
             if (isAlreadyExists) {
-                throw new Error('Category with this slug already exists')
+                throw new Error('Category already exists')
             }
 
             assign(categoryDTO, request.body)
@@ -50,17 +53,27 @@ class CategoryController extends Controller {
 
     static async update(request, reply) {
         const { id } = request.params
-        const { slug } = request.body
 
         try {
             const categoryRepository = new CategoryRepository()
             const categoryDTO = new CategoryDTO()
+            const category = await categoryRepository.findOne({ where: { id } })
+
+            if (!category) {
+                throw new Error('Category not found')
+            }
+
+            const groupName = request.body.group || category.group
             const isAlreadyExists = await categoryRepository.findOne({
-                where: { slug, id: { [Op.ne]: id } },
+                where: {
+                    group: lowerCase(trim(groupName)),
+                    name: lowerCase(trim(request.body.name)),
+                    id: { [Op.ne]: id },
+                },
             })
 
             if (isAlreadyExists) {
-                throw new Error('Category with this slug already exists')
+                throw new Error('Category already exists')
             }
 
             assign(categoryDTO, request.body)

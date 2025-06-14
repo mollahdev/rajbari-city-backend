@@ -6,10 +6,14 @@ module.exports = async function (fastify) {
         schema: {
             body: {
                 type: 'object',
-                required: ['name', 'slug'],
+                required: ['name', 'group'],
                 properties: {
                     name: { type: 'string', minLength: 1, maxLength: 100 },
-                    slug: { type: 'string', minLength: 1, maxLength: 100 },
+                    group: {
+                        type: 'string',
+                        enum: ['general', 'hospital'],
+                        default: 'general',
+                    },
                 },
             },
         },

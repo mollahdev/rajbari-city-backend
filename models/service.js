@@ -25,11 +25,6 @@ module.exports = (sequelize, DataTypes) => {
                 primaryKey: true,
                 allowNull: false,
             },
-            slug: {
-                unique: true,
-                type: DataTypes.STRING,
-                allowNull: false,
-            },
             name: {
                 type: DataTypes.STRING,
                 allowNull: false,
@@ -54,12 +49,6 @@ module.exports = (sequelize, DataTypes) => {
             tableName: 'Services',
             timestamps: true,
             underscored: true,
-            indexes: [
-                {
-                    fields: ['slug'],
-                    name: 'service_slug_index',
-                },
-            ],
         }
     )
 

@@ -12,11 +12,6 @@ module.exports = {
                     primaryKey: true,
                     allowNull: false,
                 },
-                slug: {
-                    type: Sequelize.STRING,
-                    allowNull: false,
-                    unique: true,
-                },
                 name: {
                     type: Sequelize.STRING,
                     allowNull: false,
@@ -51,14 +46,9 @@ module.exports = {
                 timestamps: true,
             }
         )
-
-        await queryInterface.addIndex('Services', ['slug'], {
-            name: 'service_slug_index',
-        })
     },
 
     async down(queryInterface, Sequelize) {
-        await queryInterface.removeIndex('Services', 'service_slug_index')
         await queryInterface.dropTable('Services')
     },
 }
