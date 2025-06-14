@@ -225,13 +225,6 @@ class BloodController {
                 throw new Error('Foundation not found')
             }
 
-            // check if the user is the owner of the foundation
-            if (foundation.userId !== userId) {
-                throw new Error(
-                    'You are not authorized to update this foundation'
-                )
-            }
-
             if (request.body.thumbnailFile) {
                 request.body.thumbnailUrl = getFileFromPath(
                     request.body.thumbnailFile
@@ -285,13 +278,6 @@ class BloodController {
 
             if (!foundation) {
                 throw new Error('Foundation not found')
-            }
-
-            // check if the user is the owner of the foundation
-            if (foundation.userId !== request.user.id) {
-                throw new Error(
-                    'You are not authorized to delete this foundation'
-                )
             }
 
             await foundationRepository.destroy({

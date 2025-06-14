@@ -1,7 +1,7 @@
 const AuthController = require('@/app/controllers/auth')
 const auth = require('@/app/middleware/auth')
 const { validateBody } = require('@/app/helpers/validation')
-const { updateProfileSchema } = require('./auth.schema')
+const { updateProfileSchema } = require('./index.schema')
 
 module.exports = async function (routes) {
     routes.post('/register', {

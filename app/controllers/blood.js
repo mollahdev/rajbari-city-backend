@@ -6,7 +6,6 @@ const { orderBy, isString } = require('lodash')
  * Internal dependencies
  */
 const Controller = require('./controller')
-const UserRepository = require('@/app/repositories/user')
 const BloodFoundationRepository = require('@/app/repositories/blood-foundation')
 const BloodFoundationDonorRepository = require('@/app/repositories/blood-foundation-donor')
 const OrganizationUserRepository = require('@/app/repositories/organization-user')
