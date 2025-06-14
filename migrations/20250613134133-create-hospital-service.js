@@ -6,15 +6,30 @@ module.exports = {
         await queryInterface.createTable(
             'HospitalServices',
             {
+                id: {
+                    type: Sequelize.UUID,
+                    primaryKey: true,
+                    allowNull: false,
+                    unique: true,
+                    defaultValue: Sequelize.UUIDV4,
+                },
                 hospital_id: {
                     type: Sequelize.UUID,
-                    defaultValue: Sequelize.UUIDV4,
                     allowNull: false,
+                    references: {
+                        model: 'Hospitals',
+                        key: 'id',
+                    },
+                    onDelete: 'CASCADE',
                 },
                 service_id: {
                     type: Sequelize.UUID,
-                    defaultValue: Sequelize.UUIDV4,
                     allowNull: false,
+                    references: {
+                        model: 'Services',
+                        key: 'id',
+                    },
+                    onDelete: 'CASCADE',
                 },
                 created_at: {
                     type: Sequelize.DATE,

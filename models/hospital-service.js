@@ -13,18 +13,40 @@ module.exports = (sequelize, DataTypes) => {
                 foreignKey: 'hospital_id',
                 as: 'services',
             })
+
+            HospitalService.belongsTo(models.Service, {
+                foreignKey: 'service_id',
+                as: 'service',
+            })
         }
     }
 
     HospitalService.init(
         {
+            id: {
+                type: DataTypes.UUID,
+                primaryKey: true,
+                allowNull: false,
+                unique: true,
+                defaultValue: DataTypes.UUIDV4,
+            },
             hospitalId: {
                 type: DataTypes.UUID,
                 allowNull: false,
+                references: {
+                    model: 'Hospitals',
+                    key: 'id',
+                },
+                onDelete: 'CASCADE',
             },
             serviceId: {
                 type: DataTypes.UUID,
                 allowNull: false,
+                references: {
+                    model: 'Services',
+                    key: 'id',
+                },
+                onDelete: 'CASCADE',
             },
         },
         {
