@@ -1,4 +1,4 @@
-const { assign, orderBy } = require('lodash')
+const { assign, orderBy, isString } = require('lodash')
 const { Op } = require('@sequelize/core')
 /**
  * Internal dependencies
@@ -131,15 +131,19 @@ class BloodController {
                     getFileUrl(foundation.thumbnailUrl || PLACEHOLDER_IMAGE)
                 )
 
-                foundation.setDataValue(
-                    'mobiles',
-                    JSON.parse(foundation.mobiles || '[]')
-                )
+                if (isString(foundation.mobiles)) {
+                    foundation.setDataValue(
+                        'mobiles',
+                        JSON.parse(foundation.mobiles || '[]')
+                    )
+                }
 
-                foundation.setDataValue(
-                    'socials',
-                    JSON.parse(foundation.socials || '[]')
-                )
+                if (isString(foundation.socials)) {
+                    foundation.setDataValue(
+                        'socials',
+                        JSON.parse(foundation.socials || '[]')
+                    )
+                }
             })
 
             reply.send({
@@ -177,15 +181,19 @@ class BloodController {
                 getFileUrl(foundation.thumbnailUrl || PLACEHOLDER_IMAGE)
             )
 
-            foundation.setDataValue(
-                'mobiles',
-                JSON.parse(foundation.mobiles || '[]')
-            )
+            if (isString(foundation.mobiles)) {
+                foundation.setDataValue(
+                    'mobiles',
+                    JSON.parse(foundation.mobiles || '[]')
+                )
+            }
 
-            foundation.setDataValue(
-                'socials',
-                JSON.parse(foundation.socials || '[]')
-            )
+            if (isString(foundation.socials)) {
+                foundation.setDataValue(
+                    'socials',
+                    JSON.parse(foundation.socials || '[]')
+                )
+            }
 
             reply.send({
                 message: 'Foundation details',

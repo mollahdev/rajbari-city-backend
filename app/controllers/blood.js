@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-const { orderBy } = require('lodash')
+const { orderBy, isString } = require('lodash')
 /**
  * Internal dependencies
  */
@@ -136,14 +136,19 @@ module.exports = class BloodController {
                 orderBy(finalDonors, ['createdAt'], ['desc'])
             )
 
-            foundation.setDataValue(
-                'mobiles',
-                JSON.parse(foundation.mobiles || '[]')
-            )
-            foundation.setDataValue(
-                'socials',
-                JSON.parse(foundation.socials || '[]')
-            )
+            if (isString(foundation.mobiles)) {
+                foundation.setDataValue(
+                    'mobiles',
+                    JSON.parse(foundation.mobiles || '[]')
+                )
+            }
+
+            if (isString(foundation.socials)) {
+                foundation.setDataValue(
+                    'socials',
+                    JSON.parse(foundation.socials || '[]')
+                )
+            }
 
             reply.send({
                 message: 'Foundation details',
