@@ -34,8 +34,8 @@ class BloodController {
 
             const donorDTO = new BloodDonorDTO()
             assign(donorDTO, {
-                userId: id,
                 ...request.body,
+                userId: id,
             })
 
             const response = await donorRepository.create(donorDTO)
@@ -121,7 +121,9 @@ class BloodController {
         try {
             const foundationRepository = new BloodFoundationRepository()
             const foundations = await foundationRepository.findAllFoundation({
-                where: { userId },
+                where: {
+                    userId,
+                },
                 order: [['createdAt', 'DESC']],
             })
 
@@ -168,7 +170,7 @@ class BloodController {
             const foundation = await foundationRepository.findOne({
                 where: {
                     id,
-                    userId: userId,
+                    userId,
                 },
             })
 

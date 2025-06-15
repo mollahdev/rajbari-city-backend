@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-const { assign, isString, isArray, uniq } = require('lodash')
+const { assign, isString } = require('lodash')
 /**
  * Internal dependencies
  */
@@ -10,8 +10,6 @@ const HospitalRepository = require('@/app/repositories/hospital')
 const UserRepository = require('@/app/repositories/user')
 const HospitalServiceRepository = require('@/app/repositories/hospital-service')
 const HospitalDTO = require('@/app/dtos/hospital')
-const HospitalServiceDTO = require('@/app/dtos/hospital-service')
-const ServiceRespository = require('@/app/repositories/service')
 
 // const UserRe
 const { getFileUrl, getFileFromPath } = require('@/app/helpers')
@@ -21,14 +19,12 @@ module.exports = class HospitalController {
     static async createHospital(request, reply) {
         const { district, id } = request.user
         const { isMunicipality, municipality, union } = request.body
-        let services = request.body.services
 
         try {
             const hospitalRepo = new HospitalRepository()
             const hospitalDTO = new HospitalDTO()
             const userRepository = new UserRepository()
             const hospitalServiceRepo = new HospitalServiceRepository()
-            const serviceRepo = new ServiceRespository()
 
             // check if the user exists
             const user = await userRepository.findOne({
@@ -61,30 +57,12 @@ module.exports = class HospitalController {
                 getFileUrl(hospital.thumbnailUrl || PLACEHOLDER_IMAGE)
             )
 
-            // making sure the services exits in service table
-            const newServices = []
-            if (isArray(services)) {
-                services = uniq(services)
+            const services = await hospitalServiceRepo.createServices(
+                hospital.id,
+                request.body.services
+            )
 
-                const servicePromises = services.map(async (serviceId) => {
-                    const serviceDTO = new HospitalServiceDTO()
-
-                    const service = await serviceRepo.findOne({
-                        where: { id: serviceId },
-                    })
-
-                    if (service) {
-                        serviceDTO.hospitalId = hospital.id
-                        serviceDTO.serviceId = serviceId
-                        newServices.push(serviceId)
-                        return hospitalServiceRepo.create(serviceDTO)
-                    }
-                })
-
-                await Promise.all(servicePromises)
-            }
-
-            hospital.setDataValue('services', newServices)
+            hospital.setDataValue('services', services)
             return {
                 message: 'Created successfully',
                 data: hospital,
@@ -97,7 +75,6 @@ module.exports = class HospitalController {
     static async updateHospitalDetails(request, reply) {
         const { id: hospitalId } = request.params
         const { id: userId } = request.user
-        let services = request.body.services
 
         try {
             if (!hospitalId) {
@@ -107,12 +84,11 @@ module.exports = class HospitalController {
             const hospitalDTO = new HospitalDTO()
             const hospitalRepo = new HospitalRepository()
             const hospitalServiceRepo = new HospitalServiceRepository()
-            const serviceRepo = new ServiceRespository()
 
             const hospital = await hospitalRepo.findOne({
                 where: {
                     id: hospitalId,
-                    userId: userId,
+                    userId,
                 },
             })
 
@@ -140,30 +116,10 @@ module.exports = class HospitalController {
                 where: { id: hospitalId, userId },
             })
 
-            // making sure the services exits in service table and delete existing services
-            if (isArray(services)) {
-                services = uniq(services)
-
-                // delete all existing services for the hospital
-                await hospitalServiceRepo.destroy({
-                    where: { hospitalId },
-                })
-
-                const servicePromises = services.map(async (serviceId) => {
-                    const serviceDTO = new HospitalServiceDTO()
-                    const service = await serviceRepo.findOne({
-                        where: { id: serviceId },
-                    })
-
-                    if (service) {
-                        serviceDTO.hospitalId = hospitalId
-                        serviceDTO.serviceId = serviceId
-                        return hospitalServiceRepo.create(serviceDTO)
-                    }
-                })
-
-                await Promise.all(servicePromises)
-            }
+            await hospitalServiceRepo.updateServices(
+                hospitalId,
+                request.body.services
+            )
 
             reply.send({
                 message: 'Updated successfully',
@@ -174,19 +130,15 @@ module.exports = class HospitalController {
     }
 
     static async getAllHospitals(request, reply) {
-        const { district } = request.user
+        const { id: userId } = request.user
 
         try {
             const hospitalRepo = new HospitalRepository()
             const hospitals = await hospitalRepo.findAll({
                 where: {
-                    district,
+                    userId,
                 },
-                order: [
-                    ['is_partner', 'DESC'],
-                    ['is_verified', 'DESC'],
-                    ['createdAt', 'DESC'],
-                ],
+                order: [['createdAt', 'DESC']],
             })
 
             hospitals.forEach((item) => {
@@ -207,7 +159,7 @@ module.exports = class HospitalController {
 
     static async getHospitalDetails(request, reply) {
         const { id } = request.params
-        const { district } = request.user
+        const { id: userId } = request.user
 
         try {
             if (!id) {
@@ -220,8 +172,7 @@ module.exports = class HospitalController {
             const hospital = await hospitalRepo.findOne({
                 where: {
                     id,
-                    district,
-                    status: 'active',
+                    userId,
                 },
             })
 
@@ -229,18 +180,15 @@ module.exports = class HospitalController {
                 throw new Error('Hospital not found')
             }
 
-            const services = await hospitalServiceRepo.findAll({
-                where: { hospitalId: hospital.id },
-            })
+            const services = await hospitalServiceRepo.getServicesByHospitalId(
+                hospital.id
+            )
 
-            const serviceIds = services.map((service) => service.serviceId)
-
+            hospital.setDataValue('services', services)
             hospital.setDataValue(
                 'thumbnailUrl',
                 getFileUrl(hospital.thumbnailUrl || PLACEHOLDER_IMAGE)
             )
-
-            hospital.setDataValue('services', serviceIds)
 
             if (isString(hospital.mobiles)) {
                 hospital.setDataValue(
