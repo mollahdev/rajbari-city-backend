@@ -43,8 +43,12 @@ const hospitalSchema = yup.object({
     }),
     description: yup.string().nullable(),
     isAlwaysOpen: yup.boolean().strict().default(false),
-    googleMapUrl: yup.string().url('Invalid Google Map URL'),
+    googleMapUrl: yup
+        .string()
+        .url('Invalid Google Map URL')
+        .required('googleMapUrl is required'),
     thumbnailUrl: yup.string().required('thumbnailUrl is required'),
+    address: yup.string().required('address is required'),
     services: yup
         .array()
         .of(yup.string().uuid('Invalid service ID'))

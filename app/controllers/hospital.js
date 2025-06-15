@@ -27,7 +27,7 @@ module.exports = class HospitalController {
                 order: [
                     ['is_partner', 'DESC'],
                     ['is_verified', 'DESC'],
-                    ['createdAt', 'DESC'],
+                    ['updatedAt', 'DESC'],
                 ],
             })
 

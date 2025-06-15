@@ -73,6 +73,10 @@ module.exports = {
                     type: Sequelize.TEXT,
                     allowNull: true,
                 },
+                address: {
+                    type: Sequelize.STRING,
+                    allowNull: false,
+                },
                 status: {
                     type: Sequelize.ENUM(
                         'active',

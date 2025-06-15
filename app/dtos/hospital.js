@@ -18,6 +18,7 @@ class HospitalDTO extends DTO {
     isAlwaysOpen
     googleMapUrl
     status
+    address
 }
 
 module.exports = HospitalDTO

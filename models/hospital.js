@@ -90,6 +90,10 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.TEXT,
                 allowNull: true,
             },
+            address: {
+                type: DataTypes.STRING,
+                allowNull: false,
+            },
             status: {
                 type: DataTypes.ENUM(
                     'active',

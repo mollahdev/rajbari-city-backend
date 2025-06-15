@@ -34,7 +34,7 @@ module.exports = class BloodController {
                 order: [
                     ['is_partner', 'DESC'],
                     ['is_verified', 'DESC'],
-                    ['createdAt', 'DESC'],
+                    ['updatedAt', 'DESC'],
                 ],
             })
 

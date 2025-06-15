@@ -1,5 +1,4 @@
 const CategoryController = require('@/app/controllers/category')
-const auth = require('@/app/middleware/auth')
 
 module.exports = async function (fastify) {
     fastify.post('/', {
@@ -57,7 +56,4 @@ module.exports = async function (fastify) {
         },
         handler: CategoryController.delete,
     })
-
-    // ToDo: Super Admin Only support is not implemented yet
-    fastify.addHook('onRequest', auth) //Middleware
 }

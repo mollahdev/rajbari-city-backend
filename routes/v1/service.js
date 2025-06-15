@@ -1,5 +1,4 @@
 const ServiceController = require('@/app/controllers/service')
-const auth = require('@/app/middleware/auth')
 
 module.exports = async function (fastify) {
     fastify.post('/', {
@@ -54,7 +53,4 @@ module.exports = async function (fastify) {
         },
         handler: ServiceController.delete,
     })
-
-    // ToDo: Super Admin Only support is not implemented yet
-    fastify.addHook('onRequest', auth) //Middleware
 }
