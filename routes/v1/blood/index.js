@@ -7,6 +7,15 @@ module.exports = async function (routes) {
     })
 
     routes.get('/foundation/:id', {
+        schema: {
+            params: {
+                type: 'object',
+                required: ['id'],
+                properties: {
+                    id: { type: 'string', format: 'uuid' },
+                },
+            },
+        },
         handler: BloodController.getFoundationDetails,
     })
 
