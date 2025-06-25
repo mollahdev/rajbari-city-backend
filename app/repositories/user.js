@@ -52,9 +52,11 @@ module.exports = class UserRepository extends RepositoryBase {
     async update(userDTO, query) {
         const data = userDTO.toObject()
 
-        data.profilePictureUrl = getFileFromPath(data.profilePictureUrl)
+        if (data.profilePictureUrl) {
+            data.profilePictureUrl = getFileFromPath(data.profilePictureUrl)
+        }
 
-        if (undefined !== userDTO.password) {
+        if (userDTO.password) {
             data.password = await bcrypt.hash(userDTO.password, 10) // Hash password
         }
 

@@ -81,13 +81,10 @@ class AuthController {
             }
 
             const userDTO = new UserDTO()
-            assign(userDTO, {
-                ...user.dataValues,
-                id: user.id,
-                otp: null,
-                otpCreatedAt: null,
-                isVerified: true,
-            })
+            userDTO.id = user.id
+            userDTO.otp = null
+            userDTO.otpCreatedAt = null
+            userDTO.isVerified = true // Mark user as verified
 
             await userRepository.update(userDTO, {
                 where: { id: user.id },
@@ -245,11 +242,8 @@ class AuthController {
             await SMS.send(mobile, message)
 
             const userDTO = new UserDTO()
-            assign(userDTO, {
-                ...user.dataValues,
-                otp: otp,
-                otpCreatedAt: now(),
-            })
+            userDTO.otp = otp
+            userDTO.otpCreatedAt = now()
 
             await userRepository.update(userDTO, {
                 where: { id: user.id },
@@ -279,10 +273,7 @@ class AuthController {
             }
 
             const userDTO = new UserDTO()
-            assign(userDTO, {
-                ...user.dataValues,
-                password: password,
-            })
+            userDTO.password = password
 
             await userRepository.update(userDTO, {
                 where: { id: request.user.id },
