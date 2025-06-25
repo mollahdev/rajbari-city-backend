@@ -242,8 +242,11 @@ class AuthController {
             await SMS.send(mobile, message)
 
             const userDTO = new UserDTO()
-            userDTO.otp = otp
-            userDTO.otpCreatedAt = now()
+            assign(userDTO, {
+                ...user,
+                otp: otp,
+                otpCreatedAt: now(),
+            })
 
             await userRepository.update(userDTO, {
                 where: { id: user.id },
@@ -273,7 +276,10 @@ class AuthController {
             }
 
             const userDTO = new UserDTO()
-            userDTO.password = password
+            assign(userDTO, {
+                ...user,
+                password: password,
+            })
 
             await userRepository.update(userDTO, {
                 where: { id: request.user.id },

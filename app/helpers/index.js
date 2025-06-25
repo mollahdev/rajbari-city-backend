@@ -30,7 +30,7 @@ function generateOTP() {
 }
 
 function isOTPResendAllowed(otpCreatedAt) {
-    return !dayjs(otpCreatedAt).add(3, 'minute').isAfter(now())
+    return !dayjs(otpCreatedAt).add(1, 'minute').isAfter(now())
 }
 
 function getFileUrl(path) {
