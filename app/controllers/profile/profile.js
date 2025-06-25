@@ -127,7 +127,10 @@ class ProfileController {
             }
 
             const userDTO = new UserDTO()
-            userDTO.password = newPassword
+            assign(userDTO, {
+                ...user.dataValues,
+                password: newPassword,
+            })
 
             await userRepository.update(userDTO, {
                 where: { id: request.user.id },
