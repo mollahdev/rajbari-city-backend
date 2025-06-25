@@ -81,10 +81,13 @@ class AuthController {
             }
 
             const userDTO = new UserDTO()
-            userDTO.id = user.id
-            userDTO.otp = null
-            userDTO.otpCreatedAt = null
-            userDTO.isVerified = true // Mark user as verified
+            assign(userDTO, {
+                ...user.dataValues,
+                id: user.id,
+                otp: null,
+                otpCreatedAt: null,
+                isVerified: true,
+            })
 
             await userRepository.update(userDTO, {
                 where: { id: user.id },
@@ -243,10 +246,12 @@ class AuthController {
 
             const userDTO = new UserDTO()
             assign(userDTO, {
-                ...user,
+                ...user.dataValues,
                 otp: otp,
                 otpCreatedAt: now(),
             })
+
+            console.log(userDTO)
 
             await userRepository.update(userDTO, {
                 where: { id: user.id },
@@ -277,7 +282,7 @@ class AuthController {
 
             const userDTO = new UserDTO()
             assign(userDTO, {
-                ...user,
+                ...user.dataValues,
                 password: password,
             })
 
