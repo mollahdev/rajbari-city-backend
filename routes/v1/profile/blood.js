@@ -7,6 +7,7 @@ const {
     foundationDonorSchema,
     bloodFoundationMemberSchema,
     bloodFoundationMemberStatusSchema,
+    bloodFoundationDonorListSchema,
 } = require('./blood.schema')
 
 const { validateBody, validateQuery } = require('@/app/helpers/validation')
@@ -72,6 +73,7 @@ module.exports = async function (routes) {
     })
 
     routes.get('/foundation/:foundationId/donor-list', {
+        preValidation: validateQuery(bloodFoundationDonorListSchema),
         handler: BloodController.getFoundationDonorList,
     })
 

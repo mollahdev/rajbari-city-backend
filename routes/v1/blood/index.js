@@ -1,5 +1,7 @@
 const auth = require('@/app/middleware/auth')
 const BloodController = require('@/app/controllers/blood')
+const { validateQuery } = require('@/app/helpers/validation')
+const { bloodDonorListSchema } = require('./index.schema')
 
 module.exports = async function (routes) {
     routes.get('/foundations', {
@@ -24,6 +26,7 @@ module.exports = async function (routes) {
     })
 
     routes.get('/donors', {
+        preValidation: validateQuery(bloodDonorListSchema),
         handler: BloodController.getAllDonors,
     })
 

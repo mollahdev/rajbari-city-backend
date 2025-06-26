@@ -496,8 +496,32 @@ class BloodController {
                 throw new Error('Foundation not found')
             }
 
+            const where = {
+                foundationId,
+            }
+
+            if (request.query.bloodGroup) {
+                where.bloodGroup = request.query.bloodGroup
+            }
+
+            if (request.query.upazila) {
+                where.upazila = request.query.upazila
+            }
+
+            if (request.query.gender) {
+                where.gender = request.query.gender
+            }
+
+            const searchTerm = request.query.search || ''
+            if (searchTerm) {
+                where[Op.or] = [
+                    { name: { [Op.like]: `%${searchTerm}%` } },
+                    { description: { [Op.like]: `%${searchTerm}%` } },
+                ]
+            }
+
             const donors = await donorRepository.findAll({
-                where: { foundationId },
+                where,
                 order: [['createdAt', 'DESC']],
             })
 

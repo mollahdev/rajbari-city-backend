@@ -2,6 +2,7 @@
  * External dependencies
  */
 const { orderBy, isString } = require('lodash')
+const { Op } = require('@sequelize/core')
 /**
  * Internal dependencies
  */
@@ -163,18 +164,42 @@ module.exports = class BloodController {
         const { district } = request.user
 
         try {
+            const searchTerm = request.query.search || ''
             const bloodDonorRepository = new BloodDonorRepository()
+
+            const bloodTableWhere = {
+                isActive: true,
+            }
+
+            if (request.query.bloodGroup) {
+                bloodTableWhere.bloodGroup = request.query.bloodGroup
+            }
+
+            const userTableWhere = {
+                district,
+            }
+
+            if (request.query.upazila) {
+                userTableWhere.upazila = request.query.upazila
+            }
+
+            if (request.query.gender) {
+                userTableWhere.gender = request.query.gender
+            }
+
+            if (searchTerm) {
+                userTableWhere[Op.or] = [
+                    { name: { [Op.like]: `%${searchTerm}%` } },
+                ]
+            }
+
             const donors = await bloodDonorRepository.findAll({
-                where: {
-                    isActive: true,
-                },
+                where: bloodTableWhere,
                 include: [
                     {
                         model: models.User,
                         as: 'donor',
-                        where: {
-                            district,
-                        },
+                        where: userTableWhere,
                         required: true,
                     },
                 ],
