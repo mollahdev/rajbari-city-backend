@@ -38,6 +38,7 @@ module.exports = class BloodDonorRepository extends RepositoryBase {
                 (donor) => donor.userId === user.id
             )
             user.setDataValue('bloodGroup', donor.bloodGroup)
+            user.setDataValue('description', donor.description)
             user.setDataValue('lastDonatedAt', donor.lastDonatedAt)
             user.setDataValue('createdAt', donor.createdAt)
             user.setDataValue('updatedAt', donor.updatedAt)

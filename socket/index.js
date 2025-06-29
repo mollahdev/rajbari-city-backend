@@ -27,6 +27,7 @@ module.exports = async (fastify) => {
                 throw new Error('Invalid token')
             }
 
+            socket.join(`district.${decoded.district}`)
             socket.join(`user:${decoded.id}`)
         } catch (err) {
             socket.disconnect(true)

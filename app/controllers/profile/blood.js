@@ -1,4 +1,4 @@
-const { assign, orderBy, isString } = require('lodash')
+const { assign, orderBy, isString, isEmpty, isArray } = require('lodash')
 const { Op } = require('@sequelize/core')
 /**
  * Internal dependencies
@@ -16,17 +16,18 @@ const BloodRequestRepository = require('@/app/repositories/blood-request')
 const BloodRequestDTO = require('@/app/dtos/blood-request')
 const HospitalRepository = require('@/app/repositories/hospital')
 const DiagnosticRepository = require('@/app/repositories/diagnostic')
-
 const Controller = require('@/app/controllers/controller')
+
 const { getFileUrl, getFileFromPath } = require('@/app/helpers')
 const {
     PLACEHOLDER_IMAGE,
     PLACEHOLDER_AVATAR,
 } = require('@/app/helpers/constants')
+const { RECEIVE } = require('@/socket/events')
 
 class BloodController {
     static async createDonor(request, reply) {
-        const { id } = request.user
+        const { id, district } = request.user
 
         try {
             const donorRepository = new BloodDonorRepository()
@@ -42,11 +43,34 @@ class BloodController {
                 userId: id,
             })
 
-            const response = await donorRepository.create(donorDTO)
+            await donorRepository.create(donorDTO)
+            const donorDetails = await donorRepository.getDonorByUserId(id)
+
+            if (!isEmpty(donorDetails) && isArray(donorDetails)) {
+                const values = donorDetails[0].dataValues
+
+                if (values.isActive) {
+                    this.io
+                        .to(`district.${district}`)
+                        .emit(RECEIVE.NEW_INDIVIDUAL_DONOR, {
+                            id: values.id,
+                            name: values.name,
+                            profilePictureUrl: getFileUrl(
+                                values.profilePictureUrl || PLACEHOLDER_AVATAR
+                            ),
+                            bloodGroup: values.bloodGroup,
+                            lastDonatedAt: values.lastDonatedAt,
+                            updatedAt: values.updatedAt,
+                            description: values.description,
+                            upazila: values.upazila,
+                            mobile: values.mobile,
+                            dialCode: values.dialCode,
+                        })
+                }
+            }
 
             reply.send({
                 message: 'Donor created successfully',
-                data: response,
             })
         } catch (error) {
             Controller.handleError(reply, error)
@@ -77,7 +101,7 @@ class BloodController {
     }
 
     static async updateDonorDetails(request, reply) {
-        const { id } = request.user
+        const { id, district } = request.user
 
         try {
             const donorRepository = new BloodDonorRepository()
@@ -94,6 +118,37 @@ class BloodController {
                 where: { userId: id },
             })
 
+            const donorDetails = await donorRepository.getDonorByUserId(id)
+
+            if (!isEmpty(donorDetails) && isArray(donorDetails)) {
+                const values = donorDetails[0].dataValues
+
+                if (values.isActive) {
+                    this.io
+                        .to(`district.${district}`)
+                        .emit(RECEIVE.UPDATE_INDIVIDUAL_DONOR, {
+                            id: values.id,
+                            name: values.name,
+                            profilePictureUrl: getFileUrl(
+                                values.profilePictureUrl || PLACEHOLDER_AVATAR
+                            ),
+                            bloodGroup: values.bloodGroup,
+                            lastDonatedAt: values.lastDonatedAt,
+                            updatedAt: values.updatedAt,
+                            description: values.description,
+                            upazila: values.upazila,
+                            mobile: values.mobile,
+                            dialCode: values.dialCode,
+                        })
+                } else {
+                    this.io
+                        .to(`district.${district}`)
+                        .emit(RECEIVE.DELETE_INDIVIDUAL_DONOR, {
+                            userId: id,
+                        })
+                }
+            }
+
             reply.send({
                 message: 'Donor updated successfully',
             })
@@ -103,13 +158,25 @@ class BloodController {
     }
 
     static async deleteDonor(request, reply) {
-        const { id } = request.user
+        const { id, district } = request.user
 
         try {
             const donorRepository = new BloodDonorRepository()
+
+            const isExists = await donorRepository.isExists(id)
+            if (!isExists) {
+                throw new Error('You are not a donor')
+            }
+
             await donorRepository.destroy({
                 where: { userId: id },
             })
+
+            this.io
+                .to(`district.${district}`)
+                .emit(RECEIVE.DELETE_INDIVIDUAL_DONOR, {
+                    userId: id,
+                })
 
             reply.send({
                 message: 'Donor deleted successfully',
@@ -127,6 +194,7 @@ class BloodController {
             const hospitalRepo = new HospitalRepository()
             const diagnosticRepo = new DiagnosticRepository()
             const bloodRequestDTO = new BloodRequestDTO()
+            const userRepo = new UserRepository()
 
             if ('hospital' === request.body.locationType) {
                 const isExists = await hospitalRepo.isExists(
@@ -152,7 +220,54 @@ class BloodController {
                 district,
             })
 
-            await bloodRequestRepo.create(bloodRequestDTO)
+            const response = await bloodRequestRepo.create(bloodRequestDTO)
+            const user = await userRepo.findOne({
+                where: { id: response.userId },
+                attributes: ['name', 'profilePictureUrl'],
+            })
+
+            user.setDataValue(
+                'profilePictureUrl',
+                getFileUrl(user.profilePictureUrl || PLACEHOLDER_AVATAR)
+            )
+
+            response.setDataValue('user', user)
+
+            if (response.locationType === 'hospital') {
+                const hospital = await hospitalRepo.findOne({
+                    where: { id: response.location },
+                })
+                response.setDataValue('locationDetails', {
+                    name: hospital.name,
+                    address: hospital.address,
+                    googleMapUrl: hospital.googleMapUrl,
+                    upazila: hospital.upazila,
+                    union: hospital.union,
+                    district: hospital.district,
+                    isMunicipality: hospital.isMunicipality,
+                    municipality: hospital.municipality,
+                })
+            }
+
+            if (response.locationType === 'diagnostic') {
+                const diagnostic = await diagnosticRepo.findOne({
+                    where: { id: response.location },
+                })
+                response.setDataValue('locationDetails', {
+                    name: diagnostic.name,
+                    address: diagnostic.address,
+                    googleMapUrl: diagnostic.googleMapUrl,
+                    upazila: diagnostic.upazila,
+                    union: diagnostic.union,
+                    district: diagnostic.district,
+                    isMunicipality: diagnostic.isMunicipality,
+                    municipality: diagnostic.municipality,
+                })
+            }
+
+            this.io
+                .to(`district.${district}`)
+                .emit(RECEIVE.NEW_BLOOD_REQUEST, response)
 
             reply.send({
                 message: 'Blood request created successfully',
