@@ -43,6 +43,10 @@ module.exports = async function (routes) {
         handler: BloodController.createBloodRequest,
     })
 
+    routes.get('/request/:id', {
+        handler: BloodController.getBloodRequestDetails,
+    })
+
     routes.get('/request-list', {
         handler: BloodController.getBloodRequestList,
     })

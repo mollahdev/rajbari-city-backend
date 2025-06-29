@@ -288,27 +288,16 @@ module.exports = class BloodController {
         const { district } = request.user
 
         try {
-            const searchTerm = request.query.search || ''
             const bloodRequestRepository = new BloodRequestRepository()
             const userRepo = new UserRepository()
             const hospitalRepo = new HospitalRepository()
             const diagnosticRepo = new DiagnosticRepository()
 
-            const where = {
-                district,
-                date: { [Op.gte]: new Date() },
-            }
-
-            if (searchTerm) {
-                where[Op.or] = [
-                    { name: { [Op.like]: `%${searchTerm}%` } },
-                    { description: { [Op.like]: `%${searchTerm}%` } },
-                    { mobile: { [Op.like]: `%${searchTerm}%` } },
-                ]
-            }
-
             const bloodRequests = await bloodRequestRepository.findAll({
-                where,
+                where: {
+                    district,
+                    date: { [Op.gte]: new Date() },
+                },
                 order: [['createdAt', 'DESC']],
             })
 

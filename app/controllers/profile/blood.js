@@ -167,16 +167,109 @@ class BloodController {
 
         try {
             const bloodRequestRepo = new BloodRequestRepository()
-            const requests = await bloodRequestRepo.findAll({
+            const hospitalRepo = new HospitalRepository()
+            const diagnosticRepo = new DiagnosticRepository()
+
+            const bloodRequests = await bloodRequestRepo.findAll({
                 where: {
                     userId,
                 },
                 order: [['createdAt', 'DESC']],
             })
 
+            const hospitalIds = []
+            const diagnosticIds = []
+
+            bloodRequests.forEach((item) => {
+                if (item.locationType === 'hospital') {
+                    hospitalIds.push(item.location)
+                } else if (item.locationType === 'diagnostic') {
+                    diagnosticIds.push(item.location)
+                }
+            })
+
+            const hospitals = await hospitalRepo.findAll({
+                where: {
+                    id: { [Op.in]: hospitalIds },
+                },
+            })
+
+            const diagnostics = await diagnosticRepo.findAll({
+                where: {
+                    id: { [Op.in]: diagnosticIds },
+                },
+            })
+
+            // attach additional data to each blood request
+            bloodRequests.forEach((request) => {
+                if (request.locationType === 'hospital') {
+                    const hospital = hospitals.find(
+                        (h) => h.id === request.location
+                    )
+                    if (hospital) {
+                        request.setDataValue('locationDetails', {
+                            name: hospital.name,
+                            address: hospital.address,
+                            googleMapUrl: hospital.googleMapUrl,
+                            upazila: hospital.upazila,
+                            union: hospital.union,
+                            district: hospital.district,
+                            isMunicipality: hospital.isMunicipality,
+                            municipality: hospital.municipality,
+                        })
+                    }
+                } else if (request.locationType === 'diagnostic') {
+                    const diagnostic = diagnostics.find(
+                        (d) => d.id === request.location
+                    )
+                    if (diagnostic) {
+                        request.setDataValue('locationDetails', {
+                            name: diagnostic.name,
+                            address: diagnostic.address,
+                            googleMapUrl: diagnostic.googleMapUrl,
+                            upazila: diagnostic.upazila,
+                            union: diagnostic.union,
+                            district: diagnostic.district,
+                            isMunicipality: diagnostic.isMunicipality,
+                            municipality: diagnostic.municipality,
+                        })
+                    }
+                }
+
+                // is expired
+                const isExpired = new Date(request.date) < new Date()
+                request.setDataValue('isExpired', isExpired)
+            })
+
             reply.send({
                 message: 'Fetched successfully',
-                data: requests,
+                data: bloodRequests,
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    static async getBloodRequestDetails(request, reply) {
+        const { id: userId } = request.user
+        const { id } = request.params
+
+        try {
+            const requestRepo = new BloodRequestRepository()
+            const bloodRequest = await requestRepo.findOne({
+                where: {
+                    userId,
+                    id,
+                },
+            })
+
+            if (!bloodRequest) {
+                throw new Error('Blood request not found')
+            }
+
+            reply.send({
+                message: 'Fetched successfully',
+                data: bloodRequest,
             })
         } catch (error) {
             Controller.handleError(reply, error)
