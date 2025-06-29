@@ -7,5 +7,7 @@ module.exports = {
         UPDATE_INDIVIDUAL_DONOR: 'receive:blood-update-individual-donor',
         DELETE_INDIVIDUAL_DONOR: 'receive:blood-delete-individual-donor',
         NEW_BLOOD_REQUEST: 'receive:blood-new-blood-request',
+        UPDATE_BLOOD_REQUEST: 'receive:blood-update-blood-request',
+        DELETE_BLOOD_REQUEST: 'receive:blood-delete-blood-request',
     },
 }

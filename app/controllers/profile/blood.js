@@ -392,12 +392,16 @@ class BloodController {
     }
 
     static async updateBloodRequest(request, reply) {
-        const { id: userId } = request.user
+        const { id: userId, district } = request.user
         const { id } = request.params
 
         try {
             const bloodRequestRepo = new BloodRequestRepository()
             const bloodRequestDTO = new BloodRequestDTO()
+            const hospitalRepo = new HospitalRepository()
+            const diagnosticRepo = new DiagnosticRepository()
+            const userRepo = new UserRepository()
+
             const bloodRequest = await bloodRequestRepo.findOne({
                 where: {
                     userId,
@@ -418,6 +422,62 @@ class BloodController {
                 where: { id, userId },
             })
 
+            const response = await bloodRequestRepo.findOne({
+                where: { id, userId },
+            })
+
+            // is expired
+            const isExpired = new Date(response.date) < new Date()
+            if (!isExpired) {
+                const user = await userRepo.findOne({
+                    where: { id: response.userId },
+                    attributes: ['name', 'profilePictureUrl'],
+                })
+
+                user.setDataValue(
+                    'profilePictureUrl',
+                    getFileUrl(user.profilePictureUrl || PLACEHOLDER_AVATAR)
+                )
+
+                response.setDataValue('user', user)
+
+                if (response.locationType === 'hospital') {
+                    const hospital = await hospitalRepo.findOne({
+                        where: { id: response.location },
+                    })
+                    response.setDataValue('locationDetails', {
+                        name: hospital.name,
+                        address: hospital.address,
+                        googleMapUrl: hospital.googleMapUrl,
+                        upazila: hospital.upazila,
+                        union: hospital.union,
+                        district: hospital.district,
+                        isMunicipality: hospital.isMunicipality,
+                        municipality: hospital.municipality,
+                    })
+                }
+
+                if (response.locationType === 'diagnostic') {
+                    const diagnostic = await diagnosticRepo.findOne({
+                        where: { id: response.location },
+                    })
+                    response.setDataValue('locationDetails', {
+                        name: diagnostic.name,
+                        address: diagnostic.address,
+                        googleMapUrl: diagnostic.googleMapUrl,
+                        upazila: diagnostic.upazila,
+                        union: diagnostic.union,
+                        district: diagnostic.district,
+                        isMunicipality: diagnostic.isMunicipality,
+                        municipality: diagnostic.municipality,
+                    })
+                }
+
+                this.io
+                    .to(`district.${district}`)
+                    .emit(RECEIVE.UPDATE_BLOOD_REQUEST, response)
+            }
+
             reply.send({
                 message: 'Updated successfully',
             })
@@ -427,17 +487,32 @@ class BloodController {
     }
 
     static async deleteBloodRequest(request, reply) {
-        const { id: userId } = request.user
+        const { id: userId, district } = request.user
         const { id } = request.params
 
         try {
             const bloodRequest = new BloodRequestRepository()
+            const existingRequest = await bloodRequest.findOne({
+                where: {
+                    userId,
+                    id,
+                },
+            })
+
+            if (!existingRequest) {
+                throw new Error('Blood request not found')
+            }
+
             await bloodRequest.destroy({
                 where: {
                     userId,
                     id,
                 },
             })
+
+            this.io
+                .to(`district.${district}`)
+                .emit(RECEIVE.DELETE_BLOOD_REQUEST, { id })
 
             reply.send({
                 message: 'Deleted successfully',
