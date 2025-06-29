@@ -276,6 +276,62 @@ class BloodController {
         }
     }
 
+    static async updateBloodRequest(request, reply) {
+        const { id: userId } = request.user
+        const { id } = request.params
+
+        try {
+            const bloodRequestRepo = new BloodRequestRepository()
+            const bloodRequestDTO = new BloodRequestDTO()
+            const bloodRequest = await bloodRequestRepo.findOne({
+                where: {
+                    userId,
+                    id,
+                },
+            })
+
+            if (!bloodRequest) {
+                throw new Error('Blood request not found')
+            }
+
+            assign(bloodRequestDTO, {
+                ...bloodRequest.dataValues,
+                ...request.body,
+            })
+
+            await bloodRequestRepo.update(bloodRequestDTO, {
+                where: { id, userId },
+            })
+
+            reply.send({
+                message: 'Updated successfully',
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    static async deleteBloodRequest(request, reply) {
+        const { id: userId } = request.user
+        const { id } = request.params
+
+        try {
+            const bloodRequest = new BloodRequestRepository()
+            await bloodRequest.destroy({
+                where: {
+                    userId,
+                    id,
+                },
+            })
+
+            reply.send({
+                message: 'Deleted successfully',
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
     static async getAllFoundations(request, reply) {
         const { id: userId } = request.user
 

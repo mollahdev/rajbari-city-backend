@@ -9,6 +9,7 @@ const {
     bloodFoundationMemberStatusSchema,
     bloodFoundationDonorListSchema,
     createBloodRequestSchema,
+    updateBloodRequestSchema,
 } = require('./blood.schema')
 
 const { validateBody, validateQuery } = require('@/app/helpers/validation')
@@ -45,6 +46,15 @@ module.exports = async function (routes) {
 
     routes.get('/request/:id', {
         handler: BloodController.getBloodRequestDetails,
+    })
+
+    routes.delete('/request/:id', {
+        handler: BloodController.deleteBloodRequest,
+    })
+
+    routes.patch('/request/:id', {
+        preValidation: validateBody(updateBloodRequestSchema),
+        handler: BloodController.updateBloodRequest,
     })
 
     routes.get('/request-list', {

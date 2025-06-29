@@ -157,6 +157,8 @@ const createBloodRequestSchema = yup.object({
     description: yup.string().nullable(),
 })
 
+const updateBloodRequestSchema = createBloodRequestSchema
+
 module.exports = {
     foundationCreateSchema,
     foundationUpdateSchema,
@@ -167,4 +169,5 @@ module.exports = {
     bloodFoundationMemberStatusSchema,
     bloodFoundationDonorListSchema,
     createBloodRequestSchema,
+    updateBloodRequestSchema,
 }
