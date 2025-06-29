@@ -12,6 +12,9 @@ const bloodDonorListSchema = yup.object({
     search: yup.string(),
 })
 
+const bloodRequestListSchema = bloodDonorListSchema
+
 module.exports = {
     bloodDonorListSchema,
+    bloodRequestListSchema,
 }

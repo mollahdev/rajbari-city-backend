@@ -12,6 +12,10 @@ const BloodFoundationDonorDTO = require('@/app/dtos/blood-foundation-donor')
 const BloodFoundationDonorRepository = require('@/app/repositories/blood-foundation-donor')
 const OrganizationUserRepository = require('@/app/repositories/organization-user')
 const OrganizationUserDTO = require('@/app/dtos/organization-user')
+const BloodRequestRepository = require('@/app/repositories/blood-request')
+const BloodRequestDTO = require('@/app/dtos/blood-request')
+const HospitalRepository = require('@/app/repositories/hospital')
+const DiagnosticRepository = require('@/app/repositories/diagnostic')
 
 const Controller = require('@/app/controllers/controller')
 const { getFileUrl, getFileFromPath } = require('@/app/helpers')
@@ -109,6 +113,70 @@ class BloodController {
 
             reply.send({
                 message: 'Donor deleted successfully',
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    static async createBloodRequest(request, reply) {
+        const { id: userId, district } = request.user
+
+        try {
+            const bloodRequestRepo = new BloodRequestRepository()
+            const hospitalRepo = new HospitalRepository()
+            const diagnosticRepo = new DiagnosticRepository()
+            const bloodRequestDTO = new BloodRequestDTO()
+
+            if ('hospital' === request.body.locationType) {
+                const isExists = await hospitalRepo.isExists(
+                    request.body.location
+                )
+                if (!isExists) {
+                    throw new Error('Hospital not found')
+                }
+            }
+
+            if ('diagnostic' === request.body.locationType) {
+                const isExists = await diagnosticRepo.isExists(
+                    request.body.location
+                )
+                if (!isExists) {
+                    throw new Error('Diagnostic center not found')
+                }
+            }
+
+            assign(bloodRequestDTO, {
+                ...request.body,
+                userId,
+                district,
+            })
+
+            await bloodRequestRepo.create(bloodRequestDTO)
+
+            reply.send({
+                message: 'Blood request created successfully',
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    static async getBloodRequestList(request, reply) {
+        const { id: userId } = request.user
+
+        try {
+            const bloodRequestRepo = new BloodRequestRepository()
+            const requests = await bloodRequestRepo.findAll({
+                where: {
+                    userId,
+                },
+                order: [['createdAt', 'DESC']],
+            })
+
+            reply.send({
+                message: 'Fetched successfully',
+                data: requests,
             })
         } catch (error) {
             Controller.handleError(reply, error)
