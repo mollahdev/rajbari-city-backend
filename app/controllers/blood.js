@@ -213,7 +213,7 @@ module.exports = class BloodController {
                 const values = donor.dataValues
 
                 result.push({
-                    id: values.id,
+                    id: values.userId,
                     name: values.donor.name,
                     profilePictureUrl: getFileUrl(
                         values.donor.profilePictureUrl || PLACEHOLDER_AVATAR

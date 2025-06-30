@@ -39,6 +39,7 @@ module.exports = async (fastify) => {
             const token = socket.handshake.query.token
             const decoded = fastify.jwt.verify(token)
             socket.leave(`user.${decoded.id}`)
+            socket.leave(`district.${decoded.district}`)
         })
     })
 }
