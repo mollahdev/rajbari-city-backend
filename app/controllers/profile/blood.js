@@ -23,7 +23,6 @@ const {
     PLACEHOLDER_IMAGE,
     PLACEHOLDER_AVATAR,
 } = require('@/app/helpers/constants')
-const { RECEIVE } = require('@/socket/events')
 
 class BloodController {
     static async createDonor(request, reply) {
@@ -142,7 +141,6 @@ class BloodController {
             const hospitalRepo = new HospitalRepository()
             const diagnosticRepo = new DiagnosticRepository()
             const bloodRequestDTO = new BloodRequestDTO()
-            const userRepo = new UserRepository()
 
             if ('hospital' === request.body.locationType) {
                 const isExists = await hospitalRepo.isExists(
@@ -169,56 +167,14 @@ class BloodController {
             })
 
             const response = await bloodRequestRepo.create(bloodRequestDTO)
-            const user = await userRepo.findOne({
-                where: { id: response.userId },
-                attributes: ['name', 'profilePictureUrl'],
+            await bloodRequestRepo.socketCreateRequest({
+                user: request.user,
+                requestId: response.id,
+                socket: this.io,
             })
 
-            user.setDataValue(
-                'profilePictureUrl',
-                getFileUrl(user.profilePictureUrl || PLACEHOLDER_AVATAR)
-            )
-
-            response.setDataValue('user', user)
-
-            if (response.locationType === 'hospital') {
-                const hospital = await hospitalRepo.findOne({
-                    where: { id: response.location },
-                })
-                response.setDataValue('locationDetails', {
-                    name: hospital.name,
-                    address: hospital.address,
-                    googleMapUrl: hospital.googleMapUrl,
-                    upazila: hospital.upazila,
-                    union: hospital.union,
-                    district: hospital.district,
-                    isMunicipality: hospital.isMunicipality,
-                    municipality: hospital.municipality,
-                })
-            }
-
-            if (response.locationType === 'diagnostic') {
-                const diagnostic = await diagnosticRepo.findOne({
-                    where: { id: response.location },
-                })
-                response.setDataValue('locationDetails', {
-                    name: diagnostic.name,
-                    address: diagnostic.address,
-                    googleMapUrl: diagnostic.googleMapUrl,
-                    upazila: diagnostic.upazila,
-                    union: diagnostic.union,
-                    district: diagnostic.district,
-                    isMunicipality: diagnostic.isMunicipality,
-                    municipality: diagnostic.municipality,
-                })
-            }
-
-            this.io
-                .to(`district.${district}`)
-                .emit(RECEIVE.NEW_BLOOD_REQUEST, response)
-
             reply.send({
-                message: 'Blood request created successfully',
+                message: 'Created successfully',
             })
         } catch (error) {
             Controller.handleError(reply, error)
@@ -340,15 +296,12 @@ class BloodController {
     }
 
     static async updateBloodRequest(request, reply) {
-        const { id: userId, district } = request.user
+        const { id: userId } = request.user
         const { id } = request.params
 
         try {
             const bloodRequestRepo = new BloodRequestRepository()
             const bloodRequestDTO = new BloodRequestDTO()
-            const hospitalRepo = new HospitalRepository()
-            const diagnosticRepo = new DiagnosticRepository()
-            const userRepo = new UserRepository()
 
             const bloodRequest = await bloodRequestRepo.findOne({
                 where: {
@@ -370,61 +323,11 @@ class BloodController {
                 where: { id, userId },
             })
 
-            const response = await bloodRequestRepo.findOne({
-                where: { id, userId },
+            await bloodRequestRepo.socketUpdateRequest({
+                user: request.user,
+                requestId: id,
+                socket: this.io,
             })
-
-            // is expired
-            const isExpired = new Date(response.date) < new Date()
-            if (!isExpired) {
-                const user = await userRepo.findOne({
-                    where: { id: response.userId },
-                    attributes: ['name', 'profilePictureUrl'],
-                })
-
-                user.setDataValue(
-                    'profilePictureUrl',
-                    getFileUrl(user.profilePictureUrl || PLACEHOLDER_AVATAR)
-                )
-
-                response.setDataValue('user', user)
-
-                if (response.locationType === 'hospital') {
-                    const hospital = await hospitalRepo.findOne({
-                        where: { id: response.location },
-                    })
-                    response.setDataValue('locationDetails', {
-                        name: hospital.name,
-                        address: hospital.address,
-                        googleMapUrl: hospital.googleMapUrl,
-                        upazila: hospital.upazila,
-                        union: hospital.union,
-                        district: hospital.district,
-                        isMunicipality: hospital.isMunicipality,
-                        municipality: hospital.municipality,
-                    })
-                }
-
-                if (response.locationType === 'diagnostic') {
-                    const diagnostic = await diagnosticRepo.findOne({
-                        where: { id: response.location },
-                    })
-                    response.setDataValue('locationDetails', {
-                        name: diagnostic.name,
-                        address: diagnostic.address,
-                        googleMapUrl: diagnostic.googleMapUrl,
-                        upazila: diagnostic.upazila,
-                        union: diagnostic.union,
-                        district: diagnostic.district,
-                        isMunicipality: diagnostic.isMunicipality,
-                        municipality: diagnostic.municipality,
-                    })
-                }
-
-                this.io
-                    .to(`district.${district}`)
-                    .emit(RECEIVE.UPDATE_BLOOD_REQUEST, response)
-            }
 
             reply.send({
                 message: 'Updated successfully',
@@ -435,7 +338,7 @@ class BloodController {
     }
 
     static async deleteBloodRequest(request, reply) {
-        const { id: userId, district } = request.user
+        const { id: userId } = request.user
         const { id } = request.params
 
         try {
@@ -451,16 +354,18 @@ class BloodController {
                 throw new Error('Blood request not found')
             }
 
+            await bloodRequest.socketDeleteRequest({
+                user: request.user,
+                requestId: id,
+                socket: this.io,
+            })
+
             await bloodRequest.destroy({
                 where: {
                     userId,
                     id,
                 },
             })
-
-            this.io
-                .to(`district.${district}`)
-                .emit(RECEIVE.DELETE_BLOOD_REQUEST, { id })
 
             reply.send({
                 message: 'Deleted successfully',
