@@ -1,19 +1,19 @@
-const { assign, orderBy, isString, isEmpty, isArray } = require('lodash')
+const { assign, orderBy, isString, isEmpty } = require('lodash')
 const { Op } = require('@sequelize/core')
 /**
  * Internal dependencies
  */
-const BloodFoundationRepository = require('@/app/repositories/blood-foundation')
-const UserRepository = require('@/app/repositories/user')
-const BloodDonorRepository = require('@/app/repositories/blood-donor')
 const BloodFoundationDTO = require('@/app/dtos/blood-foundation')
 const BloodDonorDTO = require('@/app/dtos/blood-donor')
 const BloodFoundationDonorDTO = require('@/app/dtos/blood-foundation-donor')
+const OrganizationUserDTO = require('@/app/dtos/organization-user')
+const BloodRequestDTO = require('@/app/dtos/blood-request')
+const BloodFoundationRepository = require('@/app/repositories/blood-foundation')
+const UserRepository = require('@/app/repositories/user')
+const BloodDonorRepository = require('@/app/repositories/blood-donor')
 const BloodFoundationDonorRepository = require('@/app/repositories/blood-foundation-donor')
 const OrganizationUserRepository = require('@/app/repositories/organization-user')
-const OrganizationUserDTO = require('@/app/dtos/organization-user')
 const BloodRequestRepository = require('@/app/repositories/blood-request')
-const BloodRequestDTO = require('@/app/dtos/blood-request')
 const HospitalRepository = require('@/app/repositories/hospital')
 const DiagnosticRepository = require('@/app/repositories/diagnostic')
 const Controller = require('@/app/controllers/controller')
@@ -27,7 +27,7 @@ const { RECEIVE } = require('@/socket/events')
 
 class BloodController {
     static async createDonor(request, reply) {
-        const { id, district } = request.user
+        const { id } = request.user
 
         try {
             const donorRepository = new BloodDonorRepository()
@@ -44,30 +44,7 @@ class BloodController {
             })
 
             await donorRepository.create(donorDTO)
-            const donorDetails = await donorRepository.getDonorByUserId(id)
-
-            if (!isEmpty(donorDetails) && isArray(donorDetails)) {
-                const values = donorDetails[0].dataValues
-
-                if (values.isActive) {
-                    this.io
-                        .to(`district.${district}`)
-                        .emit(RECEIVE.NEW_INDIVIDUAL_DONOR, {
-                            id: values.id,
-                            name: values.name,
-                            profilePictureUrl: getFileUrl(
-                                values.profilePictureUrl || PLACEHOLDER_AVATAR
-                            ),
-                            bloodGroup: values.bloodGroup,
-                            lastDonatedAt: values.lastDonatedAt,
-                            updatedAt: values.updatedAt,
-                            description: values.description,
-                            upazila: values.upazila,
-                            mobile: values.mobile,
-                            dialCode: values.dialCode,
-                        })
-                }
-            }
+            await donorRepository.socketCreateDonor(request.user, this.io)
 
             reply.send({
                 message: 'Donor created successfully',
@@ -101,53 +78,29 @@ class BloodController {
     }
 
     static async updateDonorDetails(request, reply) {
-        const { id, district } = request.user
+        const { id } = request.user
 
         try {
             const donorRepository = new BloodDonorRepository()
-            const isExists = await donorRepository.isExists(id)
+            const user = await donorRepository.findOne({
+                where: { userId: id },
+            })
 
-            if (!isExists) {
+            if (isEmpty(user)) {
                 throw new Error('You are not a donor')
             }
 
             const donorDTO = new BloodDonorDTO()
-            assign(donorDTO, request.body)
+            assign(donorDTO, {
+                ...user.dataValues,
+                ...request.body,
+            })
 
             await donorRepository.update(donorDTO, {
                 where: { userId: id },
             })
 
-            const donorDetails = await donorRepository.getDonorByUserId(id)
-
-            if (!isEmpty(donorDetails) && isArray(donorDetails)) {
-                const values = donorDetails[0].dataValues
-
-                if (values.isActive) {
-                    this.io
-                        .to(`district.${district}`)
-                        .emit(RECEIVE.UPDATE_INDIVIDUAL_DONOR, {
-                            id: values.id,
-                            name: values.name,
-                            profilePictureUrl: getFileUrl(
-                                values.profilePictureUrl || PLACEHOLDER_AVATAR
-                            ),
-                            bloodGroup: values.bloodGroup,
-                            lastDonatedAt: values.lastDonatedAt,
-                            updatedAt: values.updatedAt,
-                            description: values.description,
-                            upazila: values.upazila,
-                            mobile: values.mobile,
-                            dialCode: values.dialCode,
-                        })
-                } else {
-                    this.io
-                        .to(`district.${district}`)
-                        .emit(RECEIVE.DELETE_INDIVIDUAL_DONOR, {
-                            userId: id,
-                        })
-                }
-            }
+            await donorRepository.socketUpdateDonor(request.user, this.io)
 
             reply.send({
                 message: 'Donor updated successfully',
@@ -158,7 +111,7 @@ class BloodController {
     }
 
     static async deleteDonor(request, reply) {
-        const { id, district } = request.user
+        const { id } = request.user
 
         try {
             const donorRepository = new BloodDonorRepository()
@@ -168,15 +121,10 @@ class BloodController {
                 throw new Error('You are not a donor')
             }
 
+            await donorRepository.socketDeleteDonor(request.user, this.io)
             await donorRepository.destroy({
                 where: { userId: id },
             })
-
-            this.io
-                .to(`district.${district}`)
-                .emit(RECEIVE.DELETE_INDIVIDUAL_DONOR, {
-                    userId: id,
-                })
 
             reply.send({
                 message: 'Donor deleted successfully',

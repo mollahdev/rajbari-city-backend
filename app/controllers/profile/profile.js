@@ -5,6 +5,7 @@ const bcrypt = require('bcryptjs')
  */
 const UserRepository = require('@/app/repositories/user')
 const UserDTO = require('@/app/dtos/user')
+const BloodDonorRepository = require('@/app/repositories/blood-donor')
 const Controller = require('@/app/controllers/controller')
 const { getFileUrl } = require('@/app/helpers')
 const { PLACEHOLDER_AVATAR } = require('@/app/helpers/constants')
@@ -38,12 +39,14 @@ class ProfileController {
         const { id } = request.user
         try {
             const userRepository = new UserRepository()
+            const donorRepository = new BloodDonorRepository()
             const user = await userRepository.findOne({ where: { id } })
 
             if (!user) {
                 throw new Error('User not found')
             }
 
+            await donorRepository.socketDeleteDonor(request.user, this.io)
             await userRepository.destroy({
                 where: { id },
             })
@@ -59,6 +62,7 @@ class ProfileController {
     static async updateProfile(request, reply) {
         try {
             const userRepository = new UserRepository()
+            const donorRepository = new BloodDonorRepository()
             const user = await userRepository.findOne({
                 where: { id: request.user.id },
             })
@@ -91,6 +95,8 @@ class ProfileController {
             await userRepository.update(userDTO, {
                 where: { id: request.user.id },
             })
+
+            await donorRepository.socketUpdateDonor(request.user, this.io)
 
             return {
                 message: 'User profile updated successfully',
