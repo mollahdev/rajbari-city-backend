@@ -293,11 +293,17 @@ module.exports = class BloodController {
             const hospitalRepo = new HospitalRepository()
             const diagnosticRepo = new DiagnosticRepository()
 
+            const requestTableWhere = {
+                district,
+                date: { [Op.gte]: new Date() },
+            }
+
+            if (request.query.bloodGroup) {
+                requestTableWhere.bloodGroup = request.query.bloodGroup
+            }
+
             const bloodRequests = await bloodRequestRepository.findAll({
-                where: {
-                    district,
-                    date: { [Op.gte]: new Date() },
-                },
+                where: requestTableWhere,
                 order: [['createdAt', 'DESC']],
             })
 
