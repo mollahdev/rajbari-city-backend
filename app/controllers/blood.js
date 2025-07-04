@@ -293,9 +293,14 @@ module.exports = class BloodController {
             const hospitalRepo = new HospitalRepository()
             const diagnosticRepo = new DiagnosticRepository()
 
+            const today = new Date()
+            today.setHours(0, 0, 0, 0)
+            const graceDate = new Date(today)
+            graceDate.setDate(graceDate.getDate() - 1)
+
             const requestTableWhere = {
                 district,
-                date: { [Op.gte]: new Date() },
+                date: { [Op.gte]: graceDate },
             }
 
             if (request.query.bloodGroup) {

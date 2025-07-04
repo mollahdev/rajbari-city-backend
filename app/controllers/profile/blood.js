@@ -189,10 +189,16 @@ class BloodController {
             const hospitalRepo = new HospitalRepository()
             const diagnosticRepo = new DiagnosticRepository()
 
+            const requestTableWhere = {
+                userId,
+            }
+
+            if (request.query.bloodGroup) {
+                requestTableWhere.bloodGroup = request.query.bloodGroup
+            }
+
             const bloodRequests = await bloodRequestRepo.findAll({
-                where: {
-                    userId,
-                },
+                where: requestTableWhere,
                 order: [['createdAt', 'DESC']],
             })
 
@@ -256,7 +262,11 @@ class BloodController {
                 }
 
                 // is expired
-                const isExpired = new Date(request.date) < new Date()
+                const reqDate = new Date(request.date)
+                const today = new Date()
+                const isExpired =
+                    reqDate.toISOString().slice(0, 10) <
+                    today.toISOString().slice(0, 10)
                 request.setDataValue('isExpired', isExpired)
             })
 

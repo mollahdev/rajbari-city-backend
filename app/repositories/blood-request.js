@@ -26,8 +26,16 @@ module.exports = class BloodRequestRepository extends RepositoryBase {
         })
 
         if (!requestDetails) return
+
+        // is expired
+        const reqDate = new Date(requestDetails.date)
+        const today = new Date()
+        const isExpired =
+            reqDate.toISOString().slice(0, 10) <
+            today.toISOString().slice(0, 10)
+
         // check if the request date is in the past
-        if (new Date(requestDetails.date) < new Date()) {
+        if (isExpired) {
             await this.socketDeleteRequest(props)
             return
         }
@@ -104,6 +112,7 @@ module.exports = class BloodRequestRepository extends RepositoryBase {
         socket
             .to(`district.${user.district}`)
             .emit(RECEIVE.DELETE_BLOOD_REQUEST, {
+                userId: user.id,
                 id: requestId,
             })
     }
