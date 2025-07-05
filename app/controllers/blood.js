@@ -309,7 +309,7 @@ module.exports = class BloodController {
 
             const bloodRequests = await bloodRequestRepository.findAll({
                 where: requestTableWhere,
-                order: [['createdAt', 'DESC']],
+                order: [['updatedAt', 'DESC']],
             })
 
             const hospitalIds = []
