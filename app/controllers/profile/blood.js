@@ -1,19 +1,23 @@
-const { assign, orderBy, isString } = require('lodash')
+const { assign, orderBy, isString, isEmpty } = require('lodash')
 const { Op } = require('@sequelize/core')
 /**
  * Internal dependencies
  */
-const BloodFoundationRepository = require('@/app/repositories/blood-foundation')
-const UserRepository = require('@/app/repositories/user')
-const BloodDonorRepository = require('@/app/repositories/blood-donor')
 const BloodFoundationDTO = require('@/app/dtos/blood-foundation')
 const BloodDonorDTO = require('@/app/dtos/blood-donor')
 const BloodFoundationDonorDTO = require('@/app/dtos/blood-foundation-donor')
+const OrganizationUserDTO = require('@/app/dtos/organization-user')
+const BloodRequestDTO = require('@/app/dtos/blood-request')
+const BloodFoundationRepository = require('@/app/repositories/blood-foundation')
+const UserRepository = require('@/app/repositories/user')
+const BloodDonorRepository = require('@/app/repositories/blood-donor')
 const BloodFoundationDonorRepository = require('@/app/repositories/blood-foundation-donor')
 const OrganizationUserRepository = require('@/app/repositories/organization-user')
-const OrganizationUserDTO = require('@/app/dtos/organization-user')
-
+const BloodRequestRepository = require('@/app/repositories/blood-request')
+const HospitalRepository = require('@/app/repositories/hospital')
+const DiagnosticRepository = require('@/app/repositories/diagnostic')
 const Controller = require('@/app/controllers/controller')
+
 const { getFileUrl, getFileFromPath } = require('@/app/helpers')
 const {
     PLACEHOLDER_IMAGE,
@@ -38,11 +42,11 @@ class BloodController {
                 userId: id,
             })
 
-            const response = await donorRepository.create(donorDTO)
+            await donorRepository.create(donorDTO)
+            await donorRepository.socketCreateDonor(request.user, this.io)
 
             reply.send({
                 message: 'Donor created successfully',
-                data: response,
             })
         } catch (error) {
             Controller.handleError(reply, error)
@@ -77,18 +81,25 @@ class BloodController {
 
         try {
             const donorRepository = new BloodDonorRepository()
-            const isExists = await donorRepository.isExists(id)
+            const user = await donorRepository.findOne({
+                where: { userId: id },
+            })
 
-            if (!isExists) {
+            if (isEmpty(user)) {
                 throw new Error('You are not a donor')
             }
 
             const donorDTO = new BloodDonorDTO()
-            assign(donorDTO, request.body)
+            assign(donorDTO, {
+                ...user.dataValues,
+                ...request.body,
+            })
 
             await donorRepository.update(donorDTO, {
                 where: { userId: id },
             })
+
+            await donorRepository.socketUpdateDonor(request.user, this.io)
 
             reply.send({
                 message: 'Donor updated successfully',
@@ -103,12 +114,271 @@ class BloodController {
 
         try {
             const donorRepository = new BloodDonorRepository()
+
+            const isExists = await donorRepository.isExists(id)
+            if (!isExists) {
+                throw new Error('You are not a donor')
+            }
+
+            await donorRepository.socketDeleteDonor(request.user, this.io)
             await donorRepository.destroy({
                 where: { userId: id },
             })
 
             reply.send({
                 message: 'Donor deleted successfully',
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    static async createBloodRequest(request, reply) {
+        const { id: userId, district } = request.user
+
+        try {
+            const bloodRequestRepo = new BloodRequestRepository()
+            const hospitalRepo = new HospitalRepository()
+            const diagnosticRepo = new DiagnosticRepository()
+            const bloodRequestDTO = new BloodRequestDTO()
+
+            if ('hospital' === request.body.locationType) {
+                const isExists = await hospitalRepo.isExists(
+                    request.body.location
+                )
+                if (!isExists) {
+                    throw new Error('Hospital not found')
+                }
+            }
+
+            if ('diagnostic' === request.body.locationType) {
+                const isExists = await diagnosticRepo.isExists(
+                    request.body.location
+                )
+                if (!isExists) {
+                    throw new Error('Diagnostic center not found')
+                }
+            }
+
+            assign(bloodRequestDTO, {
+                ...request.body,
+                userId,
+                district,
+            })
+
+            const response = await bloodRequestRepo.create(bloodRequestDTO)
+            await bloodRequestRepo.socketCreateRequest({
+                user: request.user,
+                requestId: response.id,
+                socket: this.io,
+            })
+
+            reply.send({
+                message: 'Created successfully',
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    static async getBloodRequestList(request, reply) {
+        const { id: userId } = request.user
+
+        try {
+            const bloodRequestRepo = new BloodRequestRepository()
+            const hospitalRepo = new HospitalRepository()
+            const diagnosticRepo = new DiagnosticRepository()
+
+            const requestTableWhere = {
+                userId,
+            }
+
+            if (request.query.bloodGroup) {
+                requestTableWhere.bloodGroup = request.query.bloodGroup
+            }
+
+            const bloodRequests = await bloodRequestRepo.findAll({
+                where: requestTableWhere,
+                order: [['createdAt', 'DESC']],
+            })
+
+            const hospitalIds = []
+            const diagnosticIds = []
+
+            bloodRequests.forEach((item) => {
+                if (item.locationType === 'hospital') {
+                    hospitalIds.push(item.location)
+                } else if (item.locationType === 'diagnostic') {
+                    diagnosticIds.push(item.location)
+                }
+            })
+
+            const hospitals = await hospitalRepo.findAll({
+                where: {
+                    id: { [Op.in]: hospitalIds },
+                },
+            })
+
+            const diagnostics = await diagnosticRepo.findAll({
+                where: {
+                    id: { [Op.in]: diagnosticIds },
+                },
+            })
+
+            // attach additional data to each blood request
+            bloodRequests.forEach((request) => {
+                if (request.locationType === 'hospital') {
+                    const hospital = hospitals.find(
+                        (h) => h.id === request.location
+                    )
+                    if (hospital) {
+                        request.setDataValue('locationDetails', {
+                            name: hospital.name,
+                            address: hospital.address,
+                            googleMapUrl: hospital.googleMapUrl,
+                            upazila: hospital.upazila,
+                            union: hospital.union,
+                            district: hospital.district,
+                            isMunicipality: hospital.isMunicipality,
+                            municipality: hospital.municipality,
+                        })
+                    }
+                } else if (request.locationType === 'diagnostic') {
+                    const diagnostic = diagnostics.find(
+                        (d) => d.id === request.location
+                    )
+                    if (diagnostic) {
+                        request.setDataValue('locationDetails', {
+                            name: diagnostic.name,
+                            address: diagnostic.address,
+                            googleMapUrl: diagnostic.googleMapUrl,
+                            upazila: diagnostic.upazila,
+                            union: diagnostic.union,
+                            district: diagnostic.district,
+                            isMunicipality: diagnostic.isMunicipality,
+                            municipality: diagnostic.municipality,
+                        })
+                    }
+                }
+
+                // is expired
+                const reqDate = new Date(request.date)
+                const today = new Date()
+                const isExpired =
+                    reqDate.toISOString().slice(0, 10) <
+                    today.toISOString().slice(0, 10)
+                request.setDataValue('isExpired', isExpired)
+            })
+
+            reply.send({
+                message: 'Fetched successfully',
+                data: bloodRequests,
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    static async getBloodRequestDetails(request, reply) {
+        const { id: userId } = request.user
+        const { id } = request.params
+
+        try {
+            const requestRepo = new BloodRequestRepository()
+            const bloodRequest = await requestRepo.findOne({
+                where: {
+                    userId,
+                    id,
+                },
+            })
+
+            if (!bloodRequest) {
+                throw new Error('Blood request not found')
+            }
+
+            reply.send({
+                message: 'Fetched successfully',
+                data: bloodRequest,
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    static async updateBloodRequest(request, reply) {
+        const { id: userId } = request.user
+        const { id } = request.params
+
+        try {
+            const bloodRequestRepo = new BloodRequestRepository()
+            const bloodRequestDTO = new BloodRequestDTO()
+
+            const bloodRequest = await bloodRequestRepo.findOne({
+                where: {
+                    userId,
+                    id,
+                },
+            })
+
+            if (!bloodRequest) {
+                throw new Error('Blood request not found')
+            }
+
+            assign(bloodRequestDTO, {
+                ...bloodRequest.dataValues,
+                ...request.body,
+            })
+
+            await bloodRequestRepo.update(bloodRequestDTO, {
+                where: { id, userId },
+            })
+
+            await bloodRequestRepo.socketUpdateRequest({
+                user: request.user,
+                requestId: id,
+                socket: this.io,
+            })
+
+            reply.send({
+                message: 'Updated successfully',
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    static async deleteBloodRequest(request, reply) {
+        const { id: userId } = request.user
+        const { id } = request.params
+
+        try {
+            const bloodRequest = new BloodRequestRepository()
+            const existingRequest = await bloodRequest.findOne({
+                where: {
+                    userId,
+                    id,
+                },
+            })
+
+            if (!existingRequest) {
+                throw new Error('Blood request not found')
+            }
+
+            await bloodRequest.socketDeleteRequest({
+                user: request.user,
+                requestId: id,
+                socket: this.io,
+            })
+
+            await bloodRequest.destroy({
+                where: {
+                    userId,
+                    id,
+                },
+            })
+
+            reply.send({
+                message: 'Deleted successfully',
             })
         } catch (error) {
             Controller.handleError(reply, error)
@@ -496,8 +766,32 @@ class BloodController {
                 throw new Error('Foundation not found')
             }
 
+            const where = {
+                foundationId,
+            }
+
+            if (request.query.bloodGroup) {
+                where.bloodGroup = request.query.bloodGroup
+            }
+
+            if (request.query.upazila) {
+                where.upazila = request.query.upazila
+            }
+
+            if (request.query.gender) {
+                where.gender = request.query.gender
+            }
+
+            const searchTerm = request.query.search || ''
+            if (searchTerm) {
+                where[Op.or] = [
+                    { name: { [Op.like]: `%${searchTerm}%` } },
+                    { description: { [Op.like]: `%${searchTerm}%` } },
+                ]
+            }
+
             const donors = await donorRepository.findAll({
-                where: { foundationId },
+                where,
                 order: [['createdAt', 'DESC']],
             })
 

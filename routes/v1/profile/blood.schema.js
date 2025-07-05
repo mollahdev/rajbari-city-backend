@@ -120,6 +120,45 @@ const bloodFoundationMemberStatusSchema = yup.object({
     role: yup.string().oneOf(['admin', 'member', 'owner']),
 })
 
+const bloodFoundationDonorListSchema = yup.object({
+    bloodGroup: yup
+        .string()
+        .transform((value) => (value ? value.replace(' ', '+') : value))
+        .matches(
+            /^(A|B|AB|O)[+-]$/,
+            'bloodGroup must be one of the following: A+, A-, B+, B-, AB+, AB-, O+, O-'
+        ),
+    upazila: yup.string(),
+    gender: yup.string().oneOf(['male', 'female']),
+    search: yup.string(),
+})
+
+const createBloodRequestSchema = yup.object({
+    bloodGroup: yup
+        .string()
+        .matches(
+            /^(A|B|AB|O)[+-]$/,
+            'bloodGroup must be one of the following: A+, A-, B+, B-, AB+, AB-, O+, O-'
+        )
+        .required('bloodGroup is required'),
+    quantity: yup
+        .number()
+        .required('quantity is required')
+        .min(1, 'Quantity must be at least 1'),
+    problem: yup.string().required('problem is required'),
+    dialCode: yup.string().required('dialCode is required'),
+    mobile: yup.string().required('mobile is required'),
+    locationType: yup
+        .string()
+        .oneOf(['hospital', 'diagnostic', 'other'])
+        .required('locationType is required'),
+    location: yup.string().required('location is required'),
+    date: yup.date().required('date is required'),
+    description: yup.string().nullable(),
+})
+
+const updateBloodRequestSchema = createBloodRequestSchema
+
 module.exports = {
     foundationCreateSchema,
     foundationUpdateSchema,
@@ -128,4 +167,7 @@ module.exports = {
     foundationDonorSchema,
     bloodFoundationMemberSchema,
     bloodFoundationMemberStatusSchema,
+    bloodFoundationDonorListSchema,
+    createBloodRequestSchema,
+    updateBloodRequestSchema,
 }
