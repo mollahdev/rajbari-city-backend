@@ -4,22 +4,21 @@ module.exports = async function (routes) {
             res.send({
                 message: 'App informaton',
                 data: {
-                    version: '0.0.2',
+                    version: '0.0.5',
                     updateFor: ['android'], // ios, android, optional
-                    updateType: 'optional', // force, optional
+                    updateType: 'force', // force, optional
                     changeLog: [
-                        'রক্তের ফিচার যুক্ত হয়েছে',
-                        'রক্তের ফাউন্ডেশন যুক্ত হয়েছে',
+                        'রক্তের রিকুয়েষ্ট ফিচার যুক্ত হয়েছে',
+                        'পোষ্ট হিষ্টরি যুক্ত হয়েছে',
                         'বাগ ফিক্স করা হয়েছে',
-                        'ভূমি রেকর্ড ও ম্যাপ ওুয়েবসাইট যুক্ত হয়েছে',
                     ],
                     android: {
                         49: 'https://play.google.com/store/apps/details?id=com.flexlab.rajbaricity',
-                        5: 'https://play.google.com/store/apps/details?id=com.flexlab.noakhalicity',
+                        // 5: 'https://play.google.com/store/apps/details?id=com.flexlab.noakhalicity',
                     },
                     ios: {
                         49: '#',
-                        5: '#',
+                        // 5: '#',
                     },
                 },
             })
