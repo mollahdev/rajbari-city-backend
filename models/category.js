@@ -34,6 +34,17 @@ module.exports = (sequelize, DataTypes) => {
                 defaultValue: 'general',
                 allowNull: false,
             },
+            icon: {
+                type: DataTypes.STRING,
+                allowNull: true,
+            },
+            description: {
+                type: DataTypes.STRING,
+                allowNull: true,
+                validate: {
+                    len: [0, 200], // Maximum length of 200 characters
+                },
+            },
         },
         {
             sequelize,

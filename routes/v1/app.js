@@ -1,12 +1,30 @@
+/**
+ * External dependencies 
+*/ 
+const { isEmpty } = require('lodash')
+const { Expo } = require('expo-server-sdk')
+const expo = new Expo()
+/**
+ * Internal dependencies 
+*/ 
 const DeviceRepository = require('@/app/repositories/device')
 const UserRepository = require('@/app/repositories/user')
 const DeviceDTO = require('@/app/dtos/device')
 const auth = require('@/app/middleware/auth')
-const { isEmpty } = require('lodash')
-const { Expo } = require('expo-server-sdk')
-const expo = new Expo()
+const { getFileUrl } = require('@/app/helpers')
 
 module.exports = async function (routes) {
+    routes.get('/', {
+        handler: async (req, res) => {
+            res.send({
+                message: 'App informaton',
+                data: {
+                    assetsUrl: getFileUrl(''),
+                },
+            })
+        },
+    })
+
     routes.get('/release', {
         handler: async (req, res) => {
             res.send({

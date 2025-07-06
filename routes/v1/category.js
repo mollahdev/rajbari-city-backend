@@ -14,6 +14,15 @@ module.exports = async function (fastify) {
                         default: 'general',
                         maxLength: 40,
                     },
+                    icon: {
+                        type: 'string',
+                        nullable: true,
+                    },
+                    description: {
+                        type: 'string',
+                        nullable: true,
+                        maxLength: 200,
+                    },
                 },
             },
         },
