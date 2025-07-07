@@ -1,3 +1,5 @@
+const firebase = require('@/firebase')
+
 module.exports = async function (routes) {
     routes.get('/release', {
         handler: async (req, res) => {
@@ -23,5 +25,34 @@ module.exports = async function (routes) {
                 },
             })
         },
+    })
+
+    routes.post('/send-notification', async (request, reply) => {
+        const { token, title, body, data } = request.body
+
+        if (!token || !title || !body) {
+            return reply
+                .code(400)
+                .send({ error: 'token, title, and body are required' })
+        }
+
+        const message = {
+            token: token,
+            notification: {
+                title: title,
+                body: body,
+            },
+            data: data || {}, // optional custom data
+        }
+
+        try {
+            const response = await firebase.messaging().send(message)
+            return { success: true, response }
+        } catch (error) {
+            request.log.error(error)
+            return reply
+                .code(500)
+                .send({ error: 'Failed to send notification' })
+        }
     })
 }
