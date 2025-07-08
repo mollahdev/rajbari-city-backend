@@ -81,8 +81,19 @@ module.exports = async function (routes) {
         handler: AuthController.login,
     })
 
-    routes.get('/logout', {
+    routes.post('/logout', {
         preHandler: auth,
+        schema: {
+            body: {
+                type: 'object',
+                properties: {
+                    deviceToken: {
+                        type: 'string',
+                        minLength: 1,
+                    },
+                },
+            },
+        },
         handler: AuthController.logout,
     })
 

@@ -1,4 +1,6 @@
-const firebase = require('@/firebase')
+const DeviceRepository = require('@/app/repositories/device')
+const DeviceDTO = require('@/app/dtos/device')
+const auth = require('@/app/middleware/auth')
 
 module.exports = async function (routes) {
     routes.get('/release', {
@@ -16,7 +18,7 @@ module.exports = async function (routes) {
                     ],
                     android: {
                         49: 'https://play.google.com/store/apps/details?id=com.flexlab.rajbaricity',
-                        // 5: 'https://play.google.com/store/apps/details?id=com.flexlab.noakhalicity',
+                        5: 'https://play.google.com/store/apps/details?id=com.flexlab.noakhalicity',
                     },
                     ios: {
                         49: '#',
@@ -27,32 +29,48 @@ module.exports = async function (routes) {
         },
     })
 
-    routes.post('/send-notification', async (request, reply) => {
-        const { token, title, body, data } = request.body
-
-        if (!token || !title || !body) {
-            return reply
-                .code(400)
-                .send({ error: 'token, title, and body are required' })
-        }
-
-        const message = {
-            token: token,
-            notification: {
-                title: title,
-                body: body,
+    routes.post('/device', {
+        preHandler: auth,
+        schema: {
+            body: {
+                type: 'object',
+                required: ['token', 'platformType'],
+                properties: {
+                    token: {
+                        type: 'string',
+                        minLength: 1,
+                    },
+                    platformType: {
+                        type: 'string',
+                        enum: ['android', 'ios', 'web'],
+                    },
+                },
             },
-            data: data || {}, // optional custom data
-        }
+        },
+        handler: async (req, res) => {
+            const { id } = req.user
+            const { token } = req.body
 
-        try {
-            const response = await firebase.messaging().send(message)
-            return { success: true, response }
-        } catch (error) {
-            request.log.error(error)
-            return reply
-                .code(500)
-                .send({ error: 'Failed to send notification' })
-        }
+            const deviceRepository = new DeviceRepository()
+            const deviceDTO = new DeviceDTO()
+            deviceDTO.userId = id
+            deviceDTO.token = token
+            deviceDTO.platformType = req.body.platformType
+            deviceDTO.isActive = true
+
+            const existingDevice = await deviceRepository.findOne({
+                where: { userId: id, token },
+            })
+
+            if (existingDevice) {
+                await deviceRepository.update(deviceDTO, {
+                    where: { userId: id, token },
+                })
+            } else {
+                await deviceRepository.create(deviceDTO)
+            }
+
+            res.send({ message: 'Device registered successfully' })
+        },
     })
 }
