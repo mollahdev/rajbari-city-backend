@@ -38,5 +38,9 @@ module.exports = async function (routes) {
         handler: BloodController.getAllBloodRequests,
     })
 
+    routes.get('/blood-request/:id', {
+        handler: BloodController.getBloodRequestDetails,
+    })
+
     routes.addHook('onRequest', auth) //Middleware
 }

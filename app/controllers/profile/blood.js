@@ -173,6 +173,11 @@ class BloodController {
                 socket: this.io,
             })
 
+            bloodRequestRepo.sendPushNotification({
+                user: request.user,
+                requestId: response.id,
+            })
+
             reply.send({
                 message: 'Created successfully',
             })

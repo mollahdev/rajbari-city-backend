@@ -399,4 +399,81 @@ module.exports = class BloodController {
             Controller.handleError(reply, error)
         }
     }
+
+    static async getBloodRequestDetails(request, reply) {
+        const { id } = request.params
+
+        try {
+            if (!id) {
+                throw new Error('Blood request id is required')
+            }
+
+            const bloodRequestRepository = new BloodRequestRepository()
+            const bloodRequest = await bloodRequestRepository.findOne({
+                where: { id },
+            })
+
+            if (!bloodRequest) {
+                throw new Error('Blood request not found')
+            }
+
+            const userRepo = new UserRepository()
+            const hospitalRepo = new HospitalRepository()
+            const diagnosticRepo = new DiagnosticRepository()
+
+            const user = await userRepo.findOne({
+                where: { id: bloodRequest.userId },
+            })
+
+            if (user) {
+                bloodRequest.setDataValue('user', {
+                    name: user.name,
+                    profilePictureUrl: getFileUrl(
+                        user.profilePictureUrl || PLACEHOLDER_AVATAR
+                    ),
+                })
+            }
+
+            if (bloodRequest.locationType === 'hospital') {
+                const hospital = await hospitalRepo.findOne({
+                    where: { id: bloodRequest.location },
+                })
+                if (hospital) {
+                    bloodRequest.setDataValue('locationDetails', {
+                        name: hospital.name,
+                        address: hospital.address,
+                        googleMapUrl: hospital.googleMapUrl,
+                        upazila: hospital.upazila,
+                        union: hospital.union,
+                        district: hospital.district,
+                        isMunicipality: hospital.isMunicipality,
+                        municipality: hospital.municipality,
+                    })
+                }
+            } else if (bloodRequest.locationType === 'diagnostic') {
+                const diagnostic = await diagnosticRepo.findOne({
+                    where: { id: bloodRequest.location },
+                })
+                if (diagnostic) {
+                    bloodRequest.setDataValue('locationDetails', {
+                        name: diagnostic.name,
+                        address: diagnostic.address,
+                        googleMapUrl: diagnostic.googleMapUrl,
+                        upazila: diagnostic.upazila,
+                        union: diagnostic.union,
+                        district: diagnostic.district,
+                        isMunicipality: diagnostic.isMunicipality,
+                        municipality: diagnostic.municipality,
+                    })
+                }
+            }
+
+            reply.send({
+                message: 'Blood request details fetched successfully',
+                data: bloodRequest,
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
 }

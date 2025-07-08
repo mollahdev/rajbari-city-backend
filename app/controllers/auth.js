@@ -10,6 +10,7 @@ const { assign } = require('lodash')
 const Controller = require('./controller')
 const UserRepository = require('@/app/repositories/user')
 const TokenRepository = require('@/app/repositories/token')
+const DeviceRepository = require('@/app/repositories/device')
 const UserDTO = require('@/app/dtos/user')
 const TokenDTO = require('@/app/dtos/token')
 const SMS = require('@/app/services/sms')
@@ -192,9 +193,11 @@ class AuthController {
 
     static async logout(request, reply) {
         const { id, expiresAt, token } = request.user
+        const { deviceToken } = request.body
 
         try {
             const tokenRepository = new TokenRepository()
+            const deviceRepository = new DeviceRepository()
             const existingToken = await tokenRepository.findOne({
                 where: { token },
             })
@@ -209,6 +212,18 @@ class AuthController {
             tokenDTO.userId = id
 
             await tokenRepository.create(tokenDTO)
+
+            const deviceWhereTable = {
+                userId: id,
+            }
+
+            if (deviceToken) {
+                deviceWhereTable.token = deviceToken
+            }
+
+            await deviceRepository.destroy({
+                where: deviceWhereTable,
+            })
 
             reply.send({ message: 'Logout successful' })
         } catch (error) {

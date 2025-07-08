@@ -1,3 +1,7 @@
+const DeviceRepository = require('@/app/repositories/device')
+const DeviceDTO = require('@/app/dtos/device')
+const auth = require('@/app/middleware/auth')
+
 module.exports = async function (routes) {
     routes.get('/release', {
         handler: async (req, res) => {
@@ -18,10 +22,55 @@ module.exports = async function (routes) {
                     },
                     ios: {
                         49: '#',
-                        5: '#',
+                        // 5: '#',
                     },
                 },
             })
+        },
+    })
+
+    routes.post('/device', {
+        preHandler: auth,
+        schema: {
+            body: {
+                type: 'object',
+                required: ['token', 'platformType'],
+                properties: {
+                    token: {
+                        type: 'string',
+                        minLength: 1,
+                    },
+                    platformType: {
+                        type: 'string',
+                        enum: ['android', 'ios', 'web'],
+                    },
+                },
+            },
+        },
+        handler: async (req, res) => {
+            const { id } = req.user
+            const { token } = req.body
+
+            const deviceRepository = new DeviceRepository()
+            const deviceDTO = new DeviceDTO()
+            deviceDTO.userId = id
+            deviceDTO.token = token
+            deviceDTO.platformType = req.body.platformType
+            deviceDTO.isActive = true
+
+            const existingDevice = await deviceRepository.findOne({
+                where: { userId: id, token },
+            })
+
+            if (existingDevice) {
+                await deviceRepository.update(deviceDTO, {
+                    where: { userId: id, token },
+                })
+            } else {
+                await deviceRepository.create(deviceDTO)
+            }
+
+            res.send({ message: 'Device registered successfully' })
         },
     })
 }
