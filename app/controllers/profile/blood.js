@@ -344,6 +344,11 @@ class BloodController {
                 socket: this.io,
             })
 
+            bloodRequestRepo.sendPushNotification({
+                user: request.user,
+                requestId: id,
+            })
+
             reply.send({
                 message: 'Updated successfully',
             })
