@@ -181,11 +181,12 @@ module.exports = class BloodRequestRepository extends RepositoryBase {
                 sound: 'default',
                 priority: 'high',
                 channelId: 'bdCitiesNotification',
-                title: `${payload.bloodGroup} রক্তের প্রয়োজন`, // e.g., "A+ রক্তের প্রয়োজন"
+                title: `${payload.bloodGroup} রক্তের প্রয়োজন`,
                 body: `${payload.dataValues.user.name} এর ${payload.bloodGroup} গ্রুপের ${payload.quantity} ব্যাগ রক্ত প্রয়োজন।`,
                 data: {
                     type: 'blood_request',
                     requestId: props.requestId,
+                    url: `dashboard/blood/request/${props.requestId}`,
                 },
             }
         })
