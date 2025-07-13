@@ -61,22 +61,16 @@ module.exports = class BloodController {
 
     static async getFoundationDetails(request, reply) {
         const { id } = request.params
-        const { district } = request.user
 
         try {
             if (!id) {
                 throw new Error('Foundation id is required')
             }
 
-            const bloodDonorRepository = new BloodDonorRepository()
-            const foundationDonorRepository =
-                new BloodFoundationDonorRepository()
-            const organizationUserRepository = new OrganizationUserRepository()
             const foundationRepository = new BloodFoundationRepository()
             const foundation = await foundationRepository.findOne({
                 where: {
                     id,
-                    district,
                     status: 'active',
                 },
             })
@@ -84,6 +78,45 @@ module.exports = class BloodController {
             if (!foundation) {
                 throw new Error('Foundation not found')
             }
+
+            foundation.setDataValue(
+                'thumbnailUrl',
+                getFileUrl(foundation.thumbnailUrl || PLACEHOLDER_IMAGE)
+            )
+
+            if (isString(foundation.mobiles)) {
+                foundation.setDataValue(
+                    'mobiles',
+                    JSON.parse(foundation.mobiles || '[]')
+                )
+            }
+
+            if (isString(foundation.socials)) {
+                foundation.setDataValue(
+                    'socials',
+                    JSON.parse(foundation.socials || '[]')
+                )
+            }
+
+            foundation.setDataValue('donors', [])
+
+            reply.send({
+                message: 'Foundation details',
+                data: foundation,
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    static async getAllFoundationsDonors(request, reply) {
+        const { id } = request.params
+
+        try {
+            const bloodDonorRepository = new BloodDonorRepository()
+            const foundationDonorRepository =
+                new BloodFoundationDonorRepository()
+            const organizationUserRepository = new OrganizationUserRepository()
 
             const foundationDonors = await foundationDonorRepository.findAll({
                 where: {
@@ -104,6 +137,7 @@ module.exports = class BloodController {
             const organizationDonorIds = organizationDonors.map(
                 (donor) => donor.userId
             )
+
             const bloodDonors =
                 await bloodDonorRepository.getDonorByUserId(
                     organizationDonorIds
@@ -127,36 +161,14 @@ module.exports = class BloodController {
                         lastDonatedAt: values.lastDonatedAt,
                         createdAt: values.createdAt,
                         updatedAt: values.updatedAt,
+                        status: values.status,
                     })
                 }
             })
 
-            foundation.setDataValue(
-                'thumbnailUrl',
-                getFileUrl(foundation.thumbnailUrl || PLACEHOLDER_IMAGE)
-            )
-            foundation.setDataValue(
-                'donors',
-                orderBy(finalDonors, ['updatedAt'], ['desc'])
-            )
-
-            if (isString(foundation.mobiles)) {
-                foundation.setDataValue(
-                    'mobiles',
-                    JSON.parse(foundation.mobiles || '[]')
-                )
-            }
-
-            if (isString(foundation.socials)) {
-                foundation.setDataValue(
-                    'socials',
-                    JSON.parse(foundation.socials || '[]')
-                )
-            }
-
             reply.send({
-                message: 'Foundation details',
-                data: foundation,
+                message: 'Fetched successfully',
+                data: orderBy(finalDonors, ['updatedAt'], ['desc']),
             })
         } catch (error) {
             Controller.handleError(reply, error)

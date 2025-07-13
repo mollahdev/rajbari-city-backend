@@ -24,6 +24,19 @@ module.exports = async function (routes) {
         handler: BloodController.getFoundationDetails,
     })
 
+    routes.get('/foundation/:id/donors', {
+        schema: {
+            params: {
+                type: 'object',
+                required: ['id'],
+                properties: {
+                    id: { type: 'string', format: 'uuid' },
+                },
+            },
+        },
+        handler: BloodController.getAllFoundationsDonors,
+    })
+
     routes.get('/foundation/:id/join', {
         handler: BloodController.joinFoundation,
     })
