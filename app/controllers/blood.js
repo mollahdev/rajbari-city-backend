@@ -252,7 +252,10 @@ module.exports = class BloodController {
                 throw new Error('Donor or foundation not found')
             }
 
-            const result = await organizationRepository.create(userId, id)
+            const result = await organizationRepository.createRequest(
+                userId,
+                id
+            )
             const bloodDonors = await donorRepository.getDonorByUserId(userId)
             const foundation = await foundationRepository.findOne({
                 where: { id },

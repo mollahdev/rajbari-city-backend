@@ -80,7 +80,7 @@ function convertToTimeFormat(input) {
     const parsed = dayjs.tz(normalized, ['hA', 'h:mmA'], TIMEZONE)
 
     if (!parsed.isValid()) {
-        throw new Error(`Invalid time format: ${inputTime}`)
+        throw new Error(`Invalid time format: ${input}`)
     }
 
     return parsed.format('HH:mm:ss') // format for DB

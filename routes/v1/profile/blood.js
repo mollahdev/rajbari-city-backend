@@ -79,7 +79,7 @@ module.exports = async function (routes) {
     })
 
     routes.delete('/foundation/:id', {
-        handler: BloodController.deleteOneFoundation,
+        handler: BloodController.deleteFoundation,
     })
 
     routes.get('/foundations', {

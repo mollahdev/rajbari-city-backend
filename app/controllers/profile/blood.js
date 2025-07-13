@@ -311,6 +311,8 @@ class BloodController {
         try {
             const bloodRequestRepo = new BloodRequestRepository()
             const bloodRequestDTO = new BloodRequestDTO()
+            const hospitalRepo = new HospitalRepository()
+            const diagnosticRepo = new DiagnosticRepository()
 
             const bloodRequest = await bloodRequestRepo.findOne({
                 where: {
@@ -321,6 +323,24 @@ class BloodController {
 
             if (!bloodRequest) {
                 throw new Error('Blood request not found')
+            }
+
+            if ('hospital' === request.body.locationType) {
+                const isExists = await hospitalRepo.isExists(
+                    request.body.location
+                )
+                if (!isExists) {
+                    throw new Error('Hospital not found')
+                }
+            }
+
+            if ('diagnostic' === request.body.locationType) {
+                const isExists = await diagnosticRepo.isExists(
+                    request.body.location
+                )
+                if (!isExists) {
+                    throw new Error('Diagnostic center not found')
+                }
             }
 
             assign(bloodRequestDTO, {
@@ -538,7 +558,7 @@ class BloodController {
         }
     }
 
-    static async deleteOneFoundation(request, reply) {
+    static async deleteFoundation(request, reply) {
         const { id } = request.params
         const { id: userId } = request.user
 

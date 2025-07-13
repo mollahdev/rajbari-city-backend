@@ -87,7 +87,7 @@ class DoctorController {
             })
 
             const response = await doctorRepo.create(doctorDTO)
-            await doctorAvailabilityRepo.create({
+            await doctorAvailabilityRepo.createAvailability({
                 doctorId: response.id,
                 availability: request.body.availability,
             })
@@ -104,27 +104,21 @@ class DoctorController {
         const { id: userId } = request.user
 
         try {
-            const bloodRequestRepo = new BloodRequestRepository()
+            const doctorRepo = new DoctorRepository()
             const hospitalRepo = new HospitalRepository()
             const diagnosticRepo = new DiagnosticRepository()
 
-            const requestTableWhere = {
-                userId,
-            }
-
-            if (request.query.bloodGroup) {
-                requestTableWhere.bloodGroup = request.query.bloodGroup
-            }
-
-            const bloodRequests = await bloodRequestRepo.findAll({
-                where: requestTableWhere,
+            const doctors = await doctorRepo.findAll({
+                where: {
+                    userId,
+                },
                 order: [['createdAt', 'DESC']],
             })
 
             const hospitalIds = []
             const diagnosticIds = []
 
-            bloodRequests.forEach((item) => {
+            doctors.forEach((item) => {
                 if (item.locationType === 'hospital') {
                     hospitalIds.push(item.location)
                 } else if (item.locationType === 'diagnostic') {
@@ -145,13 +139,18 @@ class DoctorController {
             })
 
             // attach additional data to each blood request
-            bloodRequests.forEach((request) => {
-                if (request.locationType === 'hospital') {
+            doctors.forEach((item) => {
+                item.setDataValue(
+                    'profilePictureUrl',
+                    getFileUrl(item.profilePictureUrl || PLACEHOLDER_AVATAR)
+                )
+
+                if (item.locationType === 'hospital') {
                     const hospital = hospitals.find(
-                        (h) => h.id === request.location
+                        (h) => h.id === item.location
                     )
                     if (hospital) {
-                        request.setDataValue('locationDetails', {
+                        item.setDataValue('locationDetails', {
                             name: hospital.name,
                             address: hospital.address,
                             googleMapUrl: hospital.googleMapUrl,
@@ -162,12 +161,12 @@ class DoctorController {
                             municipality: hospital.municipality,
                         })
                     }
-                } else if (request.locationType === 'diagnostic') {
+                } else if (item.locationType === 'diagnostic') {
                     const diagnostic = diagnostics.find(
-                        (d) => d.id === request.location
+                        (d) => d.id === item.location
                     )
                     if (diagnostic) {
-                        request.setDataValue('locationDetails', {
+                        item.setDataValue('locationDetails', {
                             name: diagnostic.name,
                             address: diagnostic.address,
                             googleMapUrl: diagnostic.googleMapUrl,
@@ -179,19 +178,11 @@ class DoctorController {
                         })
                     }
                 }
-
-                // is expired
-                const reqDate = new Date(request.date)
-                const today = new Date()
-                const isExpired =
-                    reqDate.toISOString().slice(0, 10) <
-                    today.toISOString().slice(0, 10)
-                request.setDataValue('isExpired', isExpired)
             })
 
             reply.send({
                 message: 'Fetched successfully',
-                data: bloodRequests,
+                data: doctors,
             })
         } catch (error) {
             Controller.handleError(reply, error)
@@ -203,21 +194,70 @@ class DoctorController {
         const { id } = request.params
 
         try {
-            const requestRepo = new BloodRequestRepository()
-            const bloodRequest = await requestRepo.findOne({
+            const doctorRepo = new DoctorRepository()
+            const hospitalRepo = new HospitalRepository()
+            const diagnosticRepo = new DiagnosticRepository()
+            const doctorAvailabilityRepo = new DoctorAvailabilityRepository()
+            const doctor = await doctorRepo.findOne({
                 where: {
                     userId,
                     id,
                 },
             })
 
-            if (!bloodRequest) {
-                throw new Error('Blood request not found')
+            if (!doctor) {
+                throw new Error('Doctor not found')
             }
+
+            if (doctor.locationType === 'hospital') {
+                const hospital = await hospitalRepo.findOne({
+                    where: { id: doctor.location },
+                })
+                if (hospital) {
+                    doctor.setDataValue('locationDetails', {
+                        name: hospital.name,
+                        address: hospital.address,
+                        googleMapUrl: hospital.googleMapUrl,
+                        upazila: hospital.upazila,
+                        union: hospital.union,
+                        district: hospital.district,
+                        isMunicipality: hospital.isMunicipality,
+                        municipality: hospital.municipality,
+                    })
+                }
+            } else if (doctor.locationType === 'diagnostic') {
+                const diagnostic = await diagnosticRepo.findOne({
+                    where: { id: doctor.location },
+                })
+                if (diagnostic) {
+                    doctor.setDataValue('locationDetails', {
+                        name: diagnostic.name,
+                        address: diagnostic.address,
+                        googleMapUrl: diagnostic.googleMapUrl,
+                        upazila: diagnostic.upazila,
+                        union: diagnostic.union,
+                        district: diagnostic.district,
+                        isMunicipality: diagnostic.isMunicipality,
+                        municipality: diagnostic.municipality,
+                    })
+                }
+            }
+
+            const availability = await doctorAvailabilityRepo.findAll({
+                where: {
+                    doctorId: doctor.id,
+                },
+            })
+
+            doctor.setDataValue('availability', availability || [])
+            doctor.setDataValue(
+                'profilePictureUrl',
+                getFileUrl(doctor.profilePictureUrl || PLACEHOLDER_AVATAR)
+            )
 
             reply.send({
                 message: 'Fetched successfully',
-                data: bloodRequest,
+                data: doctor,
             })
         } catch (error) {
             Controller.handleError(reply, error)
@@ -229,38 +269,53 @@ class DoctorController {
         const { id } = request.params
 
         try {
-            const bloodRequestRepo = new BloodRequestRepository()
-            const bloodRequestDTO = new BloodRequestDTO()
+            const doctorRepo = new DoctorRepository()
+            const doctorAvailabilityRepo = new DoctorAvailabilityRepository()
+            const hospitalRepo = new HospitalRepository()
+            const diagnosticRepo = new DiagnosticRepository()
+            const doctorDTO = new DoctorDTO()
 
-            const bloodRequest = await bloodRequestRepo.findOne({
+            const doctor = await doctorRepo.findOne({
                 where: {
                     userId,
                     id,
                 },
             })
 
-            if (!bloodRequest) {
-                throw new Error('Blood request not found')
+            if (!doctor) {
+                throw new Error('Doctor not found')
             }
 
-            assign(bloodRequestDTO, {
-                ...bloodRequest.dataValues,
+            if ('hospital' === request.body.locationType) {
+                const isExists = await hospitalRepo.isExists(
+                    request.body.location
+                )
+                if (!isExists) {
+                    throw new Error('Hospital not found')
+                }
+            }
+
+            if ('diagnostic' === request.body.locationType) {
+                const isExists = await diagnosticRepo.isExists(
+                    request.body.location
+                )
+                if (!isExists) {
+                    throw new Error('Diagnostic center not found')
+                }
+            }
+
+            assign(doctorDTO, {
+                ...doctor.dataValues,
                 ...request.body,
             })
 
-            await bloodRequestRepo.update(bloodRequestDTO, {
+            await doctor.update(doctorDTO, {
                 where: { id, userId },
             })
 
-            await bloodRequestRepo.socketUpdateRequest({
-                user: request.user,
-                requestId: id,
-                socket: this.io,
-            })
-
-            bloodRequestRepo.sendPushNotification({
-                user: request.user,
-                requestId: id,
+            await doctorAvailabilityRepo.updateAvailability({
+                doctorId: doctor.id,
+                availability: request.body.availability,
             })
 
             reply.send({
@@ -276,25 +331,19 @@ class DoctorController {
         const { id } = request.params
 
         try {
-            const bloodRequest = new BloodRequestRepository()
-            const existingRequest = await bloodRequest.findOne({
+            const doctorRepo = new DoctorRepository()
+            const doctor = await doctorRepo.findOne({
                 where: {
                     userId,
                     id,
                 },
             })
 
-            if (!existingRequest) {
-                throw new Error('Blood request not found')
+            if (!doctor) {
+                throw new Error('Doctor not found')
             }
 
-            await bloodRequest.socketDeleteRequest({
-                user: request.user,
-                requestId: id,
-                socket: this.io,
-            })
-
-            await bloodRequest.destroy({
+            await doctor.destroy({
                 where: {
                     userId,
                     id,
