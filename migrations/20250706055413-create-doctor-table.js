@@ -55,7 +55,7 @@ module.exports = {
                     allowNull: false,
                 },
                 location_type: {
-                    type: Sequelize.ENUM('hospital', 'diagnostic'),
+                    type: Sequelize.ENUM('hospital', 'diagnostic', 'other'),
                     allowNull: false,
                 },
                 location: {

@@ -4,10 +4,12 @@
 const dayjs = require('dayjs')
 const utc = require('dayjs/plugin/utc')
 const timezone = require('dayjs/plugin/timezone')
+const customParseFormat = require('dayjs/plugin/customParseFormat')
 const { isString } = require('lodash')
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
+dayjs.extend(customParseFormat)
 /**
  * Internal dependencies
  */
@@ -73,6 +75,24 @@ function convertUnixDateTime(unixTimestamp) {
     return dayjs.unix(unixTimestamp).tz(TIMEZONE).format(DATE_TIME_FORMAT)
 }
 
+function convertToTimeFormat(input) {
+    const normalized = input.trim().toUpperCase().replace(/\s+/g, '')
+    const parsed = dayjs.tz(normalized, ['hA', 'h:mmA'], TIMEZONE)
+
+    if (!parsed.isValid()) {
+        throw new Error(`Invalid time format: ${inputTime}`)
+    }
+
+    return parsed.format('HH:mm:ss') // format for DB
+}
+
+function isValidTimeFormat(inputTime) {
+    const normalized = inputTime.trim().toUpperCase().replace(/\s+/g, '')
+    const parsed = dayjs.tz(normalized, ['hA', 'h:mmA'], TIMEZONE)
+
+    return parsed.isValid()
+}
+
 module.exports = {
     now,
     getPaginationObject,
@@ -83,4 +103,6 @@ module.exports = {
     getFileFromPath,
     isPastDate,
     todayDateOnly,
+    convertToTimeFormat,
+    isValidTimeFormat,
 }

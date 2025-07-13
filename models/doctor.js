@@ -65,7 +65,7 @@ module.exports = (sequelize, DataTypes) => {
                 allowNull: false,
             },
             locationType: {
-                type: DataTypes.ENUM('hospital', 'diagnostic'),
+                type: DataTypes.ENUM('hospital', 'diagnostic', 'other'),
                 allowNull: false,
             },
             location: {

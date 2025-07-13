@@ -28,10 +28,6 @@ module.exports = (sequelize, DataTypes) => {
                 },
                 onDelete: 'CASCADE',
             },
-            locationId: {
-                type: DataTypes.UUID,
-                allowNull: false,
-            },
             isAvailable: {
                 type: DataTypes.BOOLEAN,
                 allowNull: false,
@@ -69,7 +65,11 @@ module.exports = (sequelize, DataTypes) => {
             indexes: [
                 {
                     fields: ['doctor_id'],
-                    name: 'doctor_id_index',
+                    name: 'doctor_availability_doctor_id_index',
+                },
+                {
+                    fields: ['day'],
+                    name: 'doctor_availability_day_index',
                 },
             ],
         }

@@ -21,10 +21,6 @@ module.exports = {
                     },
                     onDelete: 'CASCADE',
                 },
-                location_id: {
-                    type: Sequelize.UUID,
-                    allowNull: false,
-                },
                 is_available: {
                     type: Sequelize.BOOLEAN,
                     allowNull: false,
@@ -70,15 +66,25 @@ module.exports = {
 
         // Add index
         await queryInterface.addIndex('DoctorAvailabilities', ['doctor_id'], {
-            name: 'doctor_id_index',
+            name: 'doctor_availability_doctor_id_index',
+        })
+
+        await queryInterface.addIndex('DoctorAvailabilities', ['day'], {
+            name: 'doctor_availability_day_index',
         })
     },
 
     async down(queryInterface, Sequelize) {
         await queryInterface.removeIndex(
             'DoctorAvailabilities',
-            'doctor_id_index'
+            'doctor_availability_doctor_id_index'
         )
+
+        await queryInterface.removeIndex(
+            'DoctorAvailabilities',
+            'doctor_availability_day_index'
+        )
+
         await queryInterface.dropTable('DoctorAvailabilities')
     },
 }
