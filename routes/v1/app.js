@@ -18,11 +18,11 @@ module.exports = async function (routes) {
                     changeLog: ['বাগ ফিক্স করা হয়েছে'],
                     android: {
                         49: 'https://play.google.com/store/apps/details?id=com.flexlab.rajbaricity',
-                        // 5: 'https://play.google.com/store/apps/details?id=com.flexlab.noakhalicity',
+                        5: 'https://play.google.com/store/apps/details?id=com.flexlab.noakhalicity',
                     },
                     ios: {
                         49: '#',
-                        // 5: '#',
+                        5: '#',
                     },
                 },
             })
