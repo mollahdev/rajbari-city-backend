@@ -15,6 +15,7 @@ const {
     getFileUrl,
     getFileFromPath,
     isValidTimeFormat,
+    normalizeCode,
 } = require('@/app/helpers')
 const { PLACEHOLDER_AVATAR } = require('@/app/helpers/constants')
 
@@ -32,7 +33,7 @@ class DoctorController {
 
             const doctorExists = await doctorRepo.findOne({
                 where: {
-                    bmdcNumber: request.body.bmdcNumber,
+                    bmdcNumber: normalizeCode(request.body.bmdcNumber),
                     location: request.body.location,
                 },
             })
@@ -81,6 +82,7 @@ class DoctorController {
                 ...request.body,
                 userId,
                 district,
+                bmdcNumber: normalizeCode(request.body.bmdcNumber),
                 profilePictureUrl: getFileFromPath(
                     request.body.profilePictureUrl
                 ),
@@ -307,6 +309,9 @@ class DoctorController {
             assign(doctorDTO, {
                 ...doctor.dataValues,
                 ...request.body,
+                bmdcNumber: normalizeCode(
+                    request.body.bmdcNumber || doctor.bmdcNumber
+                ),
             })
 
             await doctor.update(doctorDTO, {

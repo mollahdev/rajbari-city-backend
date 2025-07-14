@@ -93,6 +93,14 @@ function isValidTimeFormat(inputTime) {
     return parsed.isValid()
 }
 
+function normalizeCode(input) {
+    //extract number and remove spaces
+    if (!isString(input)) {
+        return input
+    }
+    return input.replace(/\D/g, '').replace(/\s+/g, '').toUpperCase()
+}
+
 module.exports = {
     now,
     getPaginationObject,
@@ -105,4 +113,5 @@ module.exports = {
     todayDateOnly,
     convertToTimeFormat,
     isValidTimeFormat,
+    normalizeCode,
 }
