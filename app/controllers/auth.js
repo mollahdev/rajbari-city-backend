@@ -305,9 +305,7 @@ class AuthController {
             id: user.id,
             district: user.district,
         }
-        return jwt.sign(data, process.env.JWT_SECRET, {
-            expiresIn: '30d',
-        })
+        return jwt.sign(data, process.env.JWT_SECRET)
     }
 
     static generateTempJWT(user) {

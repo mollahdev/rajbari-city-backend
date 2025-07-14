@@ -46,8 +46,11 @@ async function auth(request, reply) {
             token: token,
             district: decoded.district,
         }
-    } catch (err) {
-        return reply.code(401).send({ error: 'Invalid or expired token' })
+    } catch (error) {
+        reply.status(401).send({
+            error: error.message,
+            action: 'logout',
+        })
     }
 }
 
