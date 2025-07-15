@@ -3,19 +3,34 @@
  */
 const dayjs = require('dayjs')
 const utc = require('dayjs/plugin/utc')
+const timezone = require('dayjs/plugin/timezone')
 const { isString } = require('lodash')
+
+dayjs.extend(utc)
+dayjs.extend(timezone)
 /**
  * Internal dependencies
  */
 const {
     DATE_TIME_FORMAT,
+    DATE_FORMAT,
     PLACEHOLDER_AVATAR,
     PLACEHOLDER_IMAGE,
+    TIMEZONE,
 } = require('./constants')
 
 function now() {
-    dayjs.extend(utc)
-    return dayjs().utc().format(DATE_TIME_FORMAT)
+    return dayjs().tz(TIMEZONE).format(DATE_TIME_FORMAT)
+}
+
+function todayDateOnly() {
+    return dayjs().tz(TIMEZONE).startOf('day').format(DATE_FORMAT)
+}
+
+function isPastDate(dateTimeStr) {
+    const today = dayjs().tz(TIMEZONE).startOf('day')
+    const inputDate = dayjs.tz(dateTimeStr, TIMEZONE).startOf('day')
+    return inputDate.isBefore(today)
 }
 
 function getPaginationObject(page, perPage = 10) {
@@ -61,4 +76,6 @@ module.exports = {
     isOTPResendAllowed,
     getFileUrl,
     getFileFromPath,
+    isPastDate,
+    todayDateOnly,
 }

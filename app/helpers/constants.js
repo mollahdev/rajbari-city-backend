@@ -1,9 +1,15 @@
-const DATE_TIME_FORMAT = 'YYYY-MM-DD HH:mm:ss'
+const DATE_FORMAT = 'YYYY-MM-DD'
+const TIME_FORMAT = 'HH:mm:ss'
+const DATE_TIME_FORMAT = `${DATE_FORMAT} ${TIME_FORMAT}`
 const PLACEHOLDER_AVATAR = 'avatar-placeholder.jpeg'
 const PLACEHOLDER_IMAGE = 'placeholder-image.webp'
+const TIMEZONE = 'Asia/Dhaka'
 
 module.exports = {
     DATE_TIME_FORMAT,
+    DATE_FORMAT,
+    TIME_FORMAT,
     PLACEHOLDER_AVATAR,
     PLACEHOLDER_IMAGE,
+    TIMEZONE,
 }

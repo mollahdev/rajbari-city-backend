@@ -22,6 +22,7 @@ let sequelize = new Sequelize(
         port: process.env.DB_PORT,
         dialect: process.env.DB_CONNECTION,
         logging: false,
+        timezone: '+06:00',
     }
 )
 

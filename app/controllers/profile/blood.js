@@ -18,7 +18,7 @@ const HospitalRepository = require('@/app/repositories/hospital')
 const DiagnosticRepository = require('@/app/repositories/diagnostic')
 const Controller = require('@/app/controllers/controller')
 
-const { getFileUrl, getFileFromPath } = require('@/app/helpers')
+const { getFileUrl, getFileFromPath, isPastDate } = require('@/app/helpers')
 const {
     PLACEHOLDER_IMAGE,
     PLACEHOLDER_AVATAR,
@@ -266,13 +266,7 @@ class BloodController {
                     }
                 }
 
-                // is expired
-                const reqDate = new Date(request.date)
-                const today = new Date()
-                const isExpired =
-                    reqDate.toISOString().slice(0, 10) <
-                    today.toISOString().slice(0, 10)
-                request.setDataValue('isExpired', isExpired)
+                request.setDataValue('isExpired', isPastDate(request.date))
             })
 
             reply.send({

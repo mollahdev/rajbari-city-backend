@@ -2,7 +2,7 @@
  * External dependencies
  */
 const { orderBy, isString } = require('lodash')
-const { Op } = require('@sequelize/core')
+const { Op, literal } = require('sequelize')
 /**
  * Internal dependencies
  */
@@ -18,7 +18,7 @@ const DiagnosticRepository = require('@/app/repositories/diagnostic')
 const models = require('@/models')
 
 // const UserRe
-const { getFileUrl } = require('@/app/helpers')
+const { getFileUrl, todayDateOnly } = require('@/app/helpers')
 const {
     PLACEHOLDER_IMAGE,
     PLACEHOLDER_AVATAR,
@@ -293,22 +293,14 @@ module.exports = class BloodController {
             const hospitalRepo = new HospitalRepository()
             const diagnosticRepo = new DiagnosticRepository()
 
-            const today = new Date()
-            today.setHours(0, 0, 0, 0)
-            const graceDate = new Date(today)
-            graceDate.setDate(graceDate.getDate() - 1)
-
-            const requestTableWhere = {
-                district,
-                date: { [Op.gte]: graceDate },
-            }
-
-            if (request.query.bloodGroup) {
-                requestTableWhere.bloodGroup = request.query.bloodGroup
-            }
-
             const bloodRequests = await bloodRequestRepository.findAll({
-                where: requestTableWhere,
+                where: {
+                    district,
+                    [Op.and]: [literal(`DATE(date) >= '${todayDateOnly()}'`)],
+                    ...(request.query.bloodGroup && {
+                        bloodGroup: request.query.bloodGroup,
+                    }),
+                },
                 order: [['updatedAt', 'DESC']],
             })
 
