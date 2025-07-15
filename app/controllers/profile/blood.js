@@ -18,7 +18,12 @@ const HospitalRepository = require('@/app/repositories/hospital')
 const DiagnosticRepository = require('@/app/repositories/diagnostic')
 const Controller = require('@/app/controllers/controller')
 
-const { getFileUrl, getFileFromPath, isPastDate } = require('@/app/helpers')
+const {
+    getFileUrl,
+    getFileFromPath,
+    isPastDate,
+    now,
+} = require('@/app/helpers')
 const {
     PLACEHOLDER_IMAGE,
     PLACEHOLDER_AVATAR,
@@ -623,6 +628,7 @@ class BloodController {
 
         try {
             const donorDTO = new BloodFoundationDonorDTO()
+            const foundationDTO = new BloodFoundationDTO()
             const donorRepository = new BloodFoundationDonorRepository()
             const foundationRepository = new BloodFoundationRepository()
             const foundation = await foundationRepository.findOne({
@@ -651,6 +657,14 @@ class BloodController {
 
             await donorRepository.create(donorDTO)
 
+            assign(foundationDTO, {
+                updatedAt: now(),
+            })
+
+            await foundationRepository.update(foundationDTO, {
+                where: { id, userId },
+            })
+
             reply.send({
                 message: 'Joined successfully',
             })
@@ -665,6 +679,7 @@ class BloodController {
 
         try {
             const donorDTO = new BloodFoundationDonorDTO()
+            const foundationDTO = new BloodFoundationDTO()
             const donorRepository = new BloodFoundationDonorRepository()
             const foundationRepository = new BloodFoundationRepository()
             const foundation = await foundationRepository.findOne({
@@ -710,6 +725,14 @@ class BloodController {
 
             await donorRepository.update(donorDTO, {
                 where: { id: donorId, foundationId },
+            })
+
+            assign(foundationDTO, {
+                updatedAt: now(),
+            })
+
+            await foundationRepository.update(foundationDTO, {
+                where: { id: foundationId, userId },
             })
 
             reply.send({
@@ -796,7 +819,7 @@ class BloodController {
 
             const donors = await donorRepository.findAll({
                 where,
-                order: [['createdAt', 'DESC']],
+                order: [['updatedAt', 'DESC']],
             })
 
             donors.forEach((donor) => {

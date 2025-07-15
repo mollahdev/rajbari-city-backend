@@ -137,7 +137,7 @@ module.exports = class BloodController {
             )
             foundation.setDataValue(
                 'donors',
-                orderBy(finalDonors, ['createdAt'], ['desc'])
+                orderBy(finalDonors, ['updatedAt'], ['desc'])
             )
 
             if (isString(foundation.mobiles)) {
