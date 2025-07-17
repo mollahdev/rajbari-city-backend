@@ -76,20 +76,19 @@ function convertUnixDateTime(unixTimestamp) {
 }
 
 function convertToTimeFormat(input) {
-    const normalized = input.trim().toUpperCase().replace(/\s+/g, '')
-    const parsed = dayjs.tz(normalized, ['hA', 'h:mmA'], TIMEZONE)
+    const cleaned = input.trim().toUpperCase()
+    const parsed = dayjs(cleaned, ['h:mmA', 'h:mm A', 'hA', 'h A'], true)
 
     if (!parsed.isValid()) {
-        throw new Error(`Invalid time format: ${input}`)
+        throw new Error(`Invalid time format: "${input}"`)
     }
 
-    return parsed.format('HH:mm:ss') // format for DB
+    return parsed.format('HH:mm:ss')
 }
 
 function isValidTimeFormat(inputTime) {
-    const normalized = inputTime.trim().toUpperCase().replace(/\s+/g, '')
-    const parsed = dayjs.tz(normalized, ['hA', 'h:mmA'], TIMEZONE)
-
+    const cleaned = inputTime.trim().toUpperCase()
+    const parsed = dayjs(cleaned, ['h:mmA', 'h:mm A', 'hA', 'h A'], true)
     return parsed.isValid()
 }
 

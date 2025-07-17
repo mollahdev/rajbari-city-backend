@@ -1,4 +1,4 @@
-const { assign } = require('lodash')
+const { assign, uniq } = require('lodash')
 const { Op } = require('@sequelize/core')
 /**
  * Internal dependencies
@@ -44,7 +44,11 @@ class DoctorController {
                 )
             }
 
-            if (!categoryRepo.isExists(request.body.categoryIds)) {
+            const isExists = await categoryRepo.isExists(
+                request.body.categoryIds
+            )
+
+            if (!isExists) {
                 throw new Error('Category not found')
             }
 
@@ -82,6 +86,7 @@ class DoctorController {
                 ...request.body,
                 userId,
                 district,
+                categoryIds: uniq(request.body.categoryIds),
                 bmdcNumber: normalizeCode(request.body.bmdcNumber),
                 profilePictureUrl: getFileFromPath(
                     request.body.profilePictureUrl
@@ -276,6 +281,7 @@ class DoctorController {
             const hospitalRepo = new HospitalRepository()
             const diagnosticRepo = new DiagnosticRepository()
             const doctorDTO = new DoctorDTO()
+            const categoryRepo = new CategoryRepository()
 
             const doctor = await doctorRepo.findOne({
                 where: {
@@ -286,6 +292,16 @@ class DoctorController {
 
             if (!doctor) {
                 throw new Error('Doctor not found')
+            }
+
+            if (request.body.categoryIds) {
+                const isExists = await categoryRepo.isExists(
+                    request.body.categoryIds
+                )
+
+                if (!isExists) {
+                    throw new Error('Category not found')
+                }
             }
 
             if ('hospital' === request.body.locationType) {
@@ -309,6 +325,7 @@ class DoctorController {
             assign(doctorDTO, {
                 ...doctor.dataValues,
                 ...request.body,
+                categoryIds: uniq(request.body.categoryIds),
                 bmdcNumber: normalizeCode(
                     request.body.bmdcNumber || doctor.bmdcNumber
                 ),

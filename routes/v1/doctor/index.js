@@ -9,6 +9,14 @@ module.exports = async function (fastify) {
         handler: DoctorController.getAllDoctors,
     })
 
+    fastify.get('/:id', {
+        handler: DoctorController.getDoctorDetails,
+    })
+
+    fastify.get('/category', {
+        handler: DoctorController.getDoctorCategory,
+    })
+
     // ToDo: Super Admin Only support is not implemented yet
     fastify.addHook('onRequest', auth) //Middleware
 }

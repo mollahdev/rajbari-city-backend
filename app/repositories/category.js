@@ -1,4 +1,5 @@
 const { isEmpty, isArray } = require('lodash')
+const { Op } = require('sequelize')
 /**
  * Internal dependencies
  */
@@ -13,7 +14,9 @@ module.exports = class CategoryRepository extends RepositoryBase {
         if (isArray(ids)) {
             const categories = await this.findAll({
                 where: {
-                    id: ids,
+                    id: {
+                        [Op.in]: ids,
+                    },
                 },
             })
 

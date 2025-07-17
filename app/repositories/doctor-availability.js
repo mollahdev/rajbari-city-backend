@@ -1,4 +1,4 @@
-const { assign } = require('lodash')
+const { assign, isEmpty } = require('lodash')
 /**
  * Internal dependencies
  */
@@ -73,5 +73,27 @@ module.exports = class DoctorAvailabilityRepository extends RepositoryBase {
                 },
             })
         })
+    }
+
+    async getAvailabilityByDoctorId(doctorId) {
+        const availability = await this.model.findAll({
+            where: {
+                doctorId,
+            },
+        })
+
+        if (isEmpty(availability)) {
+            return {}
+        }
+
+        return availability.reduce((acc, item) => {
+            acc[item.day] = {
+                doctorId: item.doctorId,
+                isAvailable: item.isAvailable,
+                startTime: item.startTime,
+                endTime: item.endTime,
+            }
+            return acc
+        }, {})
     }
 }

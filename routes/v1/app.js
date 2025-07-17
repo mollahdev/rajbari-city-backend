@@ -1,12 +1,12 @@
 /**
- * External dependencies 
-*/ 
+ * External dependencies
+ */
 const { isEmpty } = require('lodash')
 const { Expo } = require('expo-server-sdk')
 const expo = new Expo()
 /**
- * Internal dependencies 
-*/ 
+ * Internal dependencies
+ */
 const DeviceRepository = require('@/app/repositories/device')
 const UserRepository = require('@/app/repositories/user')
 const DeviceDTO = require('@/app/dtos/device')
