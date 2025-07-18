@@ -1,6 +1,7 @@
 const districts = require('./districts.json')
 const upazilas = require('./upazilas.json')
 const unions = require('./unions.json')
+const municipalities = require('./municipalities.json')
 
 module.exports = class Geocode {
     static get unions() {
@@ -35,6 +36,13 @@ module.exports = class Geocode {
         }
 
         return districts
+    }
+
+    static getMunicipalities(filterCallback) {
+        if ('function' === typeof filterCallback) {
+            return municipalities.filter(filterCallback)
+        }
+        return municipalities
     }
 
     static isValid(query) {

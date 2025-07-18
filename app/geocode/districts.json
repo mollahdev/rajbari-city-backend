@@ -9,6 +9,15 @@
         "url": "www.noakhali.gov.bd"
     },
     {
+        "id": "25",
+        "division_id": "3",
+        "name": "Kushtia",
+        "bn_name": "কুষ্টিয়া",
+        "lat": "23.901258",
+        "lon": "89.120482",
+        "url": "www.kushtia.gov.bd"
+    },
+    {
         "id": "49",
         "division_id": "6",
         "name": "Rajbari",
