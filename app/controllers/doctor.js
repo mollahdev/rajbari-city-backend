@@ -282,7 +282,9 @@ module.exports = class DoctorController {
 
             const categories = []
             doctors.forEach((doctor) => {
-                categories.push(doctor.categoryIds)
+                categories.push(
+                    JSON.parse(doctor.dataValues.categoryIds || '[]')
+                )
             })
 
             const uniqueCategoryIds = uniq(categories.flat(Infinity))
