@@ -136,10 +136,10 @@ module.exports = class BloodRequestRepository extends RepositoryBase {
         const bloodFoundationRepo = new BloodFoundationRepository()
 
         const donors = await bloodDonorRepo.findAll({
-            where: {
-                bloodGroup: payload.bloodGroup,
-                isActive: true,
-            },
+            // where: {
+            //     bloodGroup: payload.bloodGroup,
+            //     isActive: true,
+            // },
             attributes: ['userId'],
         })
 
