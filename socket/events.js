@@ -9,5 +9,6 @@ module.exports = {
         NEW_BLOOD_REQUEST: 'receive:blood-new-blood-request',
         UPDATE_BLOOD_REQUEST: 'receive:blood-update-blood-request',
         DELETE_BLOOD_REQUEST: 'receive:blood-delete-blood-request',
+        NOTIFICATION: 'receive:notification',
     },
 }

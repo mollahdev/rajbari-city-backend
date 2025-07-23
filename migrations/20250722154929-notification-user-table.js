@@ -12,7 +12,7 @@ module.exports = {
                     primaryKey: true,
                     allowNull: false,
                 },
-                notificationId: {
+                notification_id: {
                     type: Sequelize.UUID,
                     allowNull: false,
                     references: {
@@ -21,7 +21,7 @@ module.exports = {
                     },
                     onDelete: 'CASCADE',
                 },
-                userId: {
+                user_id: {
                     type: Sequelize.UUID,
                     allowNull: false,
                     references: {
@@ -58,7 +58,7 @@ module.exports = {
             }
         )
 
-        await queryInterface.addIndex('NotificationUsers', ['userId'], {
+        await queryInterface.addIndex('NotificationUsers', ['user_id'], {
             name: 'notification_user_user_id_index',
         })
     },

@@ -28,7 +28,7 @@ module.exports = {
                     type: Sequelize.JSON,
                     allowNull: true,
                 },
-                userId: {
+                user_id: {
                     type: Sequelize.UUID,
                     allowNull: false,
                     references: {

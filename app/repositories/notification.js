@@ -1,0 +1,102 @@
+const { assign } = require('lodash')
+/**
+ * Internal dependencies
+ */
+const RepositoryBase = require('./repository-base')
+const NotificationUserRepository = require('./notification-user')
+const NotificationDTO = require('@/app/dtos/notification')
+
+module.exports = class NotificationRepository extends RepositoryBase {
+    constructor() {
+        super('Notification')
+    }
+
+    async #createNotification(props) {
+        const { receivers, notificationDTO } = props
+
+        try {
+            const notificationUserRepo = new NotificationUserRepository()
+            const response = await this.model.create(notificationDTO)
+            await notificationUserRepo.createReceiverPayload({
+                notificationId: response.id,
+                receivers,
+            })
+            return response.id
+        } catch (error) {
+            console.error('Error in createNotification', error)
+            return []
+        }
+    }
+
+    async #sendNotification(props) {
+        const { notification, channel, priority, socket } = props
+        try {
+            const notificationUserRepo = new NotificationUserRepository()
+            const receiverData = await notificationUserRepo.findAll({
+                where: {
+                    notificationId: notification,
+                },
+            })
+
+            const notificationData = await this.model.findOne({
+                where: {
+                    id: notification,
+                },
+            })
+
+            if (channel.pushNotification) {
+                notificationUserRepo.sendPushNotification({
+                    priority,
+                    receiverData,
+                    notificationData,
+                })
+            }
+
+            if (channel.socketNotification) {
+                notificationUserRepo.sendSocketNotification({
+                    priority,
+                    receiverData,
+                    notificationData,
+                    socket,
+                })
+            }
+        } catch (error) {
+            console.error('Error in sendNotification', error)
+        }
+    }
+
+    async sendBloodRequestNotification(props) {
+        const { receivers, payload, user, socket } = props
+        try {
+            const notificationDTO = new NotificationDTO()
+            assign(notificationDTO, {
+                type: 'info', // info, warning, alert
+                title: `${payload.bloodGroup} রক্তের প্রয়োজন`,
+                body: `${payload.dataValues.user.name} এর ${payload.bloodGroup} গ্রুপের ${payload.quantity} ব্যাগ রক্ত প্রয়োজন।`,
+                userId: user.id,
+                data: {
+                    type: 'blood_request',
+                    requestId: payload.id,
+                    url: `dashboard/blood/request/${payload.id}`,
+                },
+            })
+
+            const notification = await this.#createNotification({
+                receivers,
+                notificationDTO,
+            })
+
+            await this.#sendNotification({
+                socket,
+                notification,
+                priority: 'high',
+                channel: {
+                    pushNotification: true,
+                    socketNotification: true,
+                },
+            })
+        } catch (error) {
+            console.error('Error in sendBloodRequestNotification', error)
+        }
+    }
+}

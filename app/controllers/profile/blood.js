@@ -16,6 +16,7 @@ const OrganizationUserRepository = require('@/app/repositories/organization-user
 const BloodRequestRepository = require('@/app/repositories/blood-request')
 const HospitalRepository = require('@/app/repositories/hospital')
 const DiagnosticRepository = require('@/app/repositories/diagnostic')
+const NotificationRepository = require('@/app/repositories/notification')
 const Controller = require('@/app/controllers/controller')
 
 const { getFileUrl, getFileFromPath, isPastDate } = require('@/app/helpers')
@@ -141,6 +142,7 @@ class BloodController {
             const hospitalRepo = new HospitalRepository()
             const diagnosticRepo = new DiagnosticRepository()
             const bloodRequestDTO = new BloodRequestDTO()
+            const notificationRepo = new NotificationRepository()
 
             if ('hospital' === request.body.locationType) {
                 const isExists = await hospitalRepo.isExists(
@@ -173,9 +175,18 @@ class BloodController {
                 socket: this.io,
             })
 
-            bloodRequestRepo.sendPushNotification({
+            const notificationData = await bloodRequestRepo.getNotificationData(
+                {
+                    user: request.user,
+                    requestId: response.id,
+                }
+            )
+
+            notificationRepo.sendBloodRequestNotification({
+                receivers: notificationData.receivers,
+                payload: notificationData.payload,
                 user: request.user,
-                requestId: response.id,
+                socket: this.io,
             })
 
             reply.send({
@@ -313,6 +324,7 @@ class BloodController {
             const bloodRequestDTO = new BloodRequestDTO()
             const hospitalRepo = new HospitalRepository()
             const diagnosticRepo = new DiagnosticRepository()
+            const notificationRepo = new NotificationRepository()
 
             const bloodRequest = await bloodRequestRepo.findOne({
                 where: {
@@ -358,9 +370,18 @@ class BloodController {
                 socket: this.io,
             })
 
-            bloodRequestRepo.sendPushNotification({
+            const notificationData = await bloodRequestRepo.getNotificationData(
+                {
+                    user: request.user,
+                    requestId: id,
+                }
+            )
+
+            notificationRepo.sendBloodRequestNotification({
+                receivers: notificationData.receivers,
+                payload: notificationData.payload,
                 user: request.user,
-                requestId: id,
+                socket: this.io,
             })
 
             reply.send({

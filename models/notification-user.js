@@ -10,11 +10,11 @@ module.exports = (sequelize, DataTypes) => {
          */
         static associate(models) {
             NotificationUser.belongsTo(models.User, {
-                foreignKey: 'userId',
+                foreignKey: 'user_id',
                 as: 'user',
             })
             NotificationUser.belongsTo(models.Notification, {
-                foreignKey: 'notificationId',
+                foreignKey: 'notification_id',
                 as: 'notification',
             })
         }
@@ -65,7 +65,7 @@ module.exports = (sequelize, DataTypes) => {
             underscored: true,
             indexes: [
                 {
-                    fields: ['userId'],
+                    fields: ['user_id'],
                     name: 'notification_user_user_id_index',
                 },
             ],
