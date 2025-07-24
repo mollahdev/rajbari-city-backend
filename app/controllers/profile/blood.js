@@ -18,12 +18,7 @@ const HospitalRepository = require('@/app/repositories/hospital')
 const DiagnosticRepository = require('@/app/repositories/diagnostic')
 const Controller = require('@/app/controllers/controller')
 
-const {
-    getFileUrl,
-    getFileFromPath,
-    isPastDate,
-    now,
-} = require('@/app/helpers')
+const { getFileUrl, getFileFromPath, isPastDate } = require('@/app/helpers')
 const {
     PLACEHOLDER_IMAGE,
     PLACEHOLDER_AVATAR,
@@ -658,7 +653,7 @@ class BloodController {
             await donorRepository.create(donorDTO)
 
             assign(foundationDTO, {
-                updatedAt: now(),
+                name: foundation.name,
             })
 
             await foundationRepository.update(foundationDTO, {
@@ -728,7 +723,7 @@ class BloodController {
             })
 
             assign(foundationDTO, {
-                updatedAt: now(),
+                name: foundation.name,
             })
 
             await foundationRepository.update(foundationDTO, {
@@ -748,6 +743,7 @@ class BloodController {
         const { id: userId } = request.user
 
         try {
+            const foundationDTO = new BloodFoundationDTO()
             const donorRepository = new BloodFoundationDonorRepository()
             const foundationRepository = new BloodFoundationRepository()
             const foundation = await foundationRepository.findOne({
@@ -768,6 +764,14 @@ class BloodController {
 
             await donorRepository.destroy({
                 where: { id: donorId, foundationId },
+            })
+
+            assign(foundationDTO, {
+                name: foundation.name,
+            })
+
+            await foundationRepository.update(foundationDTO, {
+                where: { id: foundationId, userId },
             })
 
             reply.send({

@@ -16,7 +16,6 @@ class UserDTO extends DTO {
     isVerified
     isPartner
     status
-    updatedAt
 }
 
 module.exports = UserDTO
