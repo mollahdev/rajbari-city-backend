@@ -5,9 +5,12 @@ const { CONNECTION, DISCONNECT } = require('@/socket/events')
  */
 module.exports = async (fastify) => {
     fastify.io.on(CONNECTION, async (socket) => {
+        console.log('New socket connection:', socket.id)
         try {
             const token =
                 socket.handshake.auth.token || socket.handshake.headers.token
+
+            console.log('Socket token:', token)
 
             if (!token) {
                 throw new Error('Token is required')
@@ -30,6 +33,7 @@ module.exports = async (fastify) => {
             socket.join(`district.${decoded.district}`)
             socket.join(`user:${decoded.id}`)
         } catch (err) {
+            console.error('Socket connection error:', err.message)
             socket.disconnect(true)
             return
         }
