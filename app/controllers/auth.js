@@ -153,7 +153,7 @@ class AuthController {
     }
 
     static async login(request, reply) {
-        const { mobile, dialCode, password } = request.body
+        const { mobile, password } = request.body
 
         try {
             const userRepository = new UserRepository()
@@ -305,7 +305,9 @@ class AuthController {
             id: user.id,
             district: user.district,
         }
-        return jwt.sign(data, process.env.JWT_SECRET)
+        return jwt.sign(data, process.env.JWT_SECRET, {
+            expiresIn: '1y',
+        })
     }
 
     static generateTempJWT(user) {
