@@ -100,11 +100,16 @@ function normalizeCode(input) {
     return input.replace(/\D/g, '').replace(/\s+/g, '').toUpperCase()
 }
 
+function getDateTimeAdd(days, unit = 'day') {
+    return dayjs().tz(TIMEZONE).add(days, unit).format(DATE_TIME_FORMAT)
+}
+
 module.exports = {
     now,
     getPaginationObject,
     generateOTP,
     convertUnixDateTime,
+    getDateTimeAdd,
     isOTPResendAllowed,
     getFileUrl,
     getFileFromPath,
