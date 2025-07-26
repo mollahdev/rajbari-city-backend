@@ -7,6 +7,8 @@
     "scripts": {
         "start": "pm2 start ecosystem.config.js --watch",
         "format": "prettier --write .",
+        "log": "pm2 log $APP_NAME",
+        "migrate": "npx sequelize-cli db:migrate",
         "prepare": "husky"
     },
     "_moduleAliases": {

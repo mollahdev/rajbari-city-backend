@@ -1,11 +1,14 @@
 const { assign } = require('lodash')
 const bcrypt = require('bcryptjs')
+const { Op } = require('@sequelize/core')
 /**
  * Internal dependencies
  */
 const UserRepository = require('@/app/repositories/user')
 const UserDTO = require('@/app/dtos/user')
 const BloodDonorRepository = require('@/app/repositories/blood-donor')
+const TokenRepository = require('@/app/repositories/token')
+const TokenDTO = require('@/app/dtos/token')
 const Controller = require('@/app/controllers/controller')
 const { getFileUrl } = require('@/app/helpers')
 const { PLACEHOLDER_AVATAR } = require('@/app/helpers/constants')
@@ -107,12 +110,15 @@ class ProfileController {
     }
 
     static async updatePassword(request, reply) {
+        const { token, id } = request.user
         const { oldPassword, newPassword } = request.body
 
         try {
+            const tokenDTO = new TokenDTO()
+            const tokenRepository = new TokenRepository()
             const userRepository = new UserRepository()
             const user = await userRepository.findOne({
-                where: { id: request.user.id },
+                where: { id },
             })
 
             if (!user) {
@@ -136,7 +142,15 @@ class ProfileController {
             userDTO.password = newPassword
 
             await userRepository.update(userDTO, {
-                where: { id: request.user.id },
+                where: { id },
+            })
+
+            assign(tokenDTO, {
+                isValid: false,
+            })
+
+            await tokenRepository.update(tokenDTO, {
+                where: { userId: id, token: { [Op.ne]: token } },
             })
 
             return {

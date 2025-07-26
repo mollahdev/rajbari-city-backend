@@ -1,12 +1,8 @@
 /**
- * External dependencies
- */
-const dayjs = require('dayjs')
-/**
  * Internal dependencies
  */
 const TokenRepository = require('@/app/repositories/token')
-const { DATE_TIME_FORMAT } = require('@/app/helpers/constants')
+const { convertUnixDateTime } = require('@/app/helpers')
 
 async function auth(request, reply) {
     try {
@@ -14,16 +10,14 @@ async function auth(request, reply) {
         const authHeader = request.headers['authorization']
 
         if (!authHeader) {
-            return reply
-                .code(401)
-                .send({ error: 'Authorization header missing' })
+            throw new Error('Authorization header is missing')
         }
 
         // Extract the token (Assuming it's in the format "Bearer <token>")
         const token = authHeader.split(' ')[1]
 
         if (!token) {
-            return reply.code(401).send({ error: 'Token missing' })
+            throw new Error('Token is invalid or missing')
         }
 
         // Verify the JWT token
@@ -34,7 +28,7 @@ async function auth(request, reply) {
         const isValid = await tokenRepository.isValid(token)
 
         if (!isValid) {
-            return reply.code(401).send({ error: 'Token is invalid' })
+            throw new Error('Token is invalid')
         }
 
         // decode the token
@@ -42,7 +36,7 @@ async function auth(request, reply) {
 
         request.user = {
             id: decoded.id,
-            expiresAt: dayjs.unix(decoded.exp).format(DATE_TIME_FORMAT),
+            expiresAt: convertUnixDateTime(decoded.exp),
             token: token,
             district: decoded.district,
         }

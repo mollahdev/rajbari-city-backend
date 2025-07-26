@@ -69,10 +69,15 @@ function getFileFromPath(path) {
     return imageFile
 }
 
+function convertUnixDateTime(unixTimestamp) {
+    return dayjs.unix(unixTimestamp).tz(TIMEZONE).format(DATE_TIME_FORMAT)
+}
+
 module.exports = {
     now,
     getPaginationObject,
     generateOTP,
+    convertUnixDateTime,
     isOTPResendAllowed,
     getFileUrl,
     getFileFromPath,

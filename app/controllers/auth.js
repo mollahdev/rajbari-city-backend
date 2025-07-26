@@ -14,7 +14,12 @@ const DeviceRepository = require('@/app/repositories/device')
 const UserDTO = require('@/app/dtos/user')
 const TokenDTO = require('@/app/dtos/token')
 const SMS = require('@/app/services/sms')
-const { now, generateOTP, isOTPResendAllowed } = require('@/app/helpers')
+const {
+    now,
+    generateOTP,
+    isOTPResendAllowed,
+    convertUnixDateTime,
+} = require('@/app/helpers')
 
 class AuthController {
     static async register(request, reply) {
@@ -65,7 +70,7 @@ class AuthController {
     }
 
     static async verifyOTP(request, reply) {
-        const { mobile, otp, dialCode } = request.body
+        const { mobile, otp } = request.body
 
         try {
             const userRepository = new UserRepository()
@@ -107,7 +112,9 @@ class AuthController {
         const { union, isMunicipality, municipality } = request.body
 
         try {
+            const tokenDTO = new TokenDTO()
             const userRepository = new UserRepository()
+            const tokenRepository = new TokenRepository()
             const user = await userRepository.findOne({
                 where: { id: request.user.id },
             })
@@ -140,6 +147,16 @@ class AuthController {
                 where: { id: request.user.id },
             })
             const token = AuthController.generateJWT(user)
+            const decodedToken = jwt.decode(token)
+
+            assign(tokenDTO, {
+                token,
+                userId: user.id,
+                expiresAt: convertUnixDateTime(decodedToken.exp),
+                isValid: true,
+            })
+
+            await tokenRepository.create(tokenDTO)
 
             reply.send({
                 message: 'Profile updated successfully',
@@ -156,6 +173,8 @@ class AuthController {
         const { mobile, password } = request.body
 
         try {
+            const tokenDTO = new TokenDTO()
+            const tokenRepository = new TokenRepository()
             const userRepository = new UserRepository()
             const user = await userRepository.findOne({
                 where: { mobile },
@@ -179,6 +198,15 @@ class AuthController {
             }
 
             const token = AuthController.generateJWT(user)
+            const decodedToken = jwt.decode(token)
+            assign(tokenDTO, {
+                token,
+                userId: user.id,
+                expiresAt: convertUnixDateTime(decodedToken.exp),
+                isValid: true,
+            })
+
+            await tokenRepository.create(tokenDTO)
 
             reply.send({
                 message: 'Login successful',
@@ -196,22 +224,28 @@ class AuthController {
         const { deviceToken } = request.body
 
         try {
+            const tokenDTO = new TokenDTO()
             const tokenRepository = new TokenRepository()
             const deviceRepository = new DeviceRepository()
             const existingToken = await tokenRepository.findOne({
                 where: { token },
             })
 
-            if (existingToken) {
-                throw new Error('You are already logged out')
+            if (!existingToken) {
+                assign(tokenDTO, {
+                    token,
+                    expiresAt,
+                    userId: id,
+                    isValid: false,
+                })
+
+                await tokenRepository.create(tokenDTO)
             }
 
-            const tokenDTO = new TokenDTO()
-            tokenDTO.token = token
-            tokenDTO.expiresAt = expiresAt
-            tokenDTO.userId = id
-
-            await tokenRepository.create(tokenDTO)
+            tokenDTO.isValid = false
+            await tokenRepository.update(tokenDTO, {
+                where: { token, userId: id },
+            })
 
             const deviceWhereTable = {
                 userId: id,
@@ -232,7 +266,7 @@ class AuthController {
     }
 
     static async forgotPassword(request, reply) {
-        const { mobile, dialCode } = request.body
+        const { mobile } = request.body
 
         try {
             const userRepository = new UserRepository()
@@ -274,6 +308,8 @@ class AuthController {
         const { password } = request.body
 
         try {
+            const tokenDTO = new TokenDTO()
+            const tokenRepository = new TokenRepository()
             const userRepository = new UserRepository()
             const user = await userRepository.findOne({
                 where: { id: request.user.id },
@@ -292,6 +328,14 @@ class AuthController {
 
             await userRepository.update(userDTO, {
                 where: { id: request.user.id },
+            })
+
+            assign(tokenDTO, {
+                isValid: false,
+            })
+
+            await tokenRepository.update(tokenDTO, {
+                where: { userId: request.user.id },
             })
 
             reply.send({ message: 'Password reset successfully' })
