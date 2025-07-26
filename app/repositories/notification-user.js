@@ -64,7 +64,7 @@ module.exports = class NotificationUserRepository extends RepositoryBase {
                     title: notificationData.title,
                     body: notificationData.body,
                     data: {
-                        ...(notificationData.data || {}),
+                        ...JSON.parse(notificationData.data || '{}'),
                         notification: notification.dataValues,
                     },
                 }
@@ -95,7 +95,7 @@ module.exports = class NotificationUserRepository extends RepositoryBase {
                         title: notificationData.title,
                         body: notificationData.body,
                         data: {
-                            ...(notificationData.data || {}),
+                            ...JSON.parse(notificationData.data || '{}'),
                             notification: receiver.dataValues,
                         },
                     })

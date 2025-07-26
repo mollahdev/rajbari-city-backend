@@ -49,7 +49,7 @@ class NotificationController extends Controller {
                         title: notification.title,
                         body: notification.body,
                         data: {
-                            ...(notification.data || {}),
+                            ...JSON.parse(notification.data || '{}'),
                             notification: item.dataValues,
                         },
                     })
