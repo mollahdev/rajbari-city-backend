@@ -10,6 +10,7 @@ const DiagnosticRepository = require('@/app/repositories/diagnostic')
 const { getFileUrl } = require('@/app/helpers')
 const { PLACEHOLDER_AVATAR } = require('@/app/helpers/constants')
 const { RECEIVE } = require('@/socket/events')
+const { Op } = require('sequelize')
 module.exports = class BloodRequestRepository extends RepositoryBase {
     constructor() {
         super('BloodRequest')
@@ -151,9 +152,16 @@ module.exports = class BloodRequestRepository extends RepositoryBase {
                 (foundation) => foundation.userId
             )
 
+            const targetUserIds = [
+                ...donorUserIds,
+                ...foundationUserIds,
+            ].filter((id) => id !== user.id)
+
             const users = await userRepo.findAll({
                 where: {
-                    id: [...donorUserIds, ...foundationUserIds],
+                    id: {
+                        [Op.in]: targetUserIds,
+                    },
                     district: user.district,
                 },
                 attributes: ['id'],
