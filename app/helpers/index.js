@@ -77,7 +77,11 @@ function convertUnixDateTime(unixTimestamp) {
 
 function convertToTimeFormat(input) {
     const cleaned = input.trim().toUpperCase()
-    const parsed = dayjs(cleaned, ['h:mmA', 'h:mm A', 'hA', 'h A'], true)
+    const parsed = dayjs(
+        cleaned,
+        ['h:mmA', 'h:mm A', 'hA', 'h A', 'HH:mm:ss', 'H:mm:ss'],
+        true
+    )
 
     if (!parsed.isValid()) {
         throw new Error(`Invalid time format: "${input}"`)
@@ -88,7 +92,11 @@ function convertToTimeFormat(input) {
 
 function isValidTimeFormat(inputTime) {
     const cleaned = inputTime.trim().toUpperCase()
-    const parsed = dayjs(cleaned, ['h:mmA', 'h:mm A', 'hA', 'h A'], true)
+    const parsed = dayjs(
+        cleaned,
+        ['h:mmA', 'h:mm A', 'hA', 'h A', 'HH:mm:ss', 'H:mm:ss'],
+        true
+    )
     return parsed.isValid()
 }
 

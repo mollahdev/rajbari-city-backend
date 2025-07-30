@@ -1,4 +1,4 @@
-const { assign, uniq } = require('lodash')
+const { assign, uniq, isString } = require('lodash')
 const { Op } = require('@sequelize/core')
 /**
  * Internal dependencies
@@ -152,6 +152,13 @@ class DoctorController {
                     getFileUrl(item.profilePictureUrl || PLACEHOLDER_AVATAR)
                 )
 
+                if (isString(item.categoryIds)) {
+                    item.setDataValue(
+                        'categoryIds',
+                        JSON.parse(item.categoryIds || '[]')
+                    )
+                }
+
                 if (item.locationType === 'hospital') {
                     const hospital = hospitals.find(
                         (h) => h.id === item.location
@@ -261,6 +268,13 @@ class DoctorController {
                 'profilePictureUrl',
                 getFileUrl(doctor.profilePictureUrl || PLACEHOLDER_AVATAR)
             )
+
+            if (isString(doctor.categoryIds)) {
+                doctor.setDataValue(
+                    'categoryIds',
+                    JSON.parse(doctor.categoryIds || '[]')
+                )
+            }
 
             reply.send({
                 message: 'Fetched successfully',
