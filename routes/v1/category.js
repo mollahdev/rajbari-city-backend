@@ -10,9 +10,18 @@ module.exports = async function (fastify) {
                     name: { type: 'string', minLength: 1, maxLength: 40 },
                     group: {
                         type: 'string',
-                        enum: ['general', 'hospital', 'diagnostic'],
+                        enum: ['general', 'hospital', 'diagnostic', 'doctor'],
                         default: 'general',
                         maxLength: 40,
+                    },
+                    icon: {
+                        type: 'string',
+                        nullable: true,
+                    },
+                    description: {
+                        type: 'string',
+                        nullable: true,
+                        maxLength: 200,
                     },
                 },
             },

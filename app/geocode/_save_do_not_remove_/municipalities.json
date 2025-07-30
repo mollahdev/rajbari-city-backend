@@ -1,0 +1,79 @@
+[
+    {
+        "id": "1",
+        "upazilla_id": "376",
+        "name": "Rajbari",
+        "bn_name": "রাজবাড়ী",
+        "url": "pourashava.rajbari.gov.bd"
+    },
+    {
+        "id": "2",
+        "upazilla_id": "377",
+        "name": "Goalanda",
+        "bn_name": "গোয়ালন্দ",
+        "url": "pourashava.goalanda.rajbari.gov.bd"
+    },
+    {
+        "id": "3",
+        "upazilla_id": "378",
+        "name": "Pangsa",
+        "bn_name": "পাংশা",
+        "url": "pourashava.pangsa.rajbari.gov.bd"
+    },
+    {
+        "id": "4",
+        "upazilla_id": "43",
+        "name": "Noakhali",
+        "bn_name": "নোয়াখালী",
+        "url": "sadar.noakhali.gov.bd"
+    },
+    {
+        "id": "5",
+        "upazilla_id": "45",
+        "name": "Chowmuhani",
+        "bn_name": "চৌমুহনী",
+        "url": "begumganj.noakhali.gov.bd"
+    },
+    {
+        "id": "6",
+        "upazilla_id": "51",
+        "name": "Sonaimuri",
+        "bn_name": "সোনাইমুড়ী",
+        "url": "sonaimuri.noakhali.gov.bd"
+    },
+    {
+        "id": "7",
+        "upazilla_id": "50",
+        "name": "Chatkhil",
+        "bn_name": "চাটখিল",
+        "url": "chatkhil.noakhali.gov.bd"
+    },
+    {
+        "id": "8",
+        "upazilla_id": "49",
+        "name": "Senbagh",
+        "bn_name": "সেনবাগ",
+        "url": "senbug.noakhali.gov.bd"
+    },
+    {
+        "id": "9",
+        "upazilla_id": "44",
+        "name": "Bashurhat",
+        "bn_name": "বসুরহাট",
+        "url": "companiganj.noakhali.gov.bd"
+    },
+    {
+        "id": "10",
+        "upazilla_id": "48",
+        "name": "Kabirhat",
+        "bn_name": "কবিরহাট",
+        "url": "kabirhat.noakhali.gov.bd"
+    },
+    {
+        "id": "11",
+        "upazilla_id": "46",
+        "name": "Hatia",
+        "bn_name": "হাতিয়া",
+        "url": "hatia.noakhali.gov.bd"
+    }
+]

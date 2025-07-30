@@ -6,7 +6,6 @@ class OrganizationUserDTO extends DTO {
     organizationId
     role
     status
-    status
 }
 
 module.exports = OrganizationUserDTO

@@ -1,10 +1,4 @@
 /**
- * External dependencies
- */
-const { isEmpty } = require('lodash')
-const { Expo } = require('expo-server-sdk')
-const expo = new Expo()
-/**
  * Internal dependencies
  */
 const RepositoryBase = require('./repository-base')
@@ -12,11 +6,11 @@ const UserRepository = require('@/app/repositories/user')
 const BloodDonorRepository = require('@/app/repositories/blood-donor')
 const HospitalRepository = require('@/app/repositories/hospital')
 const BloodFoundationRepository = require('@/app/repositories/blood-foundation')
-const DeviceRepository = require('@/app/repositories/device')
 const DiagnosticRepository = require('@/app/repositories/diagnostic')
 const { getFileUrl } = require('@/app/helpers')
 const { PLACEHOLDER_AVATAR } = require('@/app/helpers/constants')
 const { RECEIVE } = require('@/socket/events')
+const { Op } = require('sequelize')
 module.exports = class BloodRequestRepository extends RepositoryBase {
     constructor() {
         super('BloodRequest')
@@ -125,78 +119,63 @@ module.exports = class BloodRequestRepository extends RepositoryBase {
             })
     }
 
-    async sendPushNotification(props) {
-        const { user } = props
-        const payload = await this.#getRequestPayload(props)
-        if (!payload) return
-
-        const bloodDonorRepo = new BloodDonorRepository()
-        const deviceRepo = new DeviceRepository()
-        const userRepo = new UserRepository()
-        const bloodFoundationRepo = new BloodFoundationRepository()
-
-        const donors = await bloodDonorRepo.findAll({
-            // where: {
-            //     bloodGroup: payload.bloodGroup,
-            //     isActive: true,
-            // },
-            attributes: ['userId'],
-        })
-
-        const foundations = await bloodFoundationRepo.findAll({
-            where: {
-                district: user.district,
-                status: 'active',
-            },
-            attributes: ['userId'],
-        })
-
-        const donorUserIds = donors.map((donor) => donor.userId)
-        const foundationUserIds = foundations.map(
-            (foundation) => foundation.userId
-        )
-
-        const users = await userRepo.findAll({
-            where: {
-                id: [...donorUserIds, ...foundationUserIds],
-                district: user.district,
-            },
-            attributes: ['id'],
-        })
-
-        const userIds = users.map((user) => user.id)
-
-        const devices = await deviceRepo.findAll({
-            where: {
-                userId: userIds,
-            },
-            attributes: ['token', 'platformType'],
-        })
-
-        if (isEmpty(devices)) return
-
-        const messages = devices.map((device) => {
-            return {
-                to: device.token,
-                sound: 'default',
-                priority: 'high',
-                channelId: 'bdCitiesNotification',
-                title: `${payload.bloodGroup} রক্তের প্রয়োজন`,
-                body: `${payload.dataValues.user.name} এর ${payload.bloodGroup} গ্রুপের ${payload.quantity} ব্যাগ রক্ত প্রয়োজন।`,
-                data: {
-                    type: 'blood_request',
-                    requestId: props.requestId,
-                    url: `dashboard/blood/request/${props.requestId}`,
-                },
+    async getNotificationData(props) {
+        try {
+            const { user } = props
+            const payload = await this.#getRequestPayload(props)
+            if (!payload) {
+                throw new Error('Request not found or expired')
             }
-        })
 
-        const chunks = expo.chunkPushNotifications(messages)
-        for (let chunk of chunks) {
-            try {
-                await expo.sendPushNotificationsAsync(chunk)
-            } catch (error) {
-                console.error('Error sending notification', error)
+            const bloodDonorRepo = new BloodDonorRepository()
+            const userRepo = new UserRepository()
+            const bloodFoundationRepo = new BloodFoundationRepository()
+
+            const donors = await bloodDonorRepo.findAll({
+                // where: {
+                //     bloodGroup: payload.bloodGroup,
+                //     isActive: true,
+                // },
+                attributes: ['userId'],
+            })
+
+            const foundations = await bloodFoundationRepo.findAll({
+                where: {
+                    district: user.district,
+                    status: 'active',
+                },
+                attributes: ['userId'],
+            })
+
+            const donorUserIds = donors.map((donor) => donor.userId)
+            const foundationUserIds = foundations.map(
+                (foundation) => foundation.userId
+            )
+
+            const targetUserIds = [
+                ...donorUserIds,
+                ...foundationUserIds,
+            ].filter((id) => id !== user.id)
+
+            const users = await userRepo.findAll({
+                where: {
+                    id: {
+                        [Op.in]: targetUserIds,
+                    },
+                    district: user.district,
+                },
+                attributes: ['id'],
+            })
+
+            const receivers = users.map((user) => user.id)
+            return {
+                receivers,
+                payload,
+            }
+        } catch (error) {
+            return {
+                receivers: [],
+                payload: null,
             }
         }
     }

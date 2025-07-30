@@ -75,5 +75,40 @@
         "name": "Hatia",
         "bn_name": "হাতিয়া",
         "url": "hatia.noakhali.gov.bd"
+    },
+    {
+        "id": "12",
+        "upazilla_id": "196",
+        "name": "Kushtia",
+        "bn_name": "কুষ্টিয়া",
+        "url": "municipality.kushtia.gov.bd"
+    },
+    {
+        "id": "13",
+        "upazilla_id": "197",
+        "name": "Kumarkhali",
+        "bn_name": "কুমারখালী",
+        "url": "pourashava.kumarkhali.kushtia.gov.bd"
+    },
+    {
+        "id": "14",
+        "upazilla_id": "201",
+        "name": "Bheramara",
+        "bn_name": "ভেড়ামারা",
+        "url": "bheramarapaurashava.org"
+    },
+    {
+        "id": "15",
+        "upazilla_id": "199",
+        "name": "Mirpur",
+        "bn_name": "মিরপুর",
+        "url": "pourashava.mirpur.kushtia.gov.bd"
+    },
+    {
+        "id": "16",
+        "upazilla_id": "198",
+        "name": "Khoksa",
+        "bn_name": "খোকসা",
+        "url": "khoksamunicipality.org"
     }
 ]

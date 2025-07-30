@@ -21,6 +21,17 @@ module.exports = {
                     defaultValue: 'general',
                     allowNull: false,
                 },
+                icon: {
+                    type: Sequelize.STRING,
+                    allowNull: true,
+                },
+                description: {
+                    type: Sequelize.STRING,
+                    allowNull: true,
+                    validate: {
+                        len: [0, 200], // Maximum length of 200 characters
+                    },
+                },
                 created_at: {
                     type: Sequelize.DATE,
                     allowNull: false,

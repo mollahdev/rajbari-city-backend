@@ -142,5 +142,15 @@ module.exports = (sequelize, DataTypes) => {
         }
     )
 
+    Diagnostic.afterDestroy(async (data, options) => {
+        await sequelize.models.Doctor.destroy({
+            where: { location: data.id },
+        })
+
+        await sequelize.models.BloodRequest.destroy({
+            where: { location: data.id },
+        })
+    })
+
     return Diagnostic
 }

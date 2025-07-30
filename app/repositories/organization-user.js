@@ -20,7 +20,7 @@ module.exports = class OrganizationUserRepository extends RepositoryBase {
         return !isEmpty(result)
     }
 
-    async create(userId, organizationId, role = 'member') {
+    async createRequest(userId, organizationId, role = 'member') {
         // check if the user is already joined the organization
         const isAlreadyJoined = await this.isExists(userId, organizationId)
 

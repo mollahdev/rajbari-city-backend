@@ -16,6 +16,7 @@ const OrganizationUserRepository = require('@/app/repositories/organization-user
 const BloodRequestRepository = require('@/app/repositories/blood-request')
 const HospitalRepository = require('@/app/repositories/hospital')
 const DiagnosticRepository = require('@/app/repositories/diagnostic')
+const NotificationRepository = require('@/app/repositories/notification')
 const Controller = require('@/app/controllers/controller')
 
 const { getFileUrl, getFileFromPath, isPastDate } = require('@/app/helpers')
@@ -141,6 +142,7 @@ class BloodController {
             const hospitalRepo = new HospitalRepository()
             const diagnosticRepo = new DiagnosticRepository()
             const bloodRequestDTO = new BloodRequestDTO()
+            const notificationRepo = new NotificationRepository()
 
             if ('hospital' === request.body.locationType) {
                 const isExists = await hospitalRepo.isExists(
@@ -173,9 +175,18 @@ class BloodController {
                 socket: this.io,
             })
 
-            bloodRequestRepo.sendPushNotification({
+            const notificationData = await bloodRequestRepo.getNotificationData(
+                {
+                    user: request.user,
+                    requestId: response.id,
+                }
+            )
+
+            notificationRepo.sendBloodRequestNotification({
+                receivers: notificationData.receivers,
+                payload: notificationData.payload,
                 user: request.user,
-                requestId: response.id,
+                socket: this.io,
             })
 
             reply.send({
@@ -311,6 +322,9 @@ class BloodController {
         try {
             const bloodRequestRepo = new BloodRequestRepository()
             const bloodRequestDTO = new BloodRequestDTO()
+            const hospitalRepo = new HospitalRepository()
+            const diagnosticRepo = new DiagnosticRepository()
+            const notificationRepo = new NotificationRepository()
 
             const bloodRequest = await bloodRequestRepo.findOne({
                 where: {
@@ -321,6 +335,24 @@ class BloodController {
 
             if (!bloodRequest) {
                 throw new Error('Blood request not found')
+            }
+
+            if ('hospital' === request.body.locationType) {
+                const isExists = await hospitalRepo.isExists(
+                    request.body.location
+                )
+                if (!isExists) {
+                    throw new Error('Hospital not found')
+                }
+            }
+
+            if ('diagnostic' === request.body.locationType) {
+                const isExists = await diagnosticRepo.isExists(
+                    request.body.location
+                )
+                if (!isExists) {
+                    throw new Error('Diagnostic center not found')
+                }
             }
 
             assign(bloodRequestDTO, {
@@ -338,9 +370,18 @@ class BloodController {
                 socket: this.io,
             })
 
-            bloodRequestRepo.sendPushNotification({
+            const notificationData = await bloodRequestRepo.getNotificationData(
+                {
+                    user: request.user,
+                    requestId: id,
+                }
+            )
+
+            notificationRepo.sendBloodRequestNotification({
+                receivers: notificationData.receivers,
+                payload: notificationData.payload,
                 user: request.user,
-                requestId: id,
+                socket: this.io,
             })
 
             reply.send({
@@ -538,7 +579,7 @@ class BloodController {
         }
     }
 
-    static async deleteOneFoundation(request, reply) {
+    static async deleteFoundation(request, reply) {
         const { id } = request.params
         const { id: userId } = request.user
 

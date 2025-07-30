@@ -5,6 +5,8 @@ const { updateProfileSchema, passwordChangeSchema } = require('./index.schema')
 const bloodRoutes = require('./blood')
 const hospitalRoutes = require('./hospital')
 const diagnosticRoutes = require('./diagnostic')
+const doctorRoutes = require('./doctor')
+const notificationRoutes = require('./notification')
 
 module.exports = async function (fastify) {
     fastify.get('/', {
@@ -28,6 +30,8 @@ module.exports = async function (fastify) {
     fastify.register(bloodRoutes, { prefix: '/blood' })
     fastify.register(hospitalRoutes, { prefix: '/hospital' })
     fastify.register(diagnosticRoutes, { prefix: '/diagnostic' })
+    fastify.register(doctorRoutes, { prefix: '/doctor' })
+    fastify.register(notificationRoutes, { prefix: '/notification' })
 
     fastify.addHook('onRequest', auth) //Middleware
 }

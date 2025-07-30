@@ -28,7 +28,7 @@ module.exports = async (fastify) => {
             }
 
             socket.join(`district.${decoded.district}`)
-            socket.join(`user:${decoded.id}`)
+            socket.join(`user.${decoded.id}`)
         } catch (err) {
             console.error('Socket connection error:', err.message)
             socket.disconnect(true)
