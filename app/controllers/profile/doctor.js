@@ -257,13 +257,11 @@ class DoctorController {
                 }
             }
 
-            const availability = await doctorAvailabilityRepo.findAll({
-                where: {
-                    doctorId: doctor.id,
-                },
-            })
-
-            doctor.setDataValue('availability', availability || [])
+            const availability =
+                await doctorAvailabilityRepo.getAvailabilityByDoctorId(
+                    doctor.id
+                )
+            doctor.setDataValue('availability', availability || {})
             doctor.setDataValue(
                 'profilePictureUrl',
                 getFileUrl(doctor.profilePictureUrl || PLACEHOLDER_AVATAR)
@@ -342,6 +340,9 @@ class DoctorController {
                 categoryIds: uniq(request.body.categoryIds),
                 bmdcNumber: normalizeCode(
                     request.body.bmdcNumber || doctor.bmdcNumber
+                ),
+                profilePictureUrl: getFileFromPath(
+                    request.body.profilePictureUrl || doctor.profilePictureUrl
                 ),
             })
 
