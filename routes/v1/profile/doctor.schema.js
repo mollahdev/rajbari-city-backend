@@ -8,13 +8,13 @@ const availabilitySchema = (day) =>
     })
 
 const doctorSchema = yup.object({
-    bmdcNumber: yup.string().required('BMDC number is required'),
+    bmdcNumber: yup.string().trim().required('BMDC number is required'),
     categoryIds: yup
         .array()
         .of(yup.string().uuid('Invalid category ID'))
         .required('At least one category is required')
         .min(1, 'At least one category is required'),
-    name: yup.string().required('name is required'),
+    name: yup.string().trim().required('name is required'),
     education: yup.string().required('education is required'),
     mobile: yup.string().required('mobile is required'),
     dialCode: yup.string().default('880'),
