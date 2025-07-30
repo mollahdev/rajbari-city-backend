@@ -23,16 +23,16 @@ class AppController extends Controller {
             data: {
                 version: '0.0.6',
                 updateFor: ['android'], // ios, android, optional
-                updateType: 'force', // force, optional
+                updateType: 'optional', // force, optional
                 changeLog: ['বাগ ফিক্স করা হয়েছে'],
                 android: {
                     5: 'https://play.google.com/store/apps/details?id=com.flexlab.noakhalicity',
-                    25: 'https://play.google.com/store/apps/details?id=com.flexlab.kushtiacity',
+                    // 25: 'https://play.google.com/store/apps/details?id=com.flexlab.kushtiacity',
                     49: 'https://play.google.com/store/apps/details?id=com.flexlab.rajbaricity',
                 },
                 ios: {
                     5: '#',
-                    25: '#',
+                    // 25: '#',
                     49: '#',
                 },
             },
