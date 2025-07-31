@@ -1,4 +1,4 @@
-const { assign, uniq, isString } = require('lodash')
+const { assign, uniq, isString, trim, isEmpty } = require('lodash')
 const { Op } = require('@sequelize/core')
 /**
  * Internal dependencies
@@ -30,10 +30,15 @@ class DoctorController {
             const diagnosticRepo = new DiagnosticRepository()
             const doctorAvailabilityRepo = new DoctorAvailabilityRepository()
             const doctorDTO = new DoctorDTO()
+            const bmdcNumber = trim(request.body.bmdcNumber || '')
+
+            if (isEmpty(bmdcNumber)) {
+                throw new Error('BMDC number is required')
+            }
 
             const doctorExists = await doctorRepo.findOne({
                 where: {
-                    bmdcNumber: normalizeCode(request.body.bmdcNumber),
+                    bmdcNumber: normalizeCode(bmdcNumber),
                     location: request.body.location,
                 },
             })
@@ -87,7 +92,7 @@ class DoctorController {
                 userId,
                 district,
                 categoryIds: uniq(request.body.categoryIds),
-                bmdcNumber: normalizeCode(request.body.bmdcNumber),
+                bmdcNumber: normalizeCode(bmdcNumber),
                 profilePictureUrl: getFileFromPath(
                     request.body.profilePictureUrl
                 ),
@@ -294,6 +299,11 @@ class DoctorController {
             const diagnosticRepo = new DiagnosticRepository()
             const doctorDTO = new DoctorDTO()
             const categoryRepo = new CategoryRepository()
+            const bmdcNumber = trim(request.body.bmdcNumber || '')
+
+            if (isEmpty(bmdcNumber)) {
+                throw new Error('BMDC number is required')
+            }
 
             const doctor = await doctorRepo.findOne({
                 where: {
@@ -338,9 +348,7 @@ class DoctorController {
                 ...doctor.dataValues,
                 ...request.body,
                 categoryIds: uniq(request.body.categoryIds),
-                bmdcNumber: normalizeCode(
-                    request.body.bmdcNumber || doctor.bmdcNumber
-                ),
+                bmdcNumber: normalizeCode(bmdcNumber || doctor.bmdcNumber),
                 profilePictureUrl: getFileFromPath(
                     request.body.profilePictureUrl || doctor.profilePictureUrl
                 ),
