@@ -21,19 +21,24 @@ class AppController extends Controller {
         res.send({
             message: 'App information',
             data: {
-                version: '0.0.6',
+                version: '0.0.7',
                 updateFor: ['android'], // ios, android, optional
-                updateType: 'optional', // force, optional
-                changeLog: ['বাগ ফিক্স করা হয়েছে'],
+                updateType: 'force', // force, optional
+                changeLog: [
+                    'নোটিফিকেশন ফিচার যুক্ত করা হয়েছে',
+                    'ডাক্তার ফিচার যুক্ত করা হয়েছে',
+                    'ফাউন্ডেশন ডোনার উন্নত করা হয়েছে',
+                    'বাগ ফিক্স করা হয়েছে',
+                ],
                 android: {
-                    5: 'https://play.google.com/store/apps/details?id=com.flexlab.noakhalicity',
+                    // 5: 'https://play.google.com/store/apps/details?id=com.flexlab.noakhalicity',
                     // 25: 'https://play.google.com/store/apps/details?id=com.flexlab.kushtiacity',
                     49: 'https://play.google.com/store/apps/details?id=com.flexlab.rajbaricity',
                 },
                 ios: {
-                    5: '#',
+                    // 5: '#',
                     // 25: '#',
-                    49: '#',
+                    // 49: '#',
                 },
             },
         })
