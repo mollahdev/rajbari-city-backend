@@ -702,7 +702,7 @@ class BloodController {
             })
 
             reply.send({
-                message: 'Joined successfully',
+                message: 'Created successfully',
             })
         } catch (error) {
             Controller.handleError(reply, error)
