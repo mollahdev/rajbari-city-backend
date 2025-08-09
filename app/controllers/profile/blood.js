@@ -6,13 +6,11 @@ const { Op } = require('@sequelize/core')
 const BloodFoundationDTO = require('@/app/dtos/blood-foundation')
 const BloodDonorDTO = require('@/app/dtos/blood-donor')
 const BloodFoundationDonorDTO = require('@/app/dtos/blood-foundation-donor')
-const OrganizationUserDTO = require('@/app/dtos/organization-user')
 const BloodRequestDTO = require('@/app/dtos/blood-request')
 const BloodFoundationRepository = require('@/app/repositories/blood-foundation')
 const UserRepository = require('@/app/repositories/user')
 const BloodDonorRepository = require('@/app/repositories/blood-donor')
 const BloodFoundationDonorRepository = require('@/app/repositories/blood-foundation-donor')
-const OrganizationUserRepository = require('@/app/repositories/organization-user')
 const BloodRequestRepository = require('@/app/repositories/blood-request')
 const HospitalRepository = require('@/app/repositories/hospital')
 const DiagnosticRepository = require('@/app/repositories/diagnostic')
@@ -877,131 +875,6 @@ class BloodController {
             reply.send({
                 message: 'Donors fetched successfully',
                 data: donors,
-            })
-        } catch (error) {
-            Controller.handleError(reply, error)
-        }
-    }
-
-    static async getFoundationMemberList(request, reply) {
-        const { foundationId } = request.params
-
-        try {
-            const bloodDonorRepository = new BloodDonorRepository()
-            const organizationUserRepository = new OrganizationUserRepository()
-            const organizationDonors = await organizationUserRepository.findAll(
-                {
-                    where: {
-                        organizationId: foundationId,
-                        status: request.query.status || 'active',
-                    },
-                }
-            )
-
-            const organizationDonorIds = organizationDonors.map(
-                (donor) => donor.userId
-            )
-
-            const bloodDonors =
-                await bloodDonorRepository.getDonorByUserId(
-                    organizationDonorIds
-                )
-
-            bloodDonors.forEach((donor) => {
-                donor.setDataValue(
-                    'profilePictureUrl',
-                    getFileUrl(donor.profilePictureUrl || PLACEHOLDER_AVATAR)
-                )
-            })
-
-            reply.send({
-                message: 'Members fetched successfully',
-                data: orderBy(bloodDonors, ['createdAt'], ['desc']),
-            })
-        } catch (error) {
-            Controller.handleError(reply, error)
-        }
-    }
-
-    static async updateFoundationMember(request, reply) {
-        const { foundationId, memberId } = request.params
-        const { status, role } = request.body
-
-        try {
-            const organizationUserRepository = new OrganizationUserRepository()
-            const organizationUserDTO = new OrganizationUserDTO()
-            const bloodFoundationRepository = new BloodFoundationRepository()
-            const bloodFoundation = await bloodFoundationRepository.findOne({
-                where: {
-                    id: foundationId,
-                    userId: request.user.id,
-                },
-            })
-
-            if (!bloodFoundation) {
-                throw new Error('Access denied')
-            }
-
-            const organizationUser = await organizationUserRepository.findOne({
-                where: {
-                    userId: memberId,
-                    organizationId: foundationId,
-                },
-            })
-
-            if (!organizationUser) {
-                throw new Error('Member not found')
-            }
-
-            organizationUserDTO.status = status
-            organizationUserDTO.role = role
-
-            await organizationUserRepository.update(organizationUserDTO, {
-                where: { id: organizationUser.id },
-            })
-
-            reply.send({
-                message: 'Member updated successfully',
-            })
-        } catch (error) {
-            Controller.handleError(reply, error)
-        }
-    }
-
-    static async deleteFoundationMember(request, reply) {
-        const { foundationId, memberId } = request.params
-
-        try {
-            const organizationUserRepository = new OrganizationUserRepository()
-            const bloodFoundationRepository = new BloodFoundationRepository()
-            const bloodFoundation = await bloodFoundationRepository.findOne({
-                where: {
-                    id: foundationId,
-                    userId: request.user.id,
-                },
-            })
-
-            if (!bloodFoundation) {
-                throw new Error('Access denied')
-            }
-
-            const organizationUser = await organizationUserRepository.findOne({
-                where: {
-                    userId: memberId,
-                    organizationId: foundationId,
-                },
-            })
-
-            if (!organizationUser) {
-                throw new Error('Member not found')
-            }
-
-            await organizationUserRepository.destroy({
-                where: { id: organizationUser.id },
-            })
-
-            reply.send({
-                message: 'Member deleted successfully',
             })
         } catch (error) {
             Controller.handleError(reply, error)

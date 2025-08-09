@@ -9,7 +9,6 @@ const { Op, literal } = require('sequelize')
 const Controller = require('./controller')
 const BloodFoundationRepository = require('@/app/repositories/blood-foundation')
 const BloodFoundationDonorRepository = require('@/app/repositories/blood-foundation-donor')
-const OrganizationUserRepository = require('@/app/repositories/organization-user')
 const BloodDonorRepository = require('@/app/repositories/blood-donor')
 const BloodRequestRepository = require('@/app/repositories/blood-request')
 const UserRepository = require('@/app/repositories/user')
@@ -113,10 +112,8 @@ module.exports = class BloodController {
         const { id } = request.params
 
         try {
-            const bloodDonorRepository = new BloodDonorRepository()
             const foundationDonorRepository =
                 new BloodFoundationDonorRepository()
-            const organizationUserRepository = new OrganizationUserRepository()
 
             const foundationDonors = await foundationDonorRepository.findAll({
                 where: {
@@ -125,28 +122,8 @@ module.exports = class BloodController {
                 },
             })
 
-            const organizationDonors = await organizationUserRepository.findAll(
-                {
-                    where: {
-                        organizationId: id,
-                        status: 'active',
-                    },
-                }
-            )
-
-            const organizationDonorIds = organizationDonors.map(
-                (donor) => donor.userId
-            )
-
-            const bloodDonors =
-                await bloodDonorRepository.getDonorByUserId(
-                    organizationDonorIds
-                )
-
-            const donors = [...foundationDonors, ...bloodDonors]
             const finalDonors = []
-
-            donors.forEach((donor) => {
+            foundationDonors.forEach((donor) => {
                 donor.setDataValue(
                     'profilePictureUrl',
                     getFileUrl(donor.profilePictureUrl || PLACEHOLDER_AVATAR)
@@ -223,7 +200,6 @@ module.exports = class BloodController {
             const result = []
             donors.forEach((donor) => {
                 const values = donor.dataValues
-
                 result.push({
                     id: values.userId,
                     name: values.donor.name,
@@ -243,56 +219,6 @@ module.exports = class BloodController {
             reply.send({
                 message: 'Donors fetched successfully',
                 data: orderBy(result, ['updatedAt'], ['desc']),
-            })
-        } catch (error) {
-            Controller.handleError(reply, error)
-        }
-    }
-
-    static async joinFoundation(request, reply) {
-        const { id } = request.params
-        const { id: userId } = request.user
-
-        try {
-            const foundationRepository = new BloodFoundationRepository()
-            const donorRepository = new BloodDonorRepository()
-            const organizationRepository = new OrganizationUserRepository()
-            const isDonor = await donorRepository.isExists(userId)
-            const isFoundation = await foundationRepository.isExists(id)
-
-            if (!isDonor || !isFoundation) {
-                throw new Error('Donor or foundation not found')
-            }
-
-            const result = await organizationRepository.createRequest(
-                userId,
-                id
-            )
-            const bloodDonors = await donorRepository.getDonorByUserId(userId)
-            const foundation = await foundationRepository.findOne({
-                where: { id },
-            })
-
-            bloodDonors.forEach((donor) => {
-                donor.setDataValue(
-                    'profilePictureUrl',
-                    getFileUrl(donor.profilePictureUrl || PLACEHOLDER_AVATAR)
-                )
-
-                donor.setDataValue('status', result.status)
-            })
-
-            // send real time data to foundation owner
-            this.io
-                .to(`user:${foundation.userId}`)
-                .emit(RECEIVE.FOUNDATION_JOIN_REQUEST, {
-                    foundationId: id,
-                    user: bloodDonors[0],
-                })
-
-            reply.send({
-                message: 'Joined successfully',
-                data: result,
             })
         } catch (error) {
             Controller.handleError(reply, error)

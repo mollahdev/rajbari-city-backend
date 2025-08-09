@@ -5,8 +5,6 @@ const {
     createDonorSchema,
     updateDonorSchema,
     foundationDonorSchema,
-    bloodFoundationMemberSchema,
-    bloodFoundationMemberStatusSchema,
     bloodFoundationDonorListSchema,
     createBloodRequestSchema,
     updateBloodRequestSchema,
@@ -102,19 +100,5 @@ module.exports = async function (routes) {
     routes.get('/foundation/:foundationId/donor-list', {
         preValidation: validateQuery(bloodFoundationDonorListSchema),
         handler: BloodController.getFoundationDonorList,
-    })
-
-    routes.get('/foundation/:foundationId/member-list', {
-        preValidation: validateQuery(bloodFoundationMemberSchema),
-        handler: BloodController.getFoundationMemberList,
-    })
-
-    routes.patch('/foundation/:foundationId/member/:memberId', {
-        preValidation: validateBody(bloodFoundationMemberStatusSchema),
-        handler: BloodController.updateFoundationMember,
-    })
-
-    routes.delete('/foundation/:foundationId/member/:memberId', {
-        handler: BloodController.deleteFoundationMember,
     })
 }

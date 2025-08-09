@@ -9,11 +9,6 @@ module.exports = (sequelize, DataTypes) => {
          * The `models/index` file will call this method automatically.
          */
         static associate(models) {
-            BloodFoundation.hasMany(models.OrganizationUser, {
-                foreignKey: 'organization_id',
-                as: 'members',
-            })
-
             BloodFoundation.hasMany(models.BloodFoundationDonor, {
                 foreignKey: 'foundation_id',
                 as: 'donors',
