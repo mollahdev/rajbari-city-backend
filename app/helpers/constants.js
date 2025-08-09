@@ -13,8 +13,17 @@ const ROLES = Object.freeze({
     GUEST: 'guest', // limited access
 })
 
+const ROLE_PRIORITY = [
+    ROLES.OWNER,
+    ROLES.ADMIN,
+    ROLES.EDITOR,
+    ROLES.USER,
+    ROLES.GUEST,
+]
+
 module.exports = {
     ROLES,
+    ROLE_PRIORITY,
     DATE_TIME_FORMAT,
     DATE_FORMAT,
     TIME_FORMAT,

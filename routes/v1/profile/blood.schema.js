@@ -145,6 +145,32 @@ const createBloodRequestSchema = yup.object({
 
 const updateBloodRequestSchema = createBloodRequestSchema
 
+const inviteForFoundationAccessSchema = yup.object({
+    userId: yup.string().required('userId is required'),
+    foundationId: yup.string().required('foundationId is required'),
+    role: yup
+        .string()
+        .oneOf(
+            ['owner', 'admin', 'editor'],
+            'role must be either owner, admin, or editor'
+        )
+        .required('role is required'),
+})
+
+const updateFoundationAccessSchema = yup.object({
+    role: yup
+        .string()
+        .oneOf(
+            ['owner', 'admin', 'editor'],
+            'role must be either owner, admin, or editor'
+        )
+        .required('role is required'),
+    status: yup
+        .string()
+        .oneOf(['active', 'inactive'])
+        .required('status is required'),
+})
+
 module.exports = {
     foundationCreateSchema,
     foundationUpdateSchema,
@@ -153,5 +179,7 @@ module.exports = {
     foundationDonorSchema,
     bloodFoundationDonorListSchema,
     createBloodRequestSchema,
+    inviteForFoundationAccessSchema,
     updateBloodRequestSchema,
+    updateFoundationAccessSchema,
 }

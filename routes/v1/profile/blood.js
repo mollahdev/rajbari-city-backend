@@ -8,6 +8,8 @@ const {
     bloodFoundationDonorListSchema,
     createBloodRequestSchema,
     updateBloodRequestSchema,
+    inviteForFoundationAccessSchema,
+    updateFoundationAccessSchema,
 } = require('./blood.schema')
 
 const { validateBody, validateQuery } = require('@/app/helpers/validation')
@@ -100,5 +102,23 @@ module.exports = async function (routes) {
     routes.get('/foundation/:foundationId/donor-list', {
         preValidation: validateQuery(bloodFoundationDonorListSchema),
         handler: BloodController.getFoundationDonorList,
+    })
+
+    routes.post('/foundation/access/invite', {
+        preValidation: validateBody(inviteForFoundationAccessSchema),
+        handler: BloodController.shareFoundationAccess,
+    })
+
+    routes.patch('/foundation/access/:id', {
+        preValidation: validateBody(updateFoundationAccessSchema),
+        handler: BloodController.updateFoundationAccess,
+    })
+
+    routes.delete('/foundation/access/:id', {
+        handler: BloodController.deleteFoundationAccess,
+    })
+
+    routes.get('/foundation/:foundationId/access-list', {
+        handler: BloodController.getFoundationAccessList,
     })
 }

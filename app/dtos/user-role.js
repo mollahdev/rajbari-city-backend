@@ -5,6 +5,7 @@ class UserRoleDTO extends DTO {
     userId
     createdBy
     organizationId
+    organizationType
     role
     status
 }

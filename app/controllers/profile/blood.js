@@ -1,4 +1,4 @@
-const { assign, orderBy, isString, isEmpty } = require('lodash')
+const { assign, isString, isEmpty } = require('lodash')
 const { Op } = require('@sequelize/core')
 /**
  * Internal dependencies
@@ -16,11 +16,19 @@ const HospitalRepository = require('@/app/repositories/hospital')
 const DiagnosticRepository = require('@/app/repositories/diagnostic')
 const NotificationRepository = require('@/app/repositories/notification')
 const Controller = require('@/app/controllers/controller')
+const UserRoleRepository = require('@/app/repositories/user-role')
+const UserRoleDTO = require('@/app/dtos/user-role')
 
-const { getFileUrl, getFileFromPath, isPastDate } = require('@/app/helpers')
+const {
+    getFileUrl,
+    getFileFromPath,
+    isPastDate,
+    isRoleHigher,
+} = require('@/app/helpers')
 const {
     PLACEHOLDER_IMAGE,
     PLACEHOLDER_AVATAR,
+    ROLES,
 } = require('@/app/helpers/constants')
 
 class BloodController {
@@ -179,6 +187,10 @@ class BloodController {
                     requestId: response.id,
                 }
             )
+
+            if (!notificationData.payload) {
+                throw new Error('Request not found or expired')
+            }
 
             notificationRepo.sendBloodRequestNotification({
                 receivers: notificationData.receivers,
@@ -875,6 +887,276 @@ class BloodController {
             reply.send({
                 message: 'Donors fetched successfully',
                 data: donors,
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    static async shareFoundationAccess(request, reply) {
+        const { id: currentUserId } = request.user
+        const { userId, role, foundationId } = request.body
+
+        try {
+            const roleRepo = new UserRoleRepository()
+            const foundationRepo = new BloodFoundationRepository()
+            const userRepository = new UserRepository()
+            const userRoleDTO = new UserRoleDTO()
+            const notificationRepo = new NotificationRepository()
+
+            const currentUserRole = await foundationRepo.getUserRoleStatus({
+                userId: currentUserId,
+                foundationId,
+            })
+
+            if (
+                !currentUserRole ||
+                'active' !== currentUserRole.status ||
+                ![ROLES.OWNER, ROLES.ADMIN].includes(currentUserRole.role)
+            ) {
+                throw new Error('Unauthorized action')
+            }
+
+            if (isRoleHigher(role, currentUserRole.role)) {
+                throw new Error('Not allowed to share higher role access')
+            }
+
+            const alreadyExists = await roleRepo.findOne({
+                where: {
+                    userId,
+                    organizationId: foundationId,
+                },
+            })
+
+            if (alreadyExists) {
+                if (['pending', 'rejected'].includes(alreadyExists.status)) {
+                    // delete the existing role
+                    await roleRepo.destroy({
+                        where: {
+                            userId,
+                            organizationId: foundationId,
+                        },
+                    })
+                } else {
+                    throw new Error(
+                        'User already has access to this foundation'
+                    )
+                }
+            }
+
+            // Check if the foundation exists
+            const foundation = await foundationRepo.findOne({
+                where: {
+                    id: foundationId,
+                    userId: currentUserId,
+                },
+            })
+
+            if (!foundation) {
+                throw new Error('Foundation not found')
+            }
+
+            // Check if the user exists
+            const user = await userRepository.findOne({
+                where: {
+                    id: userId,
+                },
+            })
+
+            if (!user) {
+                throw new Error('User not found')
+            }
+
+            const currentUserData = await userRepository.findOne({
+                where: {
+                    id: currentUserId,
+                },
+            })
+
+            assign(userRoleDTO, {
+                userId,
+                createdBy: currentUserId,
+                organizationId: foundationId,
+                organizationType: 'blood_foundation',
+                role,
+                status: 'pending',
+            })
+
+            const response = await roleRepo.create(userRoleDTO)
+            await roleRepo.socketUpdateUserRole({
+                userRoleId: response.id,
+                socket: this.io,
+            })
+
+            notificationRepo.sendAccessInvitationNotification({
+                receivers: [userId],
+                payload: {
+                    role,
+                    organizationName: foundation.name,
+                    accessId: response.id,
+                },
+                user: currentUserData,
+                socket: this.io,
+            })
+
+            reply.send({
+                message: 'Access shared successfully',
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    static async updateFoundationAccess(request, reply) {
+        const { id: userId } = request.user
+        const { id } = request.params
+
+        try {
+            const roleRepo = new UserRoleRepository()
+            const foundationRepo = new BloodFoundationRepository()
+            const userRoleDTO = new UserRoleDTO()
+
+            const userRole = await roleRepo.findOne({
+                where: {
+                    id,
+                },
+            })
+
+            if (!userRole) {
+                throw new Error('Access invitation not found')
+            }
+
+            const currentUserRole = await foundationRepo.getUserRoleStatus({
+                userId,
+                foundationId: userRole.organizationId,
+            })
+
+            if (
+                !currentUserRole ||
+                'active' !== currentUserRole.status ||
+                ![ROLES.OWNER, ROLES.ADMIN].includes(currentUserRole.role)
+            ) {
+                throw new Error('Unauthorized action')
+            }
+
+            assign(userRoleDTO, {
+                ...userRole.dataValues,
+                ...request.body,
+            })
+
+            if (isRoleHigher(userRoleDTO.role, currentUserRole.role)) {
+                throw new Error('Not allowed to update higher role access')
+            }
+
+            await roleRepo.update(userRoleDTO, { where: { id } })
+            await roleRepo.socketUpdateUserRole({
+                userRoleId: id,
+                socket: this.io,
+            })
+
+            reply.send({
+                message: 'Access updated successfully',
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    static async deleteFoundationAccess(request, reply) {
+        const { id: userId } = request.user
+        const { id } = request.params
+
+        try {
+            const roleRepo = new UserRoleRepository()
+            const foundationRepo = new BloodFoundationRepository()
+
+            const userRole = await roleRepo.findOne({
+                where: {
+                    id,
+                },
+            })
+
+            if (!userRole) {
+                throw new Error('Access invitation not found')
+            }
+
+            const currentUserRole = await foundationRepo.getUserRoleStatus({
+                userId,
+                foundationId: userRole.organizationId,
+            })
+
+            if (
+                !currentUserRole ||
+                'active' !== currentUserRole.status ||
+                ![ROLES.OWNER, ROLES.ADMIN].includes(currentUserRole.role)
+            ) {
+                throw new Error('Unauthorized action')
+            }
+
+            if (isRoleHigher(userRole.role, currentUserRole.role)) {
+                throw new Error('Not allowed to delete higher role access')
+            }
+
+            await roleRepo.destroy({
+                where: {
+                    id,
+                },
+            })
+
+            await roleRepo.socketDeleteUserRole({
+                deletedRole: userRole,
+                socket: this.io,
+            })
+
+            reply.send({
+                message: 'Access deleted successfully',
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    static async getFoundationAccessList(request, reply) {
+        const { id: userId } = request.user
+        const { foundationId } = request.params
+
+        try {
+            const roleRepo = new UserRoleRepository()
+            const foundationRepo = new BloodFoundationRepository()
+            const currentUserRole = await foundationRepo.getUserRoleStatus({
+                userId,
+                foundationId,
+            })
+
+            if (
+                !currentUserRole ||
+                'active' !== currentUserRole.status ||
+                ![ROLES.OWNER, ROLES.ADMIN].includes(currentUserRole.role)
+            ) {
+                throw new Error('Unauthorized action')
+            }
+
+            // Check if the foundation exists
+            const foundation = await foundationRepo.findOne({
+                where: {
+                    id: foundationId,
+                },
+            })
+
+            if (!foundation) {
+                throw new Error('Foundation not found')
+            }
+
+            const roles = await roleRepo.findAll({
+                where: {
+                    organizationId: foundationId,
+                },
+                order: [['createdAt', 'DESC']],
+            })
+
+            reply.send({
+                message: 'Access list fetched successfully',
+                data: roles,
             })
         } catch (error) {
             Controller.handleError(reply, error)

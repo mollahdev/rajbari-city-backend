@@ -45,6 +45,10 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.UUID,
                 allowNull: false,
             },
+            organizationType: {
+                type: DataTypes.STRING,
+                allowNull: false,
+            },
             role: {
                 type: DataTypes.ENUM(
                     'owner',

@@ -6,6 +6,7 @@ const utc = require('dayjs/plugin/utc')
 const timezone = require('dayjs/plugin/timezone')
 const customParseFormat = require('dayjs/plugin/customParseFormat')
 const { isString } = require('lodash')
+const { ROLE_PRIORITY, ROLES } = require('./constants')
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -112,6 +113,23 @@ function getDateTimeAdd(days, unit = 'day') {
     return dayjs().tz(TIMEZONE).add(days, unit).format(DATE_TIME_FORMAT)
 }
 
+function isRoleHigher(role1, role2, isEqual = false) {
+    const role1Index = ROLE_PRIORITY.indexOf(role1)
+    const role2Index = ROLE_PRIORITY.indexOf(role2)
+    return isEqual ? role1Index <= role2Index : role1Index < role2Index
+}
+
+function banglaRole(role) {
+    const roles = {
+        [ROLES.OWNER]: 'মালিক',
+        [ROLES.ADMIN]: 'প্রশাসক',
+        [ROLES.EDITOR]: 'সম্পাদক',
+        [ROLES.USER]: 'ব্যবহারকারী',
+        [ROLES.GUEST]: 'অতিথি',
+    }
+    return roles[role] || role
+}
+
 module.exports = {
     now,
     getPaginationObject,
@@ -126,4 +144,6 @@ module.exports = {
     convertToTimeFormat,
     isValidTimeFormat,
     normalizeCode,
+    isRoleHigher,
+    banglaRole,
 }
