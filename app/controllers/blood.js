@@ -30,7 +30,7 @@ module.exports = class BloodController {
 
         try {
             const foundationRepository = new BloodFoundationRepository()
-            const foundations = await foundationRepository.findAllFoundation({
+            const foundations = await foundationRepository.findAll({
                 where: {
                     district,
                     status: 'active',

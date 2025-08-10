@@ -2,6 +2,7 @@
  * External dependencies
  */
 const { isEmpty } = require('lodash')
+const { Op } = require('@sequelize/core')
 /**
  * Internal dependencies
  */
@@ -20,10 +21,6 @@ module.exports = class BloodFoundationRepository extends RepositoryBase {
         })
 
         return !isEmpty(result)
-    }
-
-    async findAllFoundation(query) {
-        return await this.model.findAll(query)
     }
 
     async getUserRoleStatus({ userId, foundationId }) {

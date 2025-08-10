@@ -445,9 +445,19 @@ class BloodController {
 
         try {
             const foundationRepository = new BloodFoundationRepository()
-            const foundations = await foundationRepository.findAllFoundation({
+            const userRoleRepo = new UserRoleRepository()
+            const userRoles = await userRoleRepo.findAll({
                 where: {
                     userId,
+                    organizationType: 'blood_foundation',
+                    status: 'active',
+                },
+            })
+
+            const organizationIds = userRoles.map((role) => role.organizationId)
+            const foundations = await foundationRepository.findAll({
+                where: {
+                    [Op.or]: [{ userId }, { id: { [Op.in]: organizationIds } }],
                 },
                 order: [['createdAt', 'DESC']],
             })
@@ -474,7 +484,7 @@ class BloodController {
             })
 
             reply.send({
-                message: 'Foundations fetched successfully',
+                message: 'Successful',
                 data: foundations,
             })
         } catch (error) {
@@ -492,11 +502,27 @@ class BloodController {
             }
 
             const foundationRepository = new BloodFoundationRepository()
-            const foundation = await foundationRepository.findOne({
+            const userRoleRepo = new UserRoleRepository()
+            const userRole = await userRoleRepo.findOne({
                 where: {
-                    id,
                     userId,
+                    organizationId: id,
+                    organizationType: 'blood_foundation',
+                    status: 'active',
                 },
+            })
+
+            const foundationTableWhere = {}
+
+            if (userRole) {
+                foundationTableWhere.id = id
+            } else {
+                foundationTableWhere.userId = userId
+                foundationTableWhere.id = id
+            }
+
+            const foundation = await foundationRepository.findOne({
+                where: foundationTableWhere,
             })
 
             if (!foundation) {
@@ -541,11 +567,27 @@ class BloodController {
             }
 
             const foundationRepository = new BloodFoundationRepository()
-            const foundation = await foundationRepository.findOne({
+            const userRoleRepo = new UserRoleRepository()
+            const userRole = await userRoleRepo.findOne({
                 where: {
-                    id: foundationId,
-                    userId: userId,
+                    userId,
+                    organizationId: foundationId,
+                    organizationType: 'blood_foundation',
+                    status: 'active',
                 },
+            })
+
+            const foundationTableWhere = {}
+
+            if (userRole) {
+                foundationTableWhere.id = foundationId
+            } else {
+                foundationTableWhere.userId = userId
+                foundationTableWhere.id = foundationId
+            }
+
+            const foundation = await foundationRepository.findOne({
+                where: foundationTableWhere,
             })
 
             if (!foundation) {
@@ -578,7 +620,7 @@ class BloodController {
             }
 
             await foundationRepository.update(foundationDTO, {
-                where: { id: foundationId, userId },
+                where: { id: foundationId },
             })
 
             reply.send({
@@ -599,8 +641,30 @@ class BloodController {
             }
 
             const foundationRepository = new BloodFoundationRepository()
+            const userRoleRepo = new UserRoleRepository()
+            const userRole = await userRoleRepo.findOne({
+                where: {
+                    userId,
+                    organizationId: id,
+                    organizationType: 'blood_foundation',
+                    status: 'active',
+                    role: {
+                        [Op.in]: [ROLES.OWNER, ROLES.ADMIN],
+                    },
+                },
+            })
+
+            const foundationTableWhere = {}
+
+            if (userRole) {
+                foundationTableWhere.id = id
+            } else {
+                foundationTableWhere.userId = userId
+                foundationTableWhere.id = id
+            }
+
             const foundation = await foundationRepository.findOne({
-                where: { id, userId },
+                where: foundationTableWhere,
             })
 
             if (!foundation) {
@@ -608,7 +672,7 @@ class BloodController {
             }
 
             await foundationRepository.destroy({
-                where: { id, userId },
+                where: { id },
             })
 
             reply.send({
@@ -677,8 +741,30 @@ class BloodController {
             const foundationDTO = new BloodFoundationDTO()
             const donorRepository = new BloodFoundationDonorRepository()
             const foundationRepository = new BloodFoundationRepository()
+            const userRoleRepo = new UserRoleRepository()
+            const userRole = await userRoleRepo.findOne({
+                where: {
+                    userId,
+                    organizationId: id,
+                    organizationType: 'blood_foundation',
+                    status: 'active',
+                    role: {
+                        [Op.in]: [ROLES.OWNER, ROLES.ADMIN],
+                    },
+                },
+            })
+
+            const foundationTableWhere = {}
+
+            if (userRole) {
+                foundationTableWhere.id = id
+            } else {
+                foundationTableWhere.userId = userId
+                foundationTableWhere.id = id
+            }
+
             const foundation = await foundationRepository.findOne({
-                where: { id, userId },
+                where: foundationTableWhere,
             })
 
             if (!foundation) {
@@ -708,7 +794,7 @@ class BloodController {
             })
 
             await foundationRepository.update(foundationDTO, {
-                where: { id, userId },
+                where: { id },
             })
 
             reply.send({
@@ -728,8 +814,27 @@ class BloodController {
             const foundationDTO = new BloodFoundationDTO()
             const donorRepository = new BloodFoundationDonorRepository()
             const foundationRepository = new BloodFoundationRepository()
+            const userRoleRepo = new UserRoleRepository()
+            const userRole = await userRoleRepo.findOne({
+                where: {
+                    userId,
+                    organizationId: foundationId,
+                    organizationType: 'blood_foundation',
+                    status: 'active',
+                },
+            })
+
+            const foundationTableWhere = {}
+
+            if (userRole) {
+                foundationTableWhere.id = foundationId
+            } else {
+                foundationTableWhere.userId = userId
+                foundationTableWhere.id = foundationId
+            }
+
             const foundation = await foundationRepository.findOne({
-                where: { id: foundationId, userId },
+                where: foundationTableWhere,
             })
 
             if (!foundation) {
@@ -778,7 +883,7 @@ class BloodController {
             })
 
             await foundationRepository.update(foundationDTO, {
-                where: { id: foundationId, userId },
+                where: { id: foundationId },
             })
 
             reply.send({
@@ -797,8 +902,31 @@ class BloodController {
             const foundationDTO = new BloodFoundationDTO()
             const donorRepository = new BloodFoundationDonorRepository()
             const foundationRepository = new BloodFoundationRepository()
+            const userRoleRepo = new UserRoleRepository()
+
+            const userRole = await userRoleRepo.findOne({
+                where: {
+                    userId,
+                    organizationId: foundationId,
+                    organizationType: 'blood_foundation',
+                    status: 'active',
+                    role: {
+                        [Op.in]: [ROLES.OWNER, ROLES.ADMIN],
+                    },
+                },
+            })
+
+            const foundationTableWhere = {}
+
+            if (userRole) {
+                foundationTableWhere.id = foundationId
+            } else {
+                foundationTableWhere.userId = userId
+                foundationTableWhere.id = foundationId
+            }
+
             const foundation = await foundationRepository.findOne({
-                where: { id: foundationId, userId },
+                where: foundationTableWhere,
             })
 
             if (!foundation) {
@@ -822,7 +950,7 @@ class BloodController {
             })
 
             await foundationRepository.update(foundationDTO, {
-                where: { id: foundationId, userId },
+                where: { id: foundationId },
             })
 
             reply.send({
@@ -840,8 +968,28 @@ class BloodController {
         try {
             const donorRepository = new BloodFoundationDonorRepository()
             const foundationRepository = new BloodFoundationRepository()
+            const userRoleRepo = new UserRoleRepository()
+
+            const userRole = await userRoleRepo.findOne({
+                where: {
+                    userId,
+                    organizationId: foundationId,
+                    organizationType: 'blood_foundation',
+                    status: 'active',
+                },
+            })
+
+            const foundationTableWhere = {}
+
+            if (userRole) {
+                foundationTableWhere.id = foundationId
+            } else {
+                foundationTableWhere.userId = userId
+                foundationTableWhere.id = foundationId
+            }
+
             const foundation = await foundationRepository.findOne({
-                where: { id: foundationId, userId },
+                where: foundationTableWhere,
             })
 
             if (!foundation) {
