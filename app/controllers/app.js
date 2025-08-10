@@ -32,13 +32,13 @@ class AppController extends Controller {
                 ],
                 android: {
                     5: 'https://play.google.com/store/apps/details?id=com.flexlab.noakhalicity',
-                    // 25: 'https://play.google.com/store/apps/details?id=com.flexlab.kushtiacity',
+                    25: 'https://play.google.com/store/apps/details?id=com.flexlab.kushtiacity',
                     49: 'https://play.google.com/store/apps/details?id=com.flexlab.rajbaricity',
                 },
                 ios: {
-                    // 5: '#',
-                    // 25: '#',
-                    // 49: '#',
+                    5: '#',
+                    25: '#',
+                    49: '#',
                 },
             },
         })
