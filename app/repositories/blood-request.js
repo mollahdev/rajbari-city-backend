@@ -7,10 +7,14 @@ const BloodDonorRepository = require('@/app/repositories/blood-donor')
 const HospitalRepository = require('@/app/repositories/hospital')
 const BloodFoundationRepository = require('@/app/repositories/blood-foundation')
 const DiagnosticRepository = require('@/app/repositories/diagnostic')
+const UserRoleRepository = require('@/app/repositories/user-role')
+
 const { getFileUrl, isPastDate } = require('@/app/helpers')
 const { PLACEHOLDER_AVATAR } = require('@/app/helpers/constants')
 const { RECEIVE } = require('@/socket/events')
 const { Op } = require('sequelize')
+const { uniq } = require('lodash')
+
 module.exports = class BloodRequestRepository extends RepositoryBase {
     constructor() {
         super('BloodRequest')
@@ -124,6 +128,7 @@ module.exports = class BloodRequestRepository extends RepositoryBase {
             const bloodDonorRepo = new BloodDonorRepository()
             const userRepo = new UserRepository()
             const bloodFoundationRepo = new BloodFoundationRepository()
+            const userRoleRepo = new UserRoleRepository()
 
             const donors = await bloodDonorRepo.findAll({
                 // where: {
@@ -142,19 +147,34 @@ module.exports = class BloodRequestRepository extends RepositoryBase {
             })
 
             const donorUserIds = donors.map((donor) => donor.userId)
+            const foundationIds = foundations.map((foundation) => foundation.id)
+
+            const userRoles = await userRoleRepo.findAll({
+                where: {
+                    organizationId: {
+                        [Op.in]: foundationIds,
+                    },
+                    status: 'active',
+                },
+                attributes: ['userId'],
+            })
+
             const foundationUserIds = foundations.map(
                 (foundation) => foundation.userId
             )
 
+            const foundationRoleUserIds = userRoles.map((role) => role.userId)
+
             const targetUserIds = [
                 ...donorUserIds,
                 ...foundationUserIds,
+                ...foundationRoleUserIds,
             ].filter((id) => id !== user.id)
 
             const users = await userRepo.findAll({
                 where: {
                     id: {
-                        [Op.in]: targetUserIds,
+                        [Op.in]: uniq(targetUserIds),
                     },
                     district: user.district,
                 },
