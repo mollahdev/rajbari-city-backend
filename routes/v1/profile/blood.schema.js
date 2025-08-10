@@ -106,20 +106,6 @@ const foundationDonorSchema = donorBaseSchema.shape({
     profilePictureUrl: yup.string().nullable(),
 })
 
-const bloodFoundationMemberSchema = yup.object({
-    status: yup.lazy((value) => {
-        if (Array.isArray(value)) {
-            return yup.array().of(yup.string().oneOf(['active', 'pending']))
-        }
-        return yup.string().oneOf(['active', 'pending'])
-    }),
-})
-
-const bloodFoundationMemberStatusSchema = yup.object({
-    status: yup.string().oneOf(['active', 'inactive', 'pending', 'blocked']),
-    role: yup.string().oneOf(['admin', 'member', 'owner']),
-})
-
 const bloodFoundationDonorListSchema = yup.object({
     bloodGroup: yup
         .string()
@@ -159,15 +145,41 @@ const createBloodRequestSchema = yup.object({
 
 const updateBloodRequestSchema = createBloodRequestSchema
 
+const inviteForFoundationAccessSchema = yup.object({
+    userId: yup.string().required('userId is required'),
+    foundationId: yup.string().required('foundationId is required'),
+    role: yup
+        .string()
+        .oneOf(
+            ['owner', 'admin', 'editor'],
+            'role must be either owner, admin, or editor'
+        )
+        .required('role is required'),
+})
+
+const updateFoundationAccessSchema = yup.object({
+    role: yup
+        .string()
+        .oneOf(
+            ['owner', 'admin', 'editor'],
+            'role must be either owner, admin, or editor'
+        )
+        .required('role is required'),
+    status: yup
+        .string()
+        .oneOf(['active', 'inactive'])
+        .required('status is required'),
+})
+
 module.exports = {
     foundationCreateSchema,
     foundationUpdateSchema,
     createDonorSchema,
     updateDonorSchema,
     foundationDonorSchema,
-    bloodFoundationMemberSchema,
-    bloodFoundationMemberStatusSchema,
     bloodFoundationDonorListSchema,
     createBloodRequestSchema,
+    inviteForFoundationAccessSchema,
     updateBloodRequestSchema,
+    updateFoundationAccessSchema,
 }

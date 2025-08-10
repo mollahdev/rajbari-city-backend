@@ -9,11 +9,6 @@ module.exports = (sequelize, DataTypes) => {
          * The `models/index` file will call this method automatically.
          */
         static associate(models) {
-            BloodFoundation.hasMany(models.OrganizationUser, {
-                foreignKey: 'organization_id',
-                as: 'members',
-            })
-
             BloodFoundation.hasMany(models.BloodFoundationDonor, {
                 foreignKey: 'foundation_id',
                 as: 'donors',
@@ -135,7 +130,7 @@ module.exports = (sequelize, DataTypes) => {
     )
 
     BloodFoundation.afterDestroy(async (data, options) => {
-        await sequelize.models.OrganizationUser.destroy({
+        await sequelize.models.UserRole.destroy({
             where: { organizationId: data.id },
         })
     })

@@ -37,10 +37,6 @@ module.exports = async function (routes) {
         handler: BloodController.getAllFoundationsDonors,
     })
 
-    routes.get('/foundation/:id/join', {
-        handler: BloodController.joinFoundation,
-    })
-
     routes.get('/donors', {
         preValidation: validateQuery(bloodDonorListSchema),
         handler: BloodController.getAllDonors,

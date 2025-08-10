@@ -1,4 +1,4 @@
-const { assign, orderBy, isString, isEmpty } = require('lodash')
+const { assign, isString, isEmpty } = require('lodash')
 const { Op } = require('@sequelize/core')
 /**
  * Internal dependencies
@@ -6,23 +6,29 @@ const { Op } = require('@sequelize/core')
 const BloodFoundationDTO = require('@/app/dtos/blood-foundation')
 const BloodDonorDTO = require('@/app/dtos/blood-donor')
 const BloodFoundationDonorDTO = require('@/app/dtos/blood-foundation-donor')
-const OrganizationUserDTO = require('@/app/dtos/organization-user')
 const BloodRequestDTO = require('@/app/dtos/blood-request')
 const BloodFoundationRepository = require('@/app/repositories/blood-foundation')
 const UserRepository = require('@/app/repositories/user')
 const BloodDonorRepository = require('@/app/repositories/blood-donor')
 const BloodFoundationDonorRepository = require('@/app/repositories/blood-foundation-donor')
-const OrganizationUserRepository = require('@/app/repositories/organization-user')
 const BloodRequestRepository = require('@/app/repositories/blood-request')
 const HospitalRepository = require('@/app/repositories/hospital')
 const DiagnosticRepository = require('@/app/repositories/diagnostic')
 const NotificationRepository = require('@/app/repositories/notification')
 const Controller = require('@/app/controllers/controller')
+const UserRoleRepository = require('@/app/repositories/user-role')
+const UserRoleDTO = require('@/app/dtos/user-role')
 
-const { getFileUrl, getFileFromPath, isPastDate } = require('@/app/helpers')
+const {
+    getFileUrl,
+    getFileFromPath,
+    isPastDate,
+    isRoleHigher,
+} = require('@/app/helpers')
 const {
     PLACEHOLDER_IMAGE,
     PLACEHOLDER_AVATAR,
+    ROLES,
 } = require('@/app/helpers/constants')
 
 class BloodController {
@@ -181,6 +187,10 @@ class BloodController {
                     requestId: response.id,
                 }
             )
+
+            if (!notificationData.payload) {
+                throw new Error('Request not found or expired')
+            }
 
             notificationRepo.sendBloodRequestNotification({
                 receivers: notificationData.receivers,
@@ -435,9 +445,19 @@ class BloodController {
 
         try {
             const foundationRepository = new BloodFoundationRepository()
-            const foundations = await foundationRepository.findAllFoundation({
+            const userRoleRepo = new UserRoleRepository()
+            const userRoles = await userRoleRepo.findAll({
                 where: {
                     userId,
+                    organizationType: 'blood_foundation',
+                    status: 'active',
+                },
+            })
+
+            const organizationIds = userRoles.map((role) => role.organizationId)
+            const foundations = await foundationRepository.findAll({
+                where: {
+                    [Op.or]: [{ userId }, { id: { [Op.in]: organizationIds } }],
                 },
                 order: [['createdAt', 'DESC']],
             })
@@ -464,7 +484,7 @@ class BloodController {
             })
 
             reply.send({
-                message: 'Foundations fetched successfully',
+                message: 'Successful',
                 data: foundations,
             })
         } catch (error) {
@@ -482,11 +502,27 @@ class BloodController {
             }
 
             const foundationRepository = new BloodFoundationRepository()
-            const foundation = await foundationRepository.findOne({
+            const userRoleRepo = new UserRoleRepository()
+            const userRole = await userRoleRepo.findOne({
                 where: {
-                    id,
                     userId,
+                    organizationId: id,
+                    organizationType: 'blood_foundation',
+                    status: 'active',
                 },
+            })
+
+            const foundationTableWhere = {}
+
+            if (userRole) {
+                foundationTableWhere.id = id
+            } else {
+                foundationTableWhere.userId = userId
+                foundationTableWhere.id = id
+            }
+
+            const foundation = await foundationRepository.findOne({
+                where: foundationTableWhere,
             })
 
             if (!foundation) {
@@ -531,11 +567,27 @@ class BloodController {
             }
 
             const foundationRepository = new BloodFoundationRepository()
-            const foundation = await foundationRepository.findOne({
+            const userRoleRepo = new UserRoleRepository()
+            const userRole = await userRoleRepo.findOne({
                 where: {
-                    id: foundationId,
-                    userId: userId,
+                    userId,
+                    organizationId: foundationId,
+                    organizationType: 'blood_foundation',
+                    status: 'active',
                 },
+            })
+
+            const foundationTableWhere = {}
+
+            if (userRole) {
+                foundationTableWhere.id = foundationId
+            } else {
+                foundationTableWhere.userId = userId
+                foundationTableWhere.id = foundationId
+            }
+
+            const foundation = await foundationRepository.findOne({
+                where: foundationTableWhere,
             })
 
             if (!foundation) {
@@ -568,7 +620,7 @@ class BloodController {
             }
 
             await foundationRepository.update(foundationDTO, {
-                where: { id: foundationId, userId },
+                where: { id: foundationId },
             })
 
             reply.send({
@@ -589,8 +641,30 @@ class BloodController {
             }
 
             const foundationRepository = new BloodFoundationRepository()
+            const userRoleRepo = new UserRoleRepository()
+            const userRole = await userRoleRepo.findOne({
+                where: {
+                    userId,
+                    organizationId: id,
+                    organizationType: 'blood_foundation',
+                    status: 'active',
+                    role: {
+                        [Op.in]: [ROLES.OWNER, ROLES.ADMIN],
+                    },
+                },
+            })
+
+            const foundationTableWhere = {}
+
+            if (userRole) {
+                foundationTableWhere.id = id
+            } else {
+                foundationTableWhere.userId = userId
+                foundationTableWhere.id = id
+            }
+
             const foundation = await foundationRepository.findOne({
-                where: { id, userId },
+                where: foundationTableWhere,
             })
 
             if (!foundation) {
@@ -598,7 +672,7 @@ class BloodController {
             }
 
             await foundationRepository.destroy({
-                where: { id, userId },
+                where: { id },
             })
 
             reply.send({
@@ -667,8 +741,30 @@ class BloodController {
             const foundationDTO = new BloodFoundationDTO()
             const donorRepository = new BloodFoundationDonorRepository()
             const foundationRepository = new BloodFoundationRepository()
+            const userRoleRepo = new UserRoleRepository()
+            const userRole = await userRoleRepo.findOne({
+                where: {
+                    userId,
+                    organizationId: id,
+                    organizationType: 'blood_foundation',
+                    status: 'active',
+                    role: {
+                        [Op.in]: [ROLES.OWNER, ROLES.ADMIN],
+                    },
+                },
+            })
+
+            const foundationTableWhere = {}
+
+            if (userRole) {
+                foundationTableWhere.id = id
+            } else {
+                foundationTableWhere.userId = userId
+                foundationTableWhere.id = id
+            }
+
             const foundation = await foundationRepository.findOne({
-                where: { id, userId },
+                where: foundationTableWhere,
             })
 
             if (!foundation) {
@@ -698,11 +794,11 @@ class BloodController {
             })
 
             await foundationRepository.update(foundationDTO, {
-                where: { id, userId },
+                where: { id },
             })
 
             reply.send({
-                message: 'Joined successfully',
+                message: 'Created successfully',
             })
         } catch (error) {
             Controller.handleError(reply, error)
@@ -718,8 +814,27 @@ class BloodController {
             const foundationDTO = new BloodFoundationDTO()
             const donorRepository = new BloodFoundationDonorRepository()
             const foundationRepository = new BloodFoundationRepository()
+            const userRoleRepo = new UserRoleRepository()
+            const userRole = await userRoleRepo.findOne({
+                where: {
+                    userId,
+                    organizationId: foundationId,
+                    organizationType: 'blood_foundation',
+                    status: 'active',
+                },
+            })
+
+            const foundationTableWhere = {}
+
+            if (userRole) {
+                foundationTableWhere.id = foundationId
+            } else {
+                foundationTableWhere.userId = userId
+                foundationTableWhere.id = foundationId
+            }
+
             const foundation = await foundationRepository.findOne({
-                where: { id: foundationId, userId },
+                where: foundationTableWhere,
             })
 
             if (!foundation) {
@@ -768,7 +883,7 @@ class BloodController {
             })
 
             await foundationRepository.update(foundationDTO, {
-                where: { id: foundationId, userId },
+                where: { id: foundationId },
             })
 
             reply.send({
@@ -787,8 +902,31 @@ class BloodController {
             const foundationDTO = new BloodFoundationDTO()
             const donorRepository = new BloodFoundationDonorRepository()
             const foundationRepository = new BloodFoundationRepository()
+            const userRoleRepo = new UserRoleRepository()
+
+            const userRole = await userRoleRepo.findOne({
+                where: {
+                    userId,
+                    organizationId: foundationId,
+                    organizationType: 'blood_foundation',
+                    status: 'active',
+                    role: {
+                        [Op.in]: [ROLES.OWNER, ROLES.ADMIN],
+                    },
+                },
+            })
+
+            const foundationTableWhere = {}
+
+            if (userRole) {
+                foundationTableWhere.id = foundationId
+            } else {
+                foundationTableWhere.userId = userId
+                foundationTableWhere.id = foundationId
+            }
+
             const foundation = await foundationRepository.findOne({
-                where: { id: foundationId, userId },
+                where: foundationTableWhere,
             })
 
             if (!foundation) {
@@ -812,7 +950,7 @@ class BloodController {
             })
 
             await foundationRepository.update(foundationDTO, {
-                where: { id: foundationId, userId },
+                where: { id: foundationId },
             })
 
             reply.send({
@@ -830,8 +968,28 @@ class BloodController {
         try {
             const donorRepository = new BloodFoundationDonorRepository()
             const foundationRepository = new BloodFoundationRepository()
+            const userRoleRepo = new UserRoleRepository()
+
+            const userRole = await userRoleRepo.findOne({
+                where: {
+                    userId,
+                    organizationId: foundationId,
+                    organizationType: 'blood_foundation',
+                    status: 'active',
+                },
+            })
+
+            const foundationTableWhere = {}
+
+            if (userRole) {
+                foundationTableWhere.id = foundationId
+            } else {
+                foundationTableWhere.userId = userId
+                foundationTableWhere.id = foundationId
+            }
+
             const foundation = await foundationRepository.findOne({
-                where: { id: foundationId, userId },
+                where: foundationTableWhere,
             })
 
             if (!foundation) {
@@ -883,125 +1041,270 @@ class BloodController {
         }
     }
 
-    static async getFoundationMemberList(request, reply) {
+    static async shareFoundationAccess(request, reply) {
+        const { id: currentUserId } = request.user
+        const { userId, role, foundationId } = request.body
+
+        try {
+            const roleRepo = new UserRoleRepository()
+            const foundationRepo = new BloodFoundationRepository()
+            const userRepository = new UserRepository()
+            const userRoleDTO = new UserRoleDTO()
+            const notificationRepo = new NotificationRepository()
+
+            const currentUserRole = await foundationRepo.getUserRoleStatus({
+                userId: currentUserId,
+                foundationId,
+            })
+
+            if (
+                !currentUserRole ||
+                'active' !== currentUserRole.status ||
+                ![ROLES.OWNER, ROLES.ADMIN].includes(currentUserRole.role)
+            ) {
+                throw new Error('Unauthorized action')
+            }
+
+            if (isRoleHigher(role, currentUserRole.role)) {
+                throw new Error('Not allowed to share higher role access')
+            }
+
+            const alreadyExists = await roleRepo.findOne({
+                where: {
+                    userId,
+                    organizationId: foundationId,
+                },
+            })
+
+            if (alreadyExists) {
+                if (['pending', 'rejected'].includes(alreadyExists.status)) {
+                    // delete the existing role
+                    await roleRepo.destroy({
+                        where: {
+                            userId,
+                            organizationId: foundationId,
+                        },
+                    })
+                } else {
+                    throw new Error(
+                        'User already has access to this foundation'
+                    )
+                }
+            }
+
+            // Check if the foundation exists
+            const foundation = await foundationRepo.findOne({
+                where: {
+                    id: foundationId,
+                    userId: currentUserId,
+                },
+            })
+
+            if (!foundation) {
+                throw new Error('Foundation not found')
+            }
+
+            // Check if the user exists
+            const user = await userRepository.findOne({
+                where: {
+                    id: userId,
+                },
+            })
+
+            if (!user) {
+                throw new Error('User not found')
+            }
+
+            const currentUserData = await userRepository.findOne({
+                where: {
+                    id: currentUserId,
+                },
+            })
+
+            assign(userRoleDTO, {
+                userId,
+                createdBy: currentUserId,
+                organizationId: foundationId,
+                organizationType: 'blood_foundation',
+                role,
+                status: 'pending',
+            })
+
+            const response = await roleRepo.create(userRoleDTO)
+            await roleRepo.socketUpdateUserRole({
+                userRoleId: response.id,
+                socket: this.io,
+            })
+
+            notificationRepo.sendAccessInvitationNotification({
+                receivers: [userId],
+                payload: {
+                    role,
+                    organizationName: foundation.name,
+                    accessId: response.id,
+                },
+                user: currentUserData,
+                socket: this.io,
+            })
+
+            reply.send({
+                message: 'Access shared successfully',
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    static async updateFoundationAccess(request, reply) {
+        const { id: userId } = request.user
+        const { id } = request.params
+
+        try {
+            const roleRepo = new UserRoleRepository()
+            const foundationRepo = new BloodFoundationRepository()
+            const userRoleDTO = new UserRoleDTO()
+
+            const userRole = await roleRepo.findOne({
+                where: {
+                    id,
+                },
+            })
+
+            if (!userRole) {
+                throw new Error('Access invitation not found')
+            }
+
+            const currentUserRole = await foundationRepo.getUserRoleStatus({
+                userId,
+                foundationId: userRole.organizationId,
+            })
+
+            if (
+                !currentUserRole ||
+                'active' !== currentUserRole.status ||
+                ![ROLES.OWNER, ROLES.ADMIN].includes(currentUserRole.role)
+            ) {
+                throw new Error('Unauthorized action')
+            }
+
+            assign(userRoleDTO, {
+                ...userRole.dataValues,
+                ...request.body,
+            })
+
+            if (isRoleHigher(userRoleDTO.role, currentUserRole.role)) {
+                throw new Error('Not allowed to update higher role access')
+            }
+
+            await roleRepo.update(userRoleDTO, { where: { id } })
+            await roleRepo.socketUpdateUserRole({
+                userRoleId: id,
+                socket: this.io,
+            })
+
+            reply.send({
+                message: 'Access updated successfully',
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    static async deleteFoundationAccess(request, reply) {
+        const { id: userId } = request.user
+        const { id } = request.params
+
+        try {
+            const roleRepo = new UserRoleRepository()
+            const foundationRepo = new BloodFoundationRepository()
+
+            const userRole = await roleRepo.findOne({
+                where: {
+                    id,
+                },
+            })
+
+            if (!userRole) {
+                throw new Error('Access invitation not found')
+            }
+
+            const currentUserRole = await foundationRepo.getUserRoleStatus({
+                userId,
+                foundationId: userRole.organizationId,
+            })
+
+            if (
+                !currentUserRole ||
+                'active' !== currentUserRole.status ||
+                ![ROLES.OWNER, ROLES.ADMIN].includes(currentUserRole.role)
+            ) {
+                throw new Error('Unauthorized action')
+            }
+
+            if (isRoleHigher(userRole.role, currentUserRole.role)) {
+                throw new Error('Not allowed to delete higher role access')
+            }
+
+            await roleRepo.destroy({
+                where: {
+                    id,
+                },
+            })
+
+            await roleRepo.socketDeleteUserRole({
+                deletedRole: userRole,
+                socket: this.io,
+            })
+
+            reply.send({
+                message: 'Access deleted successfully',
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    static async getFoundationAccessList(request, reply) {
+        const { id: userId } = request.user
         const { foundationId } = request.params
 
         try {
-            const bloodDonorRepository = new BloodDonorRepository()
-            const organizationUserRepository = new OrganizationUserRepository()
-            const organizationDonors = await organizationUserRepository.findAll(
-                {
-                    where: {
-                        organizationId: foundationId,
-                        status: request.query.status || 'active',
-                    },
-                }
-            )
-
-            const organizationDonorIds = organizationDonors.map(
-                (donor) => donor.userId
-            )
-
-            const bloodDonors =
-                await bloodDonorRepository.getDonorByUserId(
-                    organizationDonorIds
-                )
-
-            bloodDonors.forEach((donor) => {
-                donor.setDataValue(
-                    'profilePictureUrl',
-                    getFileUrl(donor.profilePictureUrl || PLACEHOLDER_AVATAR)
-                )
+            const roleRepo = new UserRoleRepository()
+            const foundationRepo = new BloodFoundationRepository()
+            const currentUserRole = await foundationRepo.getUserRoleStatus({
+                userId,
+                foundationId,
             })
 
-            reply.send({
-                message: 'Members fetched successfully',
-                data: orderBy(bloodDonors, ['createdAt'], ['desc']),
-            })
-        } catch (error) {
-            Controller.handleError(reply, error)
-        }
-    }
+            if (
+                !currentUserRole ||
+                'active' !== currentUserRole.status ||
+                ![ROLES.OWNER, ROLES.ADMIN].includes(currentUserRole.role)
+            ) {
+                throw new Error('Unauthorized action')
+            }
 
-    static async updateFoundationMember(request, reply) {
-        const { foundationId, memberId } = request.params
-        const { status, role } = request.body
-
-        try {
-            const organizationUserRepository = new OrganizationUserRepository()
-            const organizationUserDTO = new OrganizationUserDTO()
-            const bloodFoundationRepository = new BloodFoundationRepository()
-            const bloodFoundation = await bloodFoundationRepository.findOne({
+            // Check if the foundation exists
+            const foundation = await foundationRepo.findOne({
                 where: {
                     id: foundationId,
-                    userId: request.user.id,
                 },
             })
 
-            if (!bloodFoundation) {
-                throw new Error('Access denied')
+            if (!foundation) {
+                throw new Error('Foundation not found')
             }
 
-            const organizationUser = await organizationUserRepository.findOne({
+            const roles = await roleRepo.findAll({
                 where: {
-                    userId: memberId,
                     organizationId: foundationId,
                 },
-            })
-
-            if (!organizationUser) {
-                throw new Error('Member not found')
-            }
-
-            organizationUserDTO.status = status
-            organizationUserDTO.role = role
-
-            await organizationUserRepository.update(organizationUserDTO, {
-                where: { id: organizationUser.id },
+                order: [['createdAt', 'DESC']],
             })
 
             reply.send({
-                message: 'Member updated successfully',
-            })
-        } catch (error) {
-            Controller.handleError(reply, error)
-        }
-    }
-
-    static async deleteFoundationMember(request, reply) {
-        const { foundationId, memberId } = request.params
-
-        try {
-            const organizationUserRepository = new OrganizationUserRepository()
-            const bloodFoundationRepository = new BloodFoundationRepository()
-            const bloodFoundation = await bloodFoundationRepository.findOne({
-                where: {
-                    id: foundationId,
-                    userId: request.user.id,
-                },
-            })
-
-            if (!bloodFoundation) {
-                throw new Error('Access denied')
-            }
-
-            const organizationUser = await organizationUserRepository.findOne({
-                where: {
-                    userId: memberId,
-                    organizationId: foundationId,
-                },
-            })
-
-            if (!organizationUser) {
-                throw new Error('Member not found')
-            }
-
-            await organizationUserRepository.destroy({
-                where: { id: organizationUser.id },
-            })
-
-            reply.send({
-                message: 'Member deleted successfully',
+                message: 'Access list fetched successfully',
+                data: roles,
             })
         } catch (error) {
             Controller.handleError(reply, error)

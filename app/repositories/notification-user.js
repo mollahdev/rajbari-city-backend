@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-const { isEmpty } = require('lodash')
+const { isEmpty, isObject, isString } = require('lodash')
 const { Expo } = require('expo-server-sdk')
 const expo = new Expo()
 const { Op } = require('sequelize')
@@ -56,6 +56,24 @@ module.exports = class NotificationUserRepository extends RepositoryBase {
                     (item) => item.userId === device.userId
                 )
 
+                let data = {
+                    notification: notification.dataValues,
+                }
+
+                if (isString(notificationData.data)) {
+                    data = {
+                        ...data,
+                        ...JSON.parse(notificationData.data || '{}'),
+                    }
+                }
+
+                if (isObject(notificationData.data)) {
+                    data = {
+                        ...data,
+                        ...notificationData.data,
+                    }
+                }
+
                 return {
                     to: device.token,
                     sound: 'default',
@@ -63,10 +81,7 @@ module.exports = class NotificationUserRepository extends RepositoryBase {
                     channelId: 'bdCitiesNotification',
                     title: notificationData.title,
                     body: notificationData.body,
-                    data: {
-                        ...JSON.parse(notificationData.data || '{}'),
-                        notification: notification.dataValues,
-                    },
+                    data,
                 }
             })
 
@@ -87,6 +102,24 @@ module.exports = class NotificationUserRepository extends RepositoryBase {
         const { receiverData, notificationData, socket, priority } = props
         try {
             receiverData.forEach((receiver) => {
+                let data = {
+                    notification: receiver.dataValues,
+                }
+
+                if (isString(notificationData.data)) {
+                    data = {
+                        ...data,
+                        ...JSON.parse(notificationData.data || '{}'),
+                    }
+                }
+
+                if (isObject(notificationData.data)) {
+                    data = {
+                        ...data,
+                        ...notificationData.data,
+                    }
+                }
+
                 socket
                     .to(`user.${receiver.userId}`)
                     .emit(RECEIVE.NOTIFICATION, {
@@ -94,10 +127,7 @@ module.exports = class NotificationUserRepository extends RepositoryBase {
                         priority: priority || 'normal',
                         title: notificationData.title,
                         body: notificationData.body,
-                        data: {
-                            ...JSON.parse(notificationData.data || '{}'),
-                            notification: receiver.dataValues,
-                        },
+                        data,
                     })
             })
         } catch (error) {
