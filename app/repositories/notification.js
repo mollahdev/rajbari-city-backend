@@ -5,6 +5,7 @@ const { assign } = require('lodash')
 const RepositoryBase = require('./repository-base')
 const NotificationUserRepository = require('./notification-user')
 const NotificationDTO = require('@/app/dtos/notification')
+const { banglaRole } = require('@/app/helpers')
 
 module.exports = class NotificationRepository extends RepositoryBase {
     constructor() {
@@ -97,6 +98,41 @@ module.exports = class NotificationRepository extends RepositoryBase {
             })
         } catch (error) {
             console.error('Error in sendBloodRequestNotification', error)
+        }
+    }
+
+    async sendAccessInvitationNotification(props) {
+        const { receivers, payload, user, socket } = props
+        try {
+            const notificationDTO = new NotificationDTO()
+            assign(notificationDTO, {
+                type: 'info', // info, warning, alert
+                title: `আপনাকে ${banglaRole(payload.role)} হিসেবে আমন্ত্রণ জানানো হয়েছে`,
+                body: `${user.name} আপনাকে "${payload.organizationName}" এর জন্য ${banglaRole(payload.role)} হিসেবে আমন্ত্রণ করেছেন।`,
+                userId: user.id,
+                data: {
+                    type: 'access_invitation',
+                    accessId: payload.accessId,
+                    url: `dashboard`,
+                },
+            })
+
+            const notification = await this.#createNotification({
+                receivers,
+                notificationDTO,
+            })
+
+            await this.#sendNotification({
+                socket,
+                notification,
+                priority: 'high',
+                channel: {
+                    pushNotification: true,
+                    socketNotification: true,
+                },
+            })
+        } catch (error) {
+            console.error('Error in sendAccessInvitationNotification', error)
         }
     }
 }

@@ -7,7 +7,7 @@ const BloodDonorRepository = require('@/app/repositories/blood-donor')
 const HospitalRepository = require('@/app/repositories/hospital')
 const BloodFoundationRepository = require('@/app/repositories/blood-foundation')
 const DiagnosticRepository = require('@/app/repositories/diagnostic')
-const { getFileUrl } = require('@/app/helpers')
+const { getFileUrl, isPastDate } = require('@/app/helpers')
 const { PLACEHOLDER_AVATAR } = require('@/app/helpers/constants')
 const { RECEIVE } = require('@/socket/events')
 const { Op } = require('sequelize')
@@ -23,18 +23,12 @@ module.exports = class BloodRequestRepository extends RepositoryBase {
         const hospitalRepo = new HospitalRepository()
         const diagnosticRepo = new DiagnosticRepository()
 
-        const requestDetails = await this.findOne({
+        const requestDetails = await this.model.findOne({
             where: { id: requestId },
         })
 
         if (!requestDetails) return
-
-        // is expired
-        const reqDate = new Date(requestDetails.date)
-        const today = new Date()
-        const isExpired =
-            reqDate.toISOString().slice(0, 10) <
-            today.toISOString().slice(0, 10)
+        const isExpired = isPastDate(requestDetails.date)
 
         // check if the request date is in the past
         if (isExpired) {
