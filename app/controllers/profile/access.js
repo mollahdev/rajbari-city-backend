@@ -6,6 +6,8 @@ const Controller = require('@/app/controllers/controller')
 const UserRoleRepository = require('@/app/repositories/user-role')
 const BloodFoundationRepository = require('@/app/repositories/blood-foundation')
 const UserRoleDTO = require('@/app/dtos/user-role')
+const { getFileUrl } = require('@/app/helpers')
+const { PLACEHOLDER_IMAGE } = require('@/app/helpers/constants')
 
 class AccessController extends Controller {
     static async acceptAccess(request, reply) {
@@ -117,7 +119,9 @@ class AccessController extends Controller {
                 invitation.setDataValue('organizationData', {
                     id: item.id,
                     name: item.name,
-                    thumbnailUrl: item.thumbnailUrl,
+                    thumbnailUrl: getFileUrl(
+                        item.thumbnailUrl || PLACEHOLDER_IMAGE
+                    ),
                 })
             })
 

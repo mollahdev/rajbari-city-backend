@@ -30,6 +30,7 @@ const {
     PLACEHOLDER_AVATAR,
     ROLES,
 } = require('@/app/helpers/constants')
+const profile = require('@/routes/v1/profile')
 
 class BloodController {
     static async createDonor(request, reply) {
@@ -1245,15 +1246,15 @@ class BloodController {
                 throw new Error('Not allowed to delete higher role access')
             }
 
+            await roleRepo.socketDeleteUserRole({
+                userRoleId: id,
+                socket: this.io,
+            })
+
             await roleRepo.destroy({
                 where: {
                     id,
                 },
-            })
-
-            await roleRepo.socketDeleteUserRole({
-                deletedRole: userRole,
-                socket: this.io,
             })
 
             reply.send({
@@ -1271,6 +1272,7 @@ class BloodController {
         try {
             const roleRepo = new UserRoleRepository()
             const foundationRepo = new BloodFoundationRepository()
+            const userRepo = new UserRepository()
             const currentUserRole = await foundationRepo.getUserRoleStatus({
                 userId,
                 foundationId,
@@ -1300,6 +1302,29 @@ class BloodController {
                     organizationId: foundationId,
                 },
                 order: [['createdAt', 'DESC']],
+            })
+
+            const userIds = roles.map((role) => role.userId)
+            const users = await userRepo.findAll({
+                where: {
+                    id: {
+                        [Op.in]: userIds,
+                    },
+                },
+            })
+
+            users.forEach((user) => {
+                const userRole = roles.find((role) => role.userId === user.id)
+                if (userRole) {
+                    userRole.setDataValue('userData', {
+                        name: user.name,
+                        mobile: user.mobile,
+                        dialCode: user.dialCode,
+                        profilePictureUrl: getFileUrl(
+                            user.profilePictureUrl || PLACEHOLDER_AVATAR
+                        ),
+                    })
+                }
             })
 
             reply.send({

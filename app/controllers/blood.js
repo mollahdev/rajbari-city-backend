@@ -22,7 +22,6 @@ const {
     PLACEHOLDER_IMAGE,
     PLACEHOLDER_AVATAR,
 } = require('@/app/helpers/constants')
-const { RECEIVE } = require('@/socket/events')
 
 module.exports = class BloodController {
     static async getAllFoundations(request, reply) {

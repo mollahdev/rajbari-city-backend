@@ -32,7 +32,7 @@ class DoctorController {
             const doctorDTO = new DoctorDTO()
             const bmdcNumber = trim(request.body.bmdcNumber || '')
 
-            if (isEmpty(bmdcNumber)) {
+            if (isEmpty(normalizeCode(bmdcNumber))) {
                 throw new Error('BMDC number is required')
             }
 
