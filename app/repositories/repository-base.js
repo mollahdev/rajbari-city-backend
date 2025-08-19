@@ -37,4 +37,8 @@ module.exports = class RepositoryBase {
     async findAll(query) {
         return await this.model.findAll(query)
     }
+
+    async findAndCountAll(query) {
+        return await this.model.findAndCountAll(query)
+    }
 }
