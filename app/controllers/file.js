@@ -4,7 +4,6 @@ const path = require('path')
  * Internal dependencies
  */
 const Controller = require('./controller')
-const UserRepository = require('@/app/repositories/user')
 const storage = require('@/app/services/storage')
 const { getFileUrl } = require('@/app/helpers')
 
@@ -28,15 +27,6 @@ class FileController {
 
             if (data.file.truncated) {
                 throw new Error('File size too large')
-            }
-
-            const user = new UserRepository()
-            const existingUser = await user.findOne({
-                where: { id: request.user.id },
-            })
-
-            if (!existingUser) {
-                throw new Error('User not found')
             }
 
             const response = await storage.upload(data)
