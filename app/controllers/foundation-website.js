@@ -5,6 +5,7 @@ const Controller = require('./controller')
 const BloodFoundationDonorRepository = require('@/app/repositories/blood-foundation-donor')
 const { getFileUrl } = require('@/app/helpers')
 const { PLACEHOLDER_AVATAR } = require('@/app/helpers/constants')
+const Geocode = require('@/app/geocode')
 
 module.exports = class FoundationWebsite {
     static async donorShortList(request, reply) {
@@ -76,27 +77,37 @@ module.exports = class FoundationWebsite {
                 ]
             }
 
-            const donors = await donorRepo.findAll({
+            const donors = await donorRepo.findAndCountAll({
                 where: donorWhereTable,
                 order: [['updatedAt', 'DESC']],
                 attributes: [
                     'profilePictureUrl',
                     'bloodGroup',
                     'name',
+                    'gender',
+                    'upazila',
                     'lastDonatedAt',
                 ],
             })
 
-            donors.forEach((donor) => {
-                donor.setDataValue(
+            donors.rows.forEach((item) => {
+                item.setDataValue(
                     'profilePictureUrl',
-                    getFileUrl(donor.profilePictureUrl || PLACEHOLDER_AVATAR)
+                    getFileUrl(item.profilePictureUrl || PLACEHOLDER_AVATAR)
                 )
             })
 
+            const upazila = Geocode.getUpazilas(
+                (item) => item.district_id == foundation.district
+            )
+
             reply.send({
                 message: 'Donors fetched successfully',
-                data: donors,
+                data: {
+                    donors: donors.rows,
+                    total: donors.count,
+                    upazilaList: upazila,
+                },
             })
         } catch (error) {
             Controller.handleError(reply, error)
