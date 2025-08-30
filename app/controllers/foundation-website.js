@@ -3,9 +3,11 @@
  */
 const Controller = require('./controller')
 const BloodFoundationDonorRepository = require('@/app/repositories/blood-foundation-donor')
-const { getFileUrl } = require('@/app/helpers')
+const BloodFoundationDonorDTO = require('@/app/dtos/blood-foundation-donor')
+const { getFileUrl, getFileFromPath } = require('@/app/helpers')
 const { PLACEHOLDER_AVATAR } = require('@/app/helpers/constants')
 const Geocode = require('@/app/geocode')
+const { assign } = require('lodash')
 
 module.exports = class FoundationWebsite {
     static async donorShortList(request, reply) {
@@ -97,17 +99,73 @@ module.exports = class FoundationWebsite {
                 )
             })
 
-            const upazila = Geocode.getUpazilas(
-                (item) => item.district_id == foundation.district
-            )
-
             reply.send({
                 message: 'Donors fetched successfully',
                 data: {
                     donors: donors.rows,
                     total: donors.count,
-                    upazilaList: upazila,
                 },
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    static async locations(request, reply) {
+        const { foundation } = request
+        try {
+            const district = Geocode.getDistricts(
+                (item) => item.id == foundation.district
+            )
+
+            const upazila = Geocode.getUpazilas(
+                (item) => item.district_id == foundation.district
+            )
+
+            const municipality = Geocode.getMunicipalities((mun) => {
+                return upazila.find((up) => up.id == mun.upazilla_id)
+            })
+
+            const union = Geocode.getUnions((un) => {
+                return upazila.find((up) => up.id == un.upazilla_id)
+            })
+
+            reply.send({
+                message: 'Geographical locations fetched successfully',
+                data: {
+                    district,
+                    upazila,
+                    municipality,
+                    union,
+                },
+            })
+        } catch (error) {
+            Controller.handleError(reply, error)
+        }
+    }
+
+    static async createDonor(request, reply) {
+        const { foundation } = request
+        try {
+            const donorDTO = new BloodFoundationDonorDTO()
+            const donorRepo = new BloodFoundationDonorRepository()
+
+            assign(donorDTO, {
+                ...request.body,
+                foundationId: foundation.id,
+                district: foundation.district,
+                status: 'pending',
+                description: '',
+                profilePictureUrl: getFileFromPath(
+                    request.body.profilePictureUrl
+                ),
+            })
+
+            // await donorRepo.create(donorDTO)
+
+            reply.send({
+                message: 'Donor created successfully',
+                data: donorDTO.toObject(),
             })
         } catch (error) {
             Controller.handleError(reply, error)
