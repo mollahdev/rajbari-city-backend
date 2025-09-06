@@ -8,6 +8,8 @@ const fastifyFormbody = require('@fastify/formbody')
 const fastifyMultipart = require('@fastify/multipart')
 const jwt = require('@fastify/jwt')
 const fastitySocketIo = require('fastify-socket.io')
+const cors = require('@fastify/cors')
+
 /**
  * Internal dependencies
  */
@@ -22,6 +24,10 @@ const fastify = new Fastify({
             removeAdditional: 'all',
         },
     },
+})
+
+fastify.register(cors, {
+    origin: '*',
 })
 
 fastify.register(fastitySocketIo, {
