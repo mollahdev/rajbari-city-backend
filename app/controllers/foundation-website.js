@@ -4,10 +4,11 @@
 const Controller = require('./controller')
 const BloodFoundationDonorRepository = require('@/app/repositories/blood-foundation-donor')
 const BloodFoundationDonorDTO = require('@/app/dtos/blood-foundation-donor')
+const UserRoleRepository = require('@/app/repositories/user-role')
 const { getFileUrl, getFileFromPath } = require('@/app/helpers')
 const { PLACEHOLDER_AVATAR } = require('@/app/helpers/constants')
 const Geocode = require('@/app/geocode')
-const { assign } = require('lodash')
+const { assign, uniq } = require('lodash')
 
 module.exports = class FoundationWebsite {
     static async donorShortList(request, reply) {
@@ -149,6 +150,18 @@ module.exports = class FoundationWebsite {
         try {
             const donorDTO = new BloodFoundationDonorDTO()
             const donorRepo = new BloodFoundationDonorRepository()
+            const userRoleRepo = new UserRoleRepository()
+
+            const isExists = await donorRepo.findOne({
+                where: {
+                    mobile: request.body.mobile,
+                    foundationId: foundation.id,
+                },
+            })
+
+            if (isExists) {
+                throw new Error('Donor with this mobile number already exists')
+            }
 
             assign(donorDTO, {
                 ...request.body,
@@ -163,9 +176,26 @@ module.exports = class FoundationWebsite {
 
             // await donorRepo.create(donorDTO)
 
+            const targetUsers = await userRoleRepo.findAll({
+                where: {
+                    organizationId: foundation.id,
+                    status: 'active',
+                },
+            })
+
+            let targetUserIds = targetUsers.map((item) => item.userId)
+            targetUserIds.push(foundation.userId)
+            targetUserIds = uniq(targetUserIds)
+
+            // donorRepo.socketCreateDonor({
+            //     user: request.user,
+            //     requestId: response.id,
+            //     socket: this.io,
+            // })
+
             reply.send({
                 message: 'Donor created successfully',
-                data: donorDTO.toObject(),
+                targetUserIds,
             })
         } catch (error) {
             Controller.handleError(reply, error)

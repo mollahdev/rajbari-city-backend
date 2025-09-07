@@ -19,4 +19,6 @@ module.exports = class BloodFoundationDonorRepository extends RepositoryBase {
 
         return !isEmpty(result)
     }
+
+    async socketCreateDonor(props) {}
 }
