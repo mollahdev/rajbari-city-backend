@@ -1,4 +1,4 @@
-const { assign, isString, isEmpty } = require('lodash')
+const { assign, isString, isEmpty, uniq } = require('lodash')
 const { Op } = require('@sequelize/core')
 /**
  * Internal dependencies
@@ -788,7 +788,28 @@ class BloodController {
                 ),
             })
 
-            await donorRepository.create(donorDTO)
+            const response = await donorRepository.create(donorDTO)
+
+            const donorData = await donorRepository.findOne({
+                where: { id: response.id, foundationId: foundation.id },
+            })
+
+            const targetUsers = await userRoleRepo.findAll({
+                where: {
+                    organizationId: foundation.id,
+                    status: 'active',
+                },
+            })
+
+            let targetUserIds = targetUsers.map((item) => item.userId)
+            targetUserIds.push(foundation.userId)
+            targetUserIds = uniq(targetUserIds)
+
+            donorRepository.socketCreateDonor({
+                payload: donorData,
+                receivers: targetUserIds,
+                socket: this.io,
+            })
 
             assign(foundationDTO, {
                 name: foundation.name,
@@ -879,6 +900,27 @@ class BloodController {
                 where: { id: donorId, foundationId },
             })
 
+            const donorData = await donorRepository.findOne({
+                where: { id: donorId, foundationId },
+            })
+
+            const targetUsers = await userRoleRepo.findAll({
+                where: {
+                    organizationId: foundation.id,
+                    status: 'active',
+                },
+            })
+
+            let targetUserIds = targetUsers.map((item) => item.userId)
+            targetUserIds.push(foundation.userId)
+            targetUserIds = uniq(targetUserIds)
+
+            donorRepository.socketUpdateDonor({
+                payload: donorData,
+                receivers: targetUserIds,
+                socket: this.io,
+            })
+
             assign(foundationDTO, {
                 name: foundation.name,
             })
@@ -944,6 +986,23 @@ class BloodController {
 
             await donorRepository.destroy({
                 where: { id: donorId, foundationId },
+            })
+
+            const targetUsers = await userRoleRepo.findAll({
+                where: {
+                    organizationId: foundationId,
+                    status: 'active',
+                },
+            })
+
+            let targetUserIds = targetUsers.map((item) => item.userId)
+            targetUserIds.push(foundation.userId)
+            targetUserIds = uniq(targetUserIds)
+
+            donorRepository.socketDeleteDonor({
+                payload: { id: donorId },
+                receivers: targetUserIds,
+                socket: this.io,
             })
 
             assign(foundationDTO, {
