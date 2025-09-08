@@ -135,4 +135,42 @@ module.exports = class NotificationRepository extends RepositoryBase {
             console.error('Error in sendAccessInvitationNotification', error)
         }
     }
+
+    async sendFoundationDonorRegistrationNotification(props) {
+        const { receivers, payload, foundation, socket } = props
+        try {
+            const notificationDTO = new NotificationDTO()
+            assign(notificationDTO, {
+                type: 'info', // info, warning, alert
+                title: `নতুন রক্তদাতা নিবন্ধন`,
+                body: `${payload.name} নতুন রক্তদাতা হিসেবে ${foundation.name} -এ নিবন্ধন করেছেন।`,
+                userId: foundation.userId,
+                data: {
+                    type: 'foundation_donor_registration',
+                    donorId: payload.id,
+                    url: `dashboard`,
+                },
+            })
+
+            const notification = await this.#createNotification({
+                receivers,
+                notificationDTO,
+            })
+
+            await this.#sendNotification({
+                socket,
+                notification,
+                priority: 'medium',
+                channel: {
+                    pushNotification: true,
+                    socketNotification: true,
+                },
+            })
+        } catch (error) {
+            console.error(
+                'Error in sendFoundationDonorRegistrationNotification',
+                error
+            )
+        }
+    }
 }

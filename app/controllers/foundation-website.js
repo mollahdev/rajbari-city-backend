@@ -1,14 +1,15 @@
+const { assign, uniq } = require('lodash')
 /**
  * Internal dependencies
  */
 const Controller = require('./controller')
 const BloodFoundationDonorRepository = require('@/app/repositories/blood-foundation-donor')
 const BloodFoundationDonorDTO = require('@/app/dtos/blood-foundation-donor')
+const NotificationRepository = require('@/app/repositories/notification')
 const UserRoleRepository = require('@/app/repositories/user-role')
 const { getFileUrl, getFileFromPath } = require('@/app/helpers')
 const { PLACEHOLDER_AVATAR } = require('@/app/helpers/constants')
 const Geocode = require('@/app/geocode')
-const { assign, uniq } = require('lodash')
 
 module.exports = class FoundationWebsite {
     static async donorShortList(request, reply) {
@@ -151,10 +152,11 @@ module.exports = class FoundationWebsite {
             const donorDTO = new BloodFoundationDonorDTO()
             const donorRepo = new BloodFoundationDonorRepository()
             const userRoleRepo = new UserRoleRepository()
+            const notificationRepo = new NotificationRepository()
 
             const isExists = await donorRepo.findOne({
                 where: {
-                    mobile: request.body.mobile,
+                    mobile: request.body.mobile || '',
                     foundationId: foundation.id,
                 },
             })
@@ -174,7 +176,10 @@ module.exports = class FoundationWebsite {
                 ),
             })
 
-            // await donorRepo.create(donorDTO)
+            const response = await donorRepo.create(donorDTO)
+            const donorData = await donorRepo.findOne({
+                where: { id: response.id },
+            })
 
             const targetUsers = await userRoleRepo.findAll({
                 where: {
@@ -187,15 +192,21 @@ module.exports = class FoundationWebsite {
             targetUserIds.push(foundation.userId)
             targetUserIds = uniq(targetUserIds)
 
-            // donorRepo.socketCreateDonor({
-            //     user: request.user,
-            //     requestId: response.id,
-            //     socket: this.io,
-            // })
+            donorRepo.socketCreateDonor({
+                receivers: targetUserIds,
+                payload: donorData,
+                socket: this.io,
+            })
+
+            notificationRepo.sendFoundationDonorRegistrationNotification({
+                receivers: targetUserIds,
+                payload: donorData,
+                foundation: foundation,
+                socket: this.io,
+            })
 
             reply.send({
                 message: 'Donor created successfully',
-                targetUserIds,
             })
         } catch (error) {
             Controller.handleError(reply, error)
