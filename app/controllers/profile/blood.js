@@ -1000,7 +1000,10 @@ class BloodController {
             targetUserIds = uniq(targetUserIds)
 
             donorRepository.socketDeleteDonor({
-                payload: { id: donorId },
+                payload: {
+                    id: donorId,
+                    foundationId,
+                },
                 receivers: targetUserIds,
                 socket: this.io,
             })
