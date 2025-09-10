@@ -181,6 +181,11 @@ module.exports = class FoundationWebsite {
                 where: { id: response.id },
             })
 
+            donorData.setDataValue(
+                'profilePictureUrl',
+                getFileUrl(donorData.profilePictureUrl || PLACEHOLDER_AVATAR)
+            )
+
             const targetUsers = await userRoleRepo.findAll({
                 where: {
                     organizationId: foundation.id,

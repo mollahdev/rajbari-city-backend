@@ -794,6 +794,11 @@ class BloodController {
                 where: { id: response.id, foundationId: foundation.id },
             })
 
+            donorData.setDataValue(
+                'profilePictureUrl',
+                getFileUrl(donorData.profilePictureUrl || PLACEHOLDER_AVATAR)
+            )
+
             const targetUsers = await userRoleRepo.findAll({
                 where: {
                     organizationId: foundation.id,
@@ -903,6 +908,11 @@ class BloodController {
             const donorData = await donorRepository.findOne({
                 where: { id: donorId, foundationId },
             })
+
+            donorData.setDataValue(
+                'profilePictureUrl',
+                getFileUrl(donorData.profilePictureUrl || PLACEHOLDER_AVATAR)
+            )
 
             const targetUsers = await userRoleRepo.findAll({
                 where: {
