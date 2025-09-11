@@ -106,6 +106,22 @@ function normalizeCode(input) {
     if (!isString(input)) {
         return input
     }
+
+    // convert bangla digits to english digits
+    const banglaToEnglishMap = {
+        '০': '0',
+        '১': '1',
+        '২': '2',
+        '৩': '3',
+        '৪': '4',
+        '৫': '5',
+        '৬': '6',
+        '৭': '7',
+        '৮': '8',
+        '৯': '9',
+    }
+
+    input = input.replace(/[০-৯]/g, (match) => banglaToEnglishMap[match])
     return input.replace(/\D/g, '').replace(/\s+/g, '').toUpperCase()
 }
 
