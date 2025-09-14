@@ -8,6 +8,8 @@ const diagnosticRoutes = require('./diagnostic')
 const doctorRoutes = require('./doctor')
 const notificationRoutes = require('./notification')
 const accessRoutes = require('./access')
+const driverRoutes = require('./driver')
+const vehicleRoutes = require('./vehicle')
 
 module.exports = async function (fastify) {
     fastify.get('/', {
@@ -34,6 +36,8 @@ module.exports = async function (fastify) {
     fastify.register(doctorRoutes, { prefix: '/doctor' })
     fastify.register(notificationRoutes, { prefix: '/notification' })
     fastify.register(accessRoutes, { prefix: '/access' })
+    fastify.register(driverRoutes, { prefix: '/driver' })
+    fastify.register(vehicleRoutes, { prefix: '/vehicle' })
 
     fastify.addHook('onRequest', auth) //Middleware
 }
