@@ -48,5 +48,11 @@ module.exports = (sequelize, DataTypes) => {
         }
     )
 
+    Driver.afterDestroy(async (data, options) => {
+        await sequelize.models.Vehicle.destroy({
+            where: { userId: data.userId },
+        })
+    })
+
     return Driver
 }
