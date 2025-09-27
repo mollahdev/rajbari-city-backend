@@ -10,7 +10,7 @@ const VehicleRepository = require('@/app/repositories/vehicle')
 const VehicleDTO = require('@/app/dtos/vehicle')
 const DriverRepository = require('@/app/repositories/driver')
 
-const { getFileUrl, normalizeCode, getFileFromPath } = require('@/app/helpers')
+const { getFileUrl, getFileFromPath } = require('@/app/helpers')
 const { PLACEHOLDER_IMAGE } = require('@/app/helpers/constants')
 
 module.exports = class VehicleController extends Controller {
@@ -33,7 +33,7 @@ module.exports = class VehicleController extends Controller {
             assign(vehicleDTO, {
                 ...request.body,
                 userId: id,
-                size: normalizeCode(request.body.size),
+                size: request.body.size,
                 image: getFileFromPath(request.body.image),
             })
 
@@ -129,7 +129,6 @@ module.exports = class VehicleController extends Controller {
                 ...vehicle,
                 ...request.body,
                 userId,
-                size: normalizeCode(request.body.size || vehicle.size),
                 image: getFileFromPath(request.body.image || vehicle.image),
             })
 
