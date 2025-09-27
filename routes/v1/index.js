@@ -10,7 +10,8 @@ const hospitalRoutes = require('./hospital')
 const diagnosticRoutes = require('./diagnostic')
 const doctorRoutes = require('./doctor')
 const userRoutes = require('./user')
-const foundationWebsite = require('./foundation-website')
+const foundationWebsiteRoutes = require('./foundation-website')
+const vehicleRoutes = require('./vehicle')
 
 module.exports = async (fastify) => {
     /**
@@ -27,7 +28,8 @@ module.exports = async (fastify) => {
     fastify.register(diagnosticRoutes, { prefix: '/diagnostic' })
     fastify.register(doctorRoutes, { prefix: '/doctor' })
     fastify.register(userRoutes, { prefix: '/user' })
-    fastify.register(foundationWebsite, { prefix: '/foundation-website' })
+    fastify.register(foundationWebsiteRoutes, { prefix: '/foundation-website' })
+    fastify.register(vehicleRoutes, { prefix: '/vehicle' })
     /**
      * socket connection
      */

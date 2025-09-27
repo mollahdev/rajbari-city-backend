@@ -21,9 +21,9 @@ class AppController extends Controller {
         res.send({
             message: 'App information',
             data: {
-                version: '0.0.7',
+                version: '0.0.8',
                 updateFor: ['android'], // ios, android, optional
-                updateType: 'force', // force, optional
+                updateType: 'optional', // force, optional
                 changeLog: [
                     'নোটিফিকেশন ফিচার যুক্ত করা হয়েছে',
                     'ডাক্তার ফিচার যুক্ত করা হয়েছে',

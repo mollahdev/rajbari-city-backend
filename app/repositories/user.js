@@ -24,7 +24,11 @@ module.exports = class UserRepository extends RepositoryBase {
                 {
                     model: models.BloodDonor,
                     as: 'bloodDonor',
-                    attributes: ['bloodGroup', 'description', 'lastDonatedAt'],
+                    required: false,
+                },
+                {
+                    model: models.Driver,
+                    as: 'driver',
                     required: false,
                 },
             ],
@@ -33,6 +37,7 @@ module.exports = class UserRepository extends RepositoryBase {
         const userData = {
             ...result.dataValues,
             bloodDonor: !!result.bloodDonor,
+            driver: !!result.driver,
         }
 
         return userData
