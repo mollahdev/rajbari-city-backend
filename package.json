@@ -5,9 +5,9 @@
         "npm": "10.8.2"
     },
     "scripts": {
-        "start": "pm2 start ecosystem.config.js --watch",
+        "start": "node server.js",
+        "dev": "node --watch server.js",
         "format": "prettier --write .",
-        "log": "pm2 log $APP_NAME",
         "migrate": "npx sequelize-cli db:migrate",
         "prepare": "husky"
     },
