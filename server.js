@@ -58,7 +58,7 @@ fastify.register(v1, { prefix: '/api/v1/' })
 const start = async () => {
     const PORT = process.env.APP_PORT || 3000
     try {
-        await fastify.listen({ port: PORT })
+        await fastify.listen({ port: PORT, host: '0.0.0.0' })
         console.log(`Server is running on port ${PORT}`)
     } catch (err) {
         fastify.log.error(err)
