@@ -10,12 +10,13 @@ const jwt = require('@fastify/jwt')
 const fastitySocketIo = require('fastify-socket.io')
 const cors = require('@fastify/cors')
 
+dotenv.config()
+
 /**
  * Internal dependencies
  */
+const apiDiscovery = require('@/app/plugins/apiDiscovery')
 const v1 = require('./routes/v1/')
-
-dotenv.config()
 
 const fastify = new Fastify({
     logger: true,
@@ -53,6 +54,7 @@ fastify.register(fastifyMultipart, {
     },
 })
 fastify.register(fastifyFormbody)
+fastify.register(apiDiscovery)
 fastify.register(v1, { prefix: '/api/v1/' })
 
 const start = async () => {
