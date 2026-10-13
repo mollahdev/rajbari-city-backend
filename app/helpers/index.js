@@ -52,10 +52,17 @@ function isOTPResendAllowed(otpCreatedAt) {
 }
 
 function getFileUrl(path) {
-    if (!isString(path)) {
+    if (!isString(path) || !path.trim()) {
         return null
     }
-    return `${process.env.STORAGE_BASE}/${path}`
+    if (path.startsWith('http://') || path.startsWith('https://')) {
+        return path
+    }
+    const cleanPath = path.startsWith('/') ? path.slice(1) : path
+    const storageBase = (process.env.STORAGE_BASE || '')
+        .trim()
+        .replace(/\/+$/, '')
+    return `${storageBase}/${cleanPath}`
 }
 
 function getFileFromPath(path) {
