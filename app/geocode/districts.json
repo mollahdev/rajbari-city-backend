@@ -1,23 +1,5 @@
 [
     {
-        "id": "5",
-        "division_id": "1",
-        "name": "Noakhali",
-        "bn_name": "নোয়াখালী",
-        "lat": "22.869563",
-        "lon": "91.099398",
-        "url": "www.noakhali.gov.bd"
-    },
-    {
-        "id": "25",
-        "division_id": "3",
-        "name": "Kushtia",
-        "bn_name": "কুষ্টিয়া",
-        "lat": "23.901258",
-        "lon": "89.120482",
-        "url": "www.kushtia.gov.bd"
-    },
-    {
         "id": "49",
         "division_id": "6",
         "name": "Rajbari",

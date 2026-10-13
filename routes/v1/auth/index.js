@@ -20,7 +20,7 @@ module.exports = async function (routes) {
                     },
                     district: {
                         type: 'string',
-                        enum: ['5', '49', '25'],
+                        enum: ['49'],
                     },
                 },
             },

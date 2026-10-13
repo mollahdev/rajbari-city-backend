@@ -149,7 +149,7 @@ function renderDashboardHtml(routes, groups, baseUrl) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BD Cities API Explorer</title>
+  <title>Rajbari City API Explorer</title>
   <style>
     :root {
       --bg: #090d16;
@@ -549,9 +549,9 @@ function renderDashboardHtml(routes, groups, baseUrl) {
   <header>
     <div class="header-inner">
       <div class="brand">
-        <div class="brand-icon">BD</div>
+        <div class="brand-icon">RC</div>
         <div>
-          <div class="brand-title">BD Cities API Explorer</div>
+          <div class="brand-title">Rajbari City API Explorer</div>
         </div>
         <span class="badge-count" id="totalCountBadge">${routes.length} routes</span>
       </div>

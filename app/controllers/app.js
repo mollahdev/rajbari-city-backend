@@ -31,13 +31,9 @@ class AppController extends Controller {
                     'বাগ ফিক্স করা হয়েছে',
                 ],
                 android: {
-                    5: 'https://play.google.com/store/apps/details?id=com.flexlab.noakhalicity',
-                    25: 'https://play.google.com/store/apps/details?id=com.flexlab.kushtiacity',
                     49: 'https://play.google.com/store/apps/details?id=com.flexlab.rajbaricity',
                 },
                 ios: {
-                    5: '#',
-                    25: '#',
                     49: '#',
                 },
             },

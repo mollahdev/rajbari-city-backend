@@ -1,4 +1,5 @@
 {
+    "name": "rajbari-city-backend",
     "private": true,
     "engines": {
         "node": "v20.18.0",
